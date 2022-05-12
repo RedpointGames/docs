@@ -1,0 +1,60 @@
+---
+id: migrate
+title: Migrate to EOS Online Framework
+description: Learn how to migrate your project from Online Subsystem Blueprints and Matchmaking plugins to the EOS Online Framework.
+---
+
+If you previously used the Online Subsystem Blueprints or Matchmaking plugins, and are now upgrading to the EOS Online Framework, you'll need to migrate your project.
+
+## Upgrade your license
+
+If you don't yet have access to EOS Online Framework in Fab or GitLab, use the [upgrade page in the License Manager](https://licensing.redpoint.games/upgrade) to switch your license over.
+
+## Close the editor
+
+Close the editor if it is already open.
+
+## Backup your project!
+
+Make a complete backup of your project before proceeding.
+
+## Download the EOS Online Framework plugin
+
+If you haven't already done so, [download the EOS Online Framework plugin via Fab or GitLab](../index.mdx#install-the-plugin).
+
+## Add the EOS Online Framework plugin to your project
+
+If you didn't have "EOS Online Subsystem" previously enabled in your project, you'll need to add the EOS Online Framework now. Open your `.uproject` file in a text editor, and add the following entry to the `Plugins` array in your `.uproject` file.
+
+```json
+{
+  "Name": "OnlineSubsystemRedpointEOS",
+  "Enabled": true,
+  "MarketplaceURL": "com.epicgames.launcher://ue/marketplace/product/2c92594ce5aa416c8bfbd79275389e3b"
+}
+```
+
+Please note that entries in the `Plugins` array need to be separated by commas (`,`). There must not be a comma between the last entry and the closing square bracket (`]`).
+
+## Turn off the Online Subsystem Blueprints and Matchmaking plugins in your project
+
+The functionality of the Online Subsystem Blueprints and Matchmaking plugins are now included in EOS Online Framework. Leaving them enabled will cause a conflict when you try to load your project, so turn them off now.
+
+Open your `.uproject` in a text editor, and change `Enabled` to `false` for Online Subsystem Blueprints and Matchmaking:
+
+```json
+{
+  "Name": "OnlineSubsystemBlueprints",
+  "Enabled": false
+},
+{
+  "Name": "Matchmaking",
+  "Enabled": false
+},
+```
+
+## Open your project
+
+Save your changes to your `.uproject` file and open the project in the editor again. Everything should load correctly.
+
+If you experience issues with the migration steps, please [reach out to support](../index.mdx).

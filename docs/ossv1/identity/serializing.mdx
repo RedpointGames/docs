@@ -1,0 +1,59 @@
+---
+title: Converting user IDs to strings and back
+description: How to convert user IDs to string representations and back.
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import Blueprint from '@site/src/Blueprint';
+
+## Serialize a user ID to a string value
+
+<Tabs lazy groupId="code-format" defaultValue="c++" values={[ { label: 'C++', value: 'c++' }, { label: 'Blueprints', value: 'blueprints' } ]}>
+<TabItem value="c++">
+
+You can serialize a user ID to a string value by using the `ToString()` function on the user ID:
+
+```cpp
+// TSharedPtr<const FUniqueNetId> UserId
+
+FString UserIdSerialized = UserId->ToString();
+```
+
+</TabItem>
+<TabItem value="blueprints">
+
+To convert a user ID into a string value, simply drag the user ID value into a string slot, and a conversion node will automatically be added.
+
+</TabItem>
+</Tabs>
+
+## Deserialize a string value into a user ID
+
+<Tabs lazy groupId="code-format" defaultValue="c++" values={[ { label: 'C++', value: 'c++' }, { label: 'Blueprints', value: 'blueprints' } ]}>
+<TabItem value="c++">
+
+You can deserialize a string value into a user ID by using the `CreateUniquePlayerId` function on the identity interface:
+
+```cpp
+IOnlineSubsystem *Subsystem = Online::GetSubsystem(this->GetWorld());
+IOnlineIdentityPtr Identity = Subsystem->GetIdentityInterface();
+
+// FString UserIdSerialized
+
+TSharedPtr<const FUniqueNetId> UserId = Identity->CreateUniquePlayerId(UserIdSerialized);
+if (UserId.IsValid())
+{
+    // User ID was deserialized successfully, but this doesn't necessarily
+    // mean the user exists. If you need to check if the user exists,
+    // use the IOnlineUser interface.
+}
+```
+
+</TabItem>
+<TabItem value="blueprints">
+
+You can deserialize a string value into a user ID by using the "Create Unique Player Id" blueprint node on the Online Identity subsystem: ["Create Unique Player Id" on the Online Subsystem Blueprints documentation](https://docs.redpoint.games/online-subsystem-blueprints/docs/reference/identity/function/createuniqueplayerid)
+
+</TabItem>
+</Tabs>

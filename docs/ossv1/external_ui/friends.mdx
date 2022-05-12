@@ -1,0 +1,77 @@
+---
+title: Showing the friends overlay
+description: How to show the friend overlay
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import Blueprint from '@site/src/Blueprint';
+
+You can use the external UI interface to show the friends overlay to the user. If they're signed into an Epic Games account, they'll see the Epic Games friends list. If they're not signed into Epic Games, but are playing on Steam or a console platform, they'll be presented with the native platform's friends list.
+
+## Configuring the external UI for the local platform on PC
+
+On mobile and console platforms, this is already done for you. However on PC, you'll need to tell Unreal Engine which store your build is for, so that the external UI calls get routed correctly.
+
+If you're shipping on Steam, you should set the following entry in `DefaultEngine.ini`:
+
+```ini
+[OnlineSubsystem]
+NativePlatformService=Steam
+```
+
+:::caution
+If you don't have a `NativePlatformService` set, you'll only be able to call `ShowFriendsUI` when the user is signed into an Epic Games account. All other external UI operations will fail.
+:::
+
+## Showing the friends overlay
+
+<Tabs lazy groupId="code-format" defaultValue="c++" values={[ { label: 'C++', value: 'c++' }, { label: 'Blueprints', value: 'blueprints' } ]}>
+<TabItem value="c++">
+
+To show the friends overlay, first get the external UI interface:
+
+```cpp
+#include "OnlineSubsystem.h"
+#include "OnlineSubsystemUtils.h"
+#include "Interfaces/OnlineExternalUIInterface.h"
+
+// ...
+
+IOnlineSubsystem* Subsystem = Online::GetSubsystem(this->GetWorld());
+IOnlineExternalUIPtr ExternalUI = Subsystem->GetExternalUIInterface();
+```
+
+Then, open the friends UI for the local user:
+
+```cpp
+ExternalUI->ShowFriendsUI(0 /* The controller index of the local user */);
+```
+
+</TabItem>
+<TabItem value="blueprints">
+
+To show the friends overlay, call Show Friends UI on the external UI subsystem:
+
+<Blueprint height="260px" blueprint={`
+Begin Object Class=/Script/BlueprintGraph.K2Node_GetSubsystem Name="K2Node_GetSubsystem_0"
+   CustomClass=Class'"/Script/OnlineSubsystemBlueprints.OnlineExternalUISubsystem"'
+   NodePosY=368
+   NodeGuid=7E18D70444B7346747A960A2F2EABBCD
+   CustomProperties Pin (PinId=04CDDB6D4CE83DFFA44C52A2B18C68FD,PinName="ReturnValue",Direction="EGPD_Output",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/OnlineSubsystemBlueprints.OnlineExternalUISubsystem"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_CallFunction_0 DA1C9D384DE33958A0E5C8AF67FFE782,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="K2Node_CallFunction_0"
+   FunctionReference=(MemberParent=Class'"/Script/OnlineSubsystemBlueprints.OnlineExternalUISubsystem"',MemberName="ShowFriendsUI")
+   NodePosX=272
+   NodePosY=336
+   NodeGuid=548249254DD98324A8EF8DBE4298D33B
+   CustomProperties Pin (PinId=3134AB644B93D6E28A678EAD0ABD2700,PinName="execute",PinToolTip="\\nExec",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_Event_3 8D78DB1B4D3093BF8A9E4AAFF9604009,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=AF9DA90B4105A0F9F403EB9EB58EB9E2,PinName="then",PinToolTip="\\nExec",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_CallFunction_1 EE1E4C084C70E10479F11AAFD96FE85B,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=DA1C9D384DE33958A0E5C8AF67FFE782,PinName="self",PinFriendlyName=NSLOCTEXT("K2Node", "Target", "Target"),PinToolTip="Target\\nOnline External UISubsystem Object Reference",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/OnlineSubsystemBlueprints.OnlineExternalUISubsystem"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_GetSubsystem_0 04CDDB6D4CE83DFFA44C52A2B18C68FD,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=E78A063641652ED3569FA48F30702116,PinName="LocalUserNum",PinToolTip="Local User Num\\nInteger",PinType.PinCategory="int",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,DefaultValue="0",AutogeneratedDefaultValue="0",PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=73AD50774CE3659B5674B49FDF9B6339,PinName="ReturnValue",PinToolTip="Return Value\\nBoolean\\n\\nShow Friends UI",Direction="EGPD_Output",PinType.PinCategory="bool",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,DefaultValue="false",AutogeneratedDefaultValue="false",PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+`} />
+
+</TabItem>
+</Tabs>

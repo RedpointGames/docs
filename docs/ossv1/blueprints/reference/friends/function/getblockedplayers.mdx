@@ -1,0 +1,61 @@
+---
+id: getblockedplayers
+title: Get Blocked Players
+description: The GetBlockedPlayers function of the Friends subsystem.
+---
+
+import TypeRenderer from '@site/src/TypeRenderer';
+import FunctionRenderer from '@site/src/FunctionRenderer';
+
+This is a normal blueprint node.
+
+The C++ documentation for this function is available on [the Unreal Engine documentation website](https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Plugins/OnlineSubsystem/Interfaces/IOnlineFriends/).
+
+## Example
+
+<FunctionRenderer subsystemName="Friends" func={{"Identifier":"GetBlockedPlayers","Supported":false,"Async":false,"AsyncPins":[],"Pure":false,"Parameters":[{"Position":0,"Identifier":"UserId","Type":{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl","Out":false}},{"Position":1,"Identifier":"OutBlockedPlayers","Type":{"Type":"Array","Element":{"Type":"Wrapped","Identifier":"UOnlineUserRef*"},"Out":true}}],"ReturnType":{"Type":"Simple","Identifier":"bool"}}} />
+
+## Inputs
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Input Name</th>
+      <th>Input Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td>User Id</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl","Out":false}} /></td>
+    </tr>
+  </tbody>
+</table>
+
+
+## Outputs
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Output Name</th>
+      <th>Output Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td>Return  Value</td>
+      <td><TypeRenderer typeInfo={{"Type":"Simple","Identifier":"bool"}} /></td>
+    </tr>
+    <tr>
+      <td>Blocked Players</td>
+      <td><TypeRenderer typeInfo={{"Type":"Array","Element":{"Type":"Wrapped","Identifier":"UOnlineUserRef*"},"Out":true}} /></td>
+    </tr>
+  </tbody>
+</table>
+
+

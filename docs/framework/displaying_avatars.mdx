@@ -1,0 +1,37 @@
+---
+title: Display player avatars
+description: Display avatars in your game using the "Redpoint Avatar" UMG widget.
+---
+
+import Blueprint from "@site/src/Blueprint";
+import Video from "@site/src/Video";
+
+import bpSetTargetUser from "./displaying_avatars/set_target_user.bp";
+
+import videoAddAvatarWidgetUrl from "./displaying_avatars/add_avatar_widget.mp4";
+
+To display player avatars in your game, you can use the "Redpoint Avatar" UMG widget. You don't need to worry about downloading avatars or progress indicators when using this widget; just set the target user ID and the widget will automatically display a progress indicator while the avatar is being fetched.
+
+## Adding the avatar widget
+
+In your UMG blueprint widget, search for "Redpoint Avatar" in the Palette and add it to your widget.
+
+<Video url={videoAddAvatarWidgetUrl} />
+
+## Configure the avatar widget
+
+The avatar widget provides several options to customize it's appearance and loading behaviour:
+
+- **Target User Is Local User**: In the simple case where you want to display the current player's avatar, you can turn this option on. When this option is turned on, the value of "Target User Id" (which would otherwise have to be set inside the blueprint graph) is ignored.
+- **Default Texture**: This is the default texture to display when the player doesn't have an avatar set or it couldn't be loaded.
+- **Loading Indicator**: This is the type of loading indicator that should display:
+  - _None_: No loading indicator is shown.
+  - _Throbber_: A progress indicator is shown as per the video above.
+  - _Default Texture_: The default texture is shown while the user's avatar is loaded.
+- **Expiration Minutes**: How long a user's avatar should be cached for, before it will be refreshed.
+
+## Set the target user for the avatar widget
+
+If you are not displaying the avatar of the local player, you'll need to set the target user ID for the avatar widget. This can come from party members or other players in a multiplayer game; it is up to you.
+
+<Blueprint height="250px" blueprint={bpSetTargetUser} />

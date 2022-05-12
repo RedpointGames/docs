@@ -1,0 +1,226 @@
+---
+id: licensing
+title: Licensing
+description: Determine whether or not you need to purchase the EOS Online Framework plugin on Fab.
+---
+
+import { useState, Fragment } from "react";
+
+export const LicensingGuide = () => {
+  var questionGraph = {
+    start: {
+      query: "Do you need support for the EOS Online Framework plugin?",
+      options: {
+        Yes: "fab",
+        No: "sourcecode",
+      },
+    },
+    sourcecode: {
+      query:
+        "Do you need source code access for the EOS Online Framework plugin?",
+      options: {
+        Yes: "fab",
+        No: "usage",
+      },
+    },
+    usage: {
+      query: "Are you an individual or a company?",
+      helptext:
+        "Individual usage is only for sole developers with no employees or contractors.",
+      options: {
+        Individual: "individual",
+        Company: "company",
+      },
+    },
+    individual: {
+      query:
+        "Have you or will you earn more than $30,000 USD this calendar year?",
+      helptext:
+        "Individual usage does not permit the development of products for a company, or usage in contracting for a company. We consider your aggregate salary you currently earn (even if you only started earning that salary recently).",
+      options: {
+        Yes: "fab",
+        No: "free",
+      },
+    },
+    company: {
+      query:
+        "Does the company have an annual turnover of more than $30,000 USD this calendar year?",
+      helptext: "Annual turnover is your gross revenue (ignore expenses).",
+      options: {
+        Yes: "fab",
+        No: "employees",
+      },
+    },
+    employees: {
+      query:
+        "Have any of the company's employees or directors earnt, or will any of the company's employees or directors earn more than $30,000 USD this calendar year?",
+      helptext:
+        "Earnings include salaries and income from sources other than the company.",
+      options: {
+        Yes: "fab",
+        No: "free",
+      },
+    },
+    fab: {
+      query: "You need to purchase the EOS Online Framework plugin.",
+      helptext: "fab",
+      linkHref:
+        "https://www.fab.com/listings/b900b244-0ff6-49e3-8562-5fc630ba9515",
+      linkName: "Go to Fab",
+    },
+    free: {
+      query: "You can use the EOS Online Framework plugin for free.",
+      helptext: "free",
+      linkHref:
+        "https://licensing.redpoint.games/get/eos-online-subsystem-free/",
+      linkName: "Download from the License Manager",
+    },
+  };
+  var [currentQuestionId, setCurrentQuestionId] = useState("start");
+  var [currentSelection, setCurrentSelection] = useState("");
+  if (currentQuestionId == "") {
+    setCurrentQuestionId("start");
+  }
+  var question = questionGraph[currentQuestionId];
+  var opts = [];
+  if (question.options !== undefined) {
+    for (var opt of Object.keys(question.options)) {
+      ((optValue) => {
+        opts.push(
+          <Fragment key={opt}>
+            <input
+              type="radio"
+              name="question"
+              id={optValue}
+              checked={currentSelection == optValue}
+              onChange={(ev) => {
+                if (ev.target.checked) {
+                  setCurrentSelection(optValue);
+                }
+              }}
+            />
+            <label style={{ marginLeft: "0.25em" }} htmlFor={optValue}>
+              {opt}
+            </label>
+            <br />
+          </Fragment>
+        );
+      })(question.options[opt]);
+    }
+  }
+  var helpText = <></>;
+  var buttonDisabled = currentSelection == "" ? "disabled" : "";
+  var nextButton = (
+    <button
+      className="button button--primary button--block"
+      disabled={buttonDisabled}
+      onClick={() => {
+        setCurrentQuestionId(currentSelection);
+        setCurrentSelection("");
+      }}
+    >
+      Next
+    </button>
+  );
+  if (question.helptext === "fab") {
+    helpText = (
+      <>
+        <p style={{ marginBottom: "0" }}>You can purchase the plugin on Fab.</p>
+      </>
+    );
+    nextButton = (
+      <a
+        className="button button--primary button--block"
+        href={question.linkHref}
+        target="_blank"
+      >
+        {question.linkName}
+      </a>
+    );
+  } else if (question.helptext === "free") {
+    helpText = (
+      <>
+        <p>
+          The EOS Online Framework plugin can be downloaded from the License
+          Manager.{" "}
+          <strong>
+            The free edition of EOS Online Framework <u>does not</u> include any
+            support or source code access.
+          </strong>
+        </p>
+        <p>
+          You must indicate in a clearly visible place within your product that
+          you are using the free edition of the EOS Online Framework plugin.
+        </p>
+        <p style={{ marginBottom: "0" }}>
+          If your income circumstances change, you may need to purchase it on
+          Fab. To determine if that's the case, use this licensing guide again.
+        </p>
+      </>
+    );
+    nextButton = (
+      <a
+        className="button button--primary button--block"
+        href={question.linkHref}
+        target="_blank"
+      >
+        {question.linkName}
+      </a>
+    );
+  } else if (question.helptext !== undefined) {
+    helpText = <p>{question.helptext}</p>;
+  }
+  var optsBody = <></>;
+  if (opts.length > 0) {
+    optsBody = <div className="card__body">{opts}</div>;
+  }
+  return (
+    <div className="card">
+      <div className="card__header">
+        <h3>{question.query}</h3>
+        {helpText}
+      </div>
+      {optsBody}
+      <div className="card__footer">{nextButton}</div>
+    </div>
+  );
+};
+
+Before you use the EOS Online Framework plugin, you need to determine which license applies to you.
+
+## Licensing guide
+
+You can use the interactive licensing guide below to help you determine whether you need to purchase EOS Online Framework on Fab.
+
+<LicensingGuide />
+
+## Paid Edition terms
+
+When you purchase the EOS Online Framework plugin on Fab, the Fab Terms of Service apply, and supersede any restrictions that are present in the free edition.
+
+For your usage rights when you purchase the EOS Online Framework plugin, refer to the [Fab FAQ](https://dev.epicgames.com/documentation/en-us/fab/licenses-and-pricing-in-fab).
+
+## Free edition terms
+
+Below is a human-readable summary of the free edition license, followed by the legal agreement you are bound by when you use the free edition.
+
+### Summary
+
+- **<u>Absolutely no support is included in the free edition.</u>** This means we can't help you diagnose issues, resolve bugs or implement features. This also means you can't access the support channel in the Discord.
+- The free edition requires attribution. You must include somewhere in your product (such as a license file or credits screen) that you are using the EOS Online Framework plugin.
+- The free edition does not include source code access. If you need access to the source code (whether to modify it or for debugging), you will need to purchase a license.
+- If you are an individual, you can't be earning more than $30,000 USD annually. We consider your aggregate salary you currently earn (even if you only started earning that salary recently).
+- If you are a company, the company must have an annual turnover less than $30,000 USD, and none of the companies employees or directors can be earning over $30,000 USD, whether that's a salary from the company or outside earnings.
+- If you are a plugin developer, you can not include parts of the EOS Online Framework plugin in your own plugin without binding your own customers to the same terms outlined here. _This means that you can not distribute your plugin on Fab, as the Fab Usage Rights and the free edition license restrictions are incompatible._
+- If your income circumstances change such that either you as an individual or as a company start earning above the threshold, you need to purchase a license to EOS Online Framework on Fab.
+
+### License text
+
+The license for the EOS Online Framework Free Edition is available at <a href="https://redpoint.games/eos-online-subsystem-free-eula/">https://redpoint.games/eos-online-subsystem-free-eula/</a>.
+
+<iframe
+  src="https://redpoint.games/eos-online-subsystem-free-eula/"
+  width="100%"
+  style={{ border: "none" }}
+  height="800"
+></iframe>

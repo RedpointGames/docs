@@ -1,0 +1,16 @@
+---
+title: Runtime dependencies on Windows
+description: Runtime dependencies for using Epic Online Services on Windows.
+---
+
+In order for the EOS SDK to run on Windows, the player's machine must have the following software installed:
+
+- Microsoft Visual C++ Redistributable Packages for Visual Studio 2015
+
+Most machines will already have this installed, either due to previous game installations or Windows Update. But it may not be present on a fresh Windows installation, so you should configure your store or application listing to install it as a dependency.
+
+## Installing the Visual C++ Redistributable on Steam
+
+You can install the Visual C++ Redistributable for your Steam users automatically by heading to the [Redistributables](https://partner.steamgames.com/apps/installer/) page in the Steamworks portal and ticking the checkbox next to "Visual C++ Redist -> 2019 (also includes 2017 & 2015)".
+
+After enabling this setting, make sure you publish your changes in Steamworks for them to take effect.

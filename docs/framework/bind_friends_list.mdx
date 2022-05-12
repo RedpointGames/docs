@@ -1,0 +1,129 @@
+---
+title: Bind friends and party members to UMG widgets
+description: Simplify your implementation of friend and party lists in your game using UMG widget binding.
+---
+
+import Blueprint from "@site/src/Blueprint";
+import Video from "@site/src/Video";
+
+import bpListEntryEvent from "./bind_friends_list/list_entry_event.bp";
+import bpListEntryCast from "./bind_friends_list/list_entry_cast.bp";
+import bpListBind from "./bind_friends_list/list_bind.bp";
+import bpActionCheck from "./bind_friends_list/action_check.bp";
+import bpActionPerform from "./bind_friends_list/action_perform.bp";
+import bpAccessExternal1 from "./bind_friends_list/access_external_1.bp";
+import bpAccessExternal2 from "./bind_friends_list/access_external_2.bp";
+import videoPreview from "./bind_friends_list/preview.mp4";
+
+Traditionally to display friend lists or list of party members in-game, you had to listen for events and manually synchronise the player list when things changed.
+
+EOS Online Framework now provides **widget binding**: you tell the plugin that you want the list of friends and/or party members synchronised to a UMG tree view widget, and the plugin automatically keeps the item list up-to-date. This allows you to focus on the design and layout of player lists, and eliminates manual synchronisation code.
+
+## Widget binding in the example project
+
+We've used widget binding to [implement the friend list in the example project](../example_project.mdx). This is what it looks like:
+
+<Video url={videoPreview} />
+
+## Prerequisites
+
+Before you use widget binding, you'll need a few things:
+
+- A widget blueprint that contains a `TreeView` widget you want to display friends and/or party members under.
+- A list entry widget blueprint that implements the `User Object List Entry` interface.
+
+## Implementing the list entry widget
+
+The list entry widget that implements `User Object List Entry` needs to implement the `On List Item Object Set` event. This is the event that the tree view will call when the friend or section heading associated with this list entry changes.
+
+UMG does not re-create list entry widgets when the list changes; it instead re-uses them and calls `On List Item Object Set` when the list entry needs to represent a different value.
+
+### Store the list item object in a variable
+
+You'll want to create a variable on your list entry widget that can be used to store the `List Item Object` received from `On List Item Object Set` when it's called. You can then use this variable later when you want to retrieve things like the player name.
+
+<Blueprint height="200px" blueprint={bpListEntryEvent} />
+
+### Detect the type of list entry
+
+List entry widgets can be assigned two different types of objects, depending on what they're meant to represent:
+
+- `RedpointFriendListEntry`: This represents a friend or party member in the list.
+- `RedpointFriendListSection`: This represents a section of the list, such as "In-Party", "In-Game", "Online" or "Offline".
+
+To check whether the list entry widget has been assigned one of these types, you should cast the variable you stored the `List Item Object` in. For example, this is how you could implement a "Get Player Display Name" function for rendering the player's name:
+
+<Blueprint height="300px" blueprint={bpListEntryCast} />
+
+## Bind the friend and party list to the tree view
+
+In your widget blueprint that contains the UMG tree view, call "Bind Friend List Sections to Tree View Widget" with the list of sections you want included:
+
+<Blueprint height="600px" blueprint={bpListBind} />
+
+You can call "Bind Friend List Sections to Tree View Widget" again later if you want to change the displayed sections. If you want to stop synchronising friend list sections to the tree view widget entirely, you can call "Unbind Friend List Sections from Tree View Widget".
+
+## Available friend list entry data
+
+Friend list entries provide the following information as variables or functions on the `RedpointFriendListEntry` object:
+
+- `bHasGameProfile`: If true, this user has a game profile and the `UserId` property will be filled with a valid user ID. The local user may have friends from the local platform who have never played this game before, in which case the `UserId` property will not have a valid user ID set.
+- `UserId`: The user ID.
+- `DisplayName`: The user's display name.
+- `bInParty`: This user is in the local player's current party.
+- `bIsInvitable`: If true, this user can be invited to parties or games via EOS or the local platform.
+- `InviteStatus`: The user's invite status, and how they are related to the local player.
+- `PresenceStatus`: The user's presence status.
+- `bPlayingThisGame`: If true, this user is currently playing this game.
+- `bIsGameFriend`: If true, this user is a friend only at the game level, and not from the platform.
+- `bIsBeingActedUpon`: If true, the local player is currently [performing some kind of action on this friend](#acting-on-friend-list-entries) (such as inviting them to the party). This boolean value can be used to disable UI elements when the user is already doing something or to show an operation as in-progress.
+- `bInJoinableParty`: If the user is currently in a party that the local player can join.
+- `GetSectionType()`: Returns the section type that this entry should be displayed under.
+
+## Acting on friend list entries
+
+If you want to provide a list of actions that the user can take for a friend list entry, you can use the functions provided by the plugin. These are much simpler to use than the [full OSSv1 blueprint nodes](../ossv1/friends/invites.mdx):
+
+| Check if action can be performed | Perform action                                |
+| -------------------------------- | --------------------------------------------- |
+| Can Invite to Party              | Invite Friend List Entry to Party             |
+| Can Kick from Party              | Kick Friend List Entry from Party             |
+| Can Promote to Party Leader      | Promote Friend List Entry to Party Leader     |
+| Can Send Friend Request          | Send Friend Request to Friend List Entry      |
+| Can Block Player                 | Block Friend List Entry                       |
+| Can Unblock Player               | Unblock Friend List Entry                     |
+| Can Remove Friend                | Remove Friend referenced by Friend List Entry |
+| Can Accept Friend Request        | Accept Friend Request from Friend List Entry  |
+| Can Reject Friend Request        | Reject Friend Request from Friend List Entry  |
+| Can Join Party                   | Join Party of Friend List Entry               |
+| Can Leave Party                  | Leave Party of Friend List Entry              |
+
+:::note
+"Join Game of Friend List Entry" will be added in a future release.
+:::
+
+### Check if an action can be performed
+
+To see whether an action can be performed, use the appropriate "Check if action can be performed" function listed above on the friend list entry object:
+
+<Blueprint height="220px" blueprint={bpActionCheck} />
+
+### Perform an action on a friend list entry
+
+To perform an action on a friend list entry, use the appropriate "Perform action" function listed above.
+
+:::warning
+Perform functions must be called from the blueprint event graph, since they are asynchronous. You can't call them inside blueprint functions.
+:::
+
+<Blueprint height="220px" blueprint={bpActionPerform} />
+
+## Get the friend list entry object outside the list entry widget
+
+You can access the current selected item on the tree view through `Get Selected Item`:
+
+<Blueprint height="220px" blueprint={bpAccessExternal1} />
+
+Alternatively, you can store last selected friend entry when the `On Item Selection Changed` event fires:
+
+<Blueprint height="240px" blueprint={bpAccessExternal2} />

@@ -1,0 +1,105 @@
+---
+title: "'RedpointEOSConfig' module could not be loaded"
+description: Learn how to fix module load errors.
+---
+
+If you encounter the error message `failed to load because module 'RedpointEOSConfig' could not be found`, you'll need to build your project in Visual Studio. If you are using a blueprint-only project, you'll need to add a C++ file to your project first.
+
+:::info
+The `RedpointEOSConfig` and `RedpointEOSShared` modules are configured to load very early in the engine lifecycle. We have to do this to handle compatibility with Fab which uses Epic Online Services for authentication. Unfortunately, when modules are marked to load `EarliestPossible`, they attempt to load prior to the engine's out-of-date module check and this is why you get an error instead of the "do you want to rebuild out-of-date modules?" prompt you'd normally get.
+:::
+
+## Add a Source directory to your project if you don't already have one
+
+If you don't already have a `Source` directory in your project, you'll need to add one. If you can't load the editor to add the first C++ class due to the module load error, you'll need to manually create this directory and the default files that need to be in it.
+
+In the following files, you should replace `<PROJECTNAME>` in file names and file contents with the name of your project (so that it matches the name of your `.uproject` file):
+
+### Source/&lt;PROJECTNAME&gt;.Target.cs
+
+```csharp
+using UnrealBuildTool;
+using System.Collections.Generic;
+
+public class <PROJECTNAME>Target : TargetRules
+{
+    public <PROJECTNAME>Target(TargetInfo Target) : base(Target)
+    {
+        Type = TargetType.Game;
+        DefaultBuildSettings = BuildSettingsVersion.Latest;
+        IncludeOrderVersion = EngineIncludeOrderVersion.Latest;
+
+        ExtraModuleNames.AddRange(new[]
+        {
+          "<PROJECTNAME>"
+        });
+    }
+}
+```
+
+### Source/&lt;PROJECTNAME&gt;Editor.Target.cs
+
+```csharp
+using UnrealBuildTool;
+using System.Collections.Generic;
+
+public class <PROJECTNAME>EditorTarget : TargetRules
+{
+    public <PROJECTNAME>EditorTarget(TargetInfo Target) : base(Target)
+    {
+        Type = TargetType.Game;
+        DefaultBuildSettings = BuildSettingsVersion.Latest;
+        IncludeOrderVersion = EngineIncludeOrderVersion.Latest;
+    }
+}
+```
+
+### Source/&lt;PROJECTNAME&gt;/&lt;PROJECTNAME&gt;.Build.cs
+
+```csharp
+using UnrealBuildTool;
+
+public class <PROJECTNAME> : ModuleRules
+{
+    public <PROJECTNAME>(ReadOnlyTargetRules Target) : base(Target)
+    {
+        PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+
+        PublicDependencyModuleNames.AddRange(new string[]
+        {
+            "Core",
+        });
+    }
+}
+```
+
+### Source/&lt;PROJECTNAME&gt;/Private/Module.cpp
+
+```csharp
+#include "Modules/ModuleManager.h"
+
+IMPLEMENT_PRIMARY_GAME_MODULE(FDefaultGameModuleImpl, <PROJECTNAME>, "<PROJECTNAME>");
+```
+
+### &lt;PROJECTNAME&gt;.uproject
+
+Add the `Modules` section to your `.uproject` file, like so:
+
+```json
+	"Description": "",
+	"Modules": [
+		{
+			"Name": "<PROJECTNAME>",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	],
+```
+
+## Generate project files
+
+Right-click on your `.uproject` file and click "Generate project files..."
+
+## Build and launch your project in Visual Studio
+
+Open the generated `.sln` file, and click the green play button in the toolbar. This will build any out-of-date modules and launch the editor.

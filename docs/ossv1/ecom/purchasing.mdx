@@ -1,0 +1,554 @@
+---
+title: Purchasing offers
+description: How to purchase e-commerce offers.
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import Blueprint from '@site/src/Blueprint';
+
+E-commerce functionality is provided via the `IOnlineStoreV2`, `IOnlineEntitlements` and `IOnlinePurchase` interfaces. Purchasing items is done via the `IOnlinePurchase` interface.
+
+## Platform support
+
+<Tabs lazy groupId="ecom-platform" defaultValue="steam" values={[ { label: 'Epic Games Store', value: 'egs' }, { label: 'Steam', value: 'steam' }, { label: 'Google Play', value: 'google-play' } ]}>
+<TabItem value="egs">
+
+When purchasing offers on Epic Games Store, you'll get the callback from `Checkout` once the entire checkout process has completed or otherwise been cancelled.
+
+You can purchase multiple items at a time with EGS e-commerce, but the quantity of each item must always be 1. Epic Games Store does not support purchasing the same item multiple times in a single checkout request.
+
+Refer to [Initating a purchase](#initating-a-purchase-on-any-platform) for an example on how to purchase one or more offers.
+
+If you want to consume an item after it's been purchased, refer to [Consuming an entitlement on Epic Games Store](#consuming-an-entitlement-on-epic-games-store).
+
+While the checkout process is in progress, you will see a temporary receipt in `GetReceipts` that represents the in progress transaction. After the purchase completes successfully, the transaction ID of the receipt will be updated to the actual transaction ID provided by Epic Games Store.
+
+:::caution
+Epic Games Store e-commerce only works from packaged games. You must packaged the game on Windows so that the EOS bootstrapper launches the game, and then test Epic Games Store e-commerce from there.
+:::
+
+</TabItem>
+<TabItem value="steam">
+
+When purchasing offers on Steam, there is no notification for a successful purchase. You can initiate a purchase, and observe the change in entitlements by polling `IOnlineEntitlements`, but the purchase callback will be raised when the purchase is initiated, not completed.
+
+#### DLC offers on Steam e-commerce
+
+When using Steam e-commerce, DLC offers will be suffixed with `dlc:` to the offer IDs. You can only initiate the purchase for one DLC offer at a time, which will open the Steam overlay so the user can purchase the DLC.
+
+Steam requires installing DLC outside of the game after purchasing, so there's no actions to take after DLC is purchased; the user must restart the game, install the DLC and launch the game again.
+
+Refer to [Initating a purchase](#initating-a-purchase-on-any-platform) for an example on how to purchase one or more offers.
+
+#### Item offers on Steam e-commerce
+
+When using Steam e-commerce, item offers will be suffixed with `itemdef:` to the offer IDs. You can purchase as many items as you want at the same time, and can specify quantities for each item. After a successful item purchase, the items will appear as entitlements after you query for them again with `QueryEntitlements`.
+
+Refer to [Initating a purchase](#initating-a-purchase-on-any-platform) for an example on how to purchase one or more offers.
+
+</TabItem>
+<TabItem value="google-play">
+
+When using Google Play Billing, in-app purchases will be available with their product IDs as the offer IDs. You can only purchase consumable items on Google Play; subscriptions and non-consumable items are not supported.
+
+After a purchase completes on Google Play, you must award the player the in-app purchase and then call `FinalizePurchase` on the receipt to consume the purchase.
+
+:::caution
+If you do not call `FinalizePurchase` when using Google Play, the user's purchase will be automatically refunded after 3 days.
+:::
+
+</TabItem>
+</Tabs>
+
+## Initating a purchase on any platform
+
+When initiating a purchase, you should use offer IDs that you obtained when [Retrieving offers](offers.mdx). The example below shows offer IDs that you would see on Steam, but the format of offer IDs will differ per-platform.
+
+<Tabs lazy groupId="code-format" defaultValue="c++" values={[ { label: 'C++', value: 'c++' }, { label: 'Blueprints', value: 'blueprints' } ]}>
+<TabItem value="c++">
+
+To initiate a purchase, first get the online purchase interface:
+
+```cpp
+#include "OnlineSubsystem.h"
+#include "OnlineSubsystemUtils.h"
+#include "Interfaces/OnlinePurchaseInterface.h"
+
+// ...
+
+IOnlineSubsystem* Subsystem = Online::GetSubsystem(this->GetWorld());
+IOnlinePurchasePtr Purchase = Subsystem->GetPurchaseInterface();
+```
+
+Then, use `Checkout` to initiate a purchase:
+
+```cpp
+// The offer IDs should be obtained from QueryOffersByFilter/GetOffers.
+FPurchaseCheckoutRequest Request = {};
+Request.AddPurchaseOffer(TEXT(""), TEXT("itemdef:100"), 1);
+Request.AddPurchaseOffer(TEXT(""), TEXT("itemdef:200"), 1);
+
+Purchase->Checkout(
+    *Identity->GetUniquePlayerId(0).Get(), // The local player to get offers for.
+    Request,
+    FOnPurchaseCheckoutComplete::CreateLambda([](
+        const FOnlineError& Result, 
+        const TSharedRef<FPurchaseReceipt>& Receipt)
+    {
+        if (Result.WasSuccessful())
+        {
+            // Refer to the "Platform Support" section to understand what the 
+            // Checkout callback represents. On some platforms, it represents
+            // the checkout process completing, and on some platforms it only
+            // indicates that the process was started.
+        }
+    })
+)
+```
+
+</TabItem>
+<TabItem value="blueprints">
+
+To initiate a purchase, use the "Checkout" blueprint node.
+
+<Blueprint height="500px" blueprint={`
+Begin Object Class=/Script/BlueprintGraph.K2Node_GetSubsystem Name="K2Node_GetSubsystem_1"
+   CustomClass=Class'"/Script/OnlineSubsystemBlueprints.OnlinePurchaseSubsystem"'
+   NodePosX=48
+   NodePosY=-224
+   NodeGuid=EA986563425749CC3C2EF691F9809E16
+   CustomProperties Pin (PinId=13A877A743114F24EA42288D82F3FEA7,PinName="ReturnValue",Direction="EGPD_Output",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/OnlineSubsystemBlueprints.OnlinePurchaseSubsystem"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_AsyncAction_1 2436460B47D34E016A277C960DCF63A9,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_AsyncAction Name="K2Node_AsyncAction_1"
+   ProxyFactoryFunctionName="Checkout"
+   ProxyFactoryClass=Class'"/Script/OnlineSubsystemBlueprints.OnlinePurchaseSubsystemCheckout"'
+   ProxyClass=Class'"/Script/OnlineSubsystemBlueprints.OnlinePurchaseSubsystemCheckout"'
+   NodePosX=336
+   NodePosY=-240
+   NodeGuid=EEEF1DAD429AB9FA2848119E977CD991
+   CustomProperties Pin (PinId=C1F12FCC41D1FD8A7A8396BF37623A9D,PinName="execute",PinToolTip="\\nExec",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_Event_0 3601D29049405F51065A4A849D71410C,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=AF4F5460444B67D6090D66B039FD28A1,PinName="then",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=DACEC44C4168201F46708A8ADC0D355D,PinName="OnCallFailed",PinFriendlyName="On Call Failed",PinToolTip="On Call Failed",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=8D4043EE469D112C23A0308039F97767,PinName="OnPurchaseCheckoutComplete",PinFriendlyName="On Purchase Checkout Complete",PinToolTip="On Purchase Checkout Complete",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=3D3DF29B4D4126C36A6C64A11A7398D6,PinName="Result",PinToolTip="Result\\nOnline Error Info Structure",Direction="EGPD_Output",PinType.PinCategory="struct",PinType.PinSubCategory="",PinType.PinSubCategoryObject=ScriptStruct'"/Script/OnlineSubsystemBlueprints.OnlineErrorInfo"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=D54C8DA84A3E76704798EA8BD8B49980,PinName="Receipt",PinToolTip="Receipt\\nPurchase Receipt Object Reference",Direction="EGPD_Output",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/OnlineSubsystemBlueprints.PurchaseReceipt"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=2436460B47D34E016A277C960DCF63A9,PinName="Subsystem",PinToolTip="Subsystem\\nOnline Purchase Subsystem Object Reference",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/OnlineSubsystemBlueprints.OnlinePurchaseSubsystem"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_GetSubsystem_1 13A877A743114F24EA42288D82F3FEA7,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=ABF68108450D80A1C0E20096745ADABC,PinName="UserId",PinToolTip="User Id\\nUnique Net Id Structure",PinType.PinCategory="struct",PinType.PinSubCategory="",PinType.PinSubCategoryObject=ScriptStruct'"/Script/Engine.UniqueNetIdRepl"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_CallFunction_4 B376051843A513D2BB8589BE72965667,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=39214C654824C45CD9ED69A68720E280,PinName="CheckoutRequest",PinToolTip="Checkout Request\\nPurchase Checkout Request BP Structure",PinType.PinCategory="struct",PinType.PinSubCategory="",PinType.PinSubCategoryObject=ScriptStruct'"/Script/OnlineSubsystemBlueprints.PurchaseCheckoutRequestBP"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_MakeStruct_0 0CDAC3254588EAB2B4E632B08730F223,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="K2Node_CallFunction_3"
+   bIsPureFunc=True
+   FunctionReference=(MemberParent=Class'"/Script/Engine.GameplayStatics"',MemberName="GetPlayerController")
+   NodePosX=-272
+   NodePosY=-96
+   NodeGuid=6E7CCA1847BE9D86526AFCA2E58357C8
+   CustomProperties Pin (PinId=E9716F7D4CD60A4D31B630BDDAE741D6,PinName="self",PinFriendlyName=NSLOCTEXT("K2Node", "Target", "Target"),PinToolTip="Target\\nGameplay Statics Object Reference",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/Engine.GameplayStatics"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,DefaultObject="/Script/Engine.Default__GameplayStatics",PersistentGuid=00000000000000000000000000000000,bHidden=True,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=0D7553414CEC3CBD9D119D921A1447C1,PinName="WorldContextObject",PinToolTip="World Context Object\\nObject Reference",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/CoreUObject.Object"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=True,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=True,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=6F3BA8BF4F3A18A973833494BD89D754,PinName="PlayerIndex",PinToolTip="Player Index\\nInteger\\n\\nIndex in the player controller list, starting first with local players and then available remote ones",PinType.PinCategory="int",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,DefaultValue="0",AutogeneratedDefaultValue="0",PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=3CDC3FDD45F8DD0FFB7F428785899A10,PinName="ReturnValue",PinToolTip="Return Value\\nPlayer Controller Object Reference",Direction="EGPD_Output",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/Engine.PlayerController"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_CallFunction_4 BA5680E847EC3E697E5F9D8B3AD4427B,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="K2Node_CallFunction_4"
+   bIsPureFunc=True
+   FunctionReference=(MemberParent=Class'"/Script/OnlineSubsystemBlueprints.OnlineHelpers"',MemberName="GetControllerUniqueNetId")
+   NodePosX=16
+   NodePosY=-96
+   NodeGuid=DDA154C74FD1A04ACE98379CC8FFC68C
+   CustomProperties Pin (PinId=63BF2667493A46B562A85B95BC9886DC,PinName="self",PinFriendlyName=NSLOCTEXT("K2Node", "Target", "Target"),PinToolTip="Target\\nOnline Helpers Object Reference",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/OnlineSubsystemBlueprints.OnlineHelpers"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,DefaultObject="/Script/OnlineSubsystemBlueprints.Default__OnlineHelpers",PersistentGuid=00000000000000000000000000000000,bHidden=True,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=BA5680E847EC3E697E5F9D8B3AD4427B,PinName="PlayerController",PinToolTip="Player Controller\\nPlayer Controller Object Reference",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/Engine.PlayerController"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_CallFunction_3 3CDC3FDD45F8DD0FFB7F428785899A10,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=B376051843A513D2BB8589BE72965667,PinName="ReturnValue",PinToolTip="Return Value\\nUnique Net Id Structure\\n\\nGets the unique net ID for the player controller",Direction="EGPD_Output",PinType.PinCategory="struct",PinType.PinSubCategory="",PinType.PinSubCategoryObject=ScriptStruct'"/Script/Engine.UniqueNetIdRepl"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_AsyncAction_1 ABF68108450D80A1C0E20096745ADABC,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_MakeStruct Name="K2Node_MakeStruct_0"
+   bMadeAfterOverridePinRemoval=True
+   ShowPinForProperties(0)=(PropertyName="AccountId",PropertyFriendlyName="Account Id",PropertyTooltip="Account Id",CategoryName="Online|Entitlement",bShowPin=True,bCanToggleVisibility=True)
+   ShowPinForProperties(1)=(PropertyName="PurchaseOffers",PropertyFriendlyName="Purchase Offers",PropertyTooltip="Purchase Offers",CategoryName="Online|Entitlement",bShowPin=True,bCanToggleVisibility=True)
+   StructType=ScriptStruct'"/Script/OnlineSubsystemBlueprints.PurchaseCheckoutRequestBP"'
+   NodePosX=-80
+   NodePosY=-14
+   NodeGuid=F591E0ED44FCE53AC3F1DF94DED48325
+   CustomProperties Pin (PinId=0CDAC3254588EAB2B4E632B08730F223,PinName="PurchaseCheckoutRequestBP",Direction="EGPD_Output",PinType.PinCategory="struct",PinType.PinSubCategory="",PinType.PinSubCategoryObject=ScriptStruct'"/Script/OnlineSubsystemBlueprints.PurchaseCheckoutRequestBP"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_AsyncAction_1 39214C654824C45CD9ED69A68720E280,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=72FF97C84F57A1C9C910CA864DD76044,PinName="AccountId",PinFriendlyName="Account Id",PinToolTip="Account Id\\nString\\n\\nAccount Id",PinType.PinCategory="string",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=8D1B0C564E0753024E457D92B7C85DF6,PinName="PurchaseOffers",PinFriendlyName="Purchase Offers",PinToolTip="Purchase Offers\\nArray of Purchase Offer Entry BP Structures\\n\\nPurchase Offers",PinType.PinCategory="struct",PinType.PinSubCategory="",PinType.PinSubCategoryObject=ScriptStruct'"/Script/OnlineSubsystemBlueprints.PurchaseOfferEntryBP"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=Array,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_MakeArray_0 1094C10D4B4AE1E077BE5F8647C6A830,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=True,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_MakeArray Name="K2Node_MakeArray_0"
+   NumInputs=2
+   NodePosX=-304
+   NodePosY=16
+   NodeGuid=A36D66B9499F7CCE01A589B29DC4DBC7
+   CustomProperties Pin (PinId=1094C10D4B4AE1E077BE5F8647C6A830,PinName="Array",Direction="EGPD_Output",PinType.PinCategory="struct",PinType.PinSubCategory="",PinType.PinSubCategoryObject=ScriptStruct'"/Script/OnlineSubsystemBlueprints.PurchaseOfferEntryBP"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=Array,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_MakeStruct_0 8D1B0C564E0753024E457D92B7C85DF6,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=6441FD2F434099F1DD9CF2BE40A8A775,PinName="[0]",PinType.PinCategory="struct",PinType.PinSubCategory="",PinType.PinSubCategoryObject=ScriptStruct'"/Script/OnlineSubsystemBlueprints.PurchaseOfferEntryBP"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_MakeStruct_3 5FBD33594242C4BB7C93A9ADF4AB294C,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=FDEFD90A4470B3707DCD3DBAEE1E1F05,PinName="[1]",PinType.PinCategory="struct",PinType.PinSubCategory="",PinType.PinSubCategoryObject=ScriptStruct'"/Script/OnlineSubsystemBlueprints.PurchaseOfferEntryBP"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_MakeStruct_4 A2D63CD04DC2BF258368A4A06617671C,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_MakeStruct Name="K2Node_MakeStruct_3"
+   bMadeAfterOverridePinRemoval=True
+   ShowPinForProperties(0)=(PropertyName="OfferNamespace",PropertyFriendlyName="Offer Namespace",PropertyTooltip="Offer Namespace",CategoryName="Online|Entitlement",bShowPin=True,bCanToggleVisibility=True)
+   ShowPinForProperties(1)=(PropertyName="OfferId",PropertyFriendlyName="Offer Id",PropertyTooltip="Offer Id",CategoryName="Online|Entitlement",bShowPin=True,bCanToggleVisibility=True)
+   ShowPinForProperties(2)=(PropertyName="Quantity",PropertyFriendlyName="Quantity",PropertyTooltip="Quantity",CategoryName="Online|Entitlement",bShowPin=True,bCanToggleVisibility=True)
+   StructType=ScriptStruct'"/Script/OnlineSubsystemBlueprints.PurchaseOfferEntryBP"'
+   NodePosX=-704
+   NodePosY=16
+   NodeGuid=1A3BEECA42E481B48C12AFB14652C35F
+   CustomProperties Pin (PinId=5FBD33594242C4BB7C93A9ADF4AB294C,PinName="PurchaseOfferEntryBP",Direction="EGPD_Output",PinType.PinCategory="struct",PinType.PinSubCategory="",PinType.PinSubCategoryObject=ScriptStruct'"/Script/OnlineSubsystemBlueprints.PurchaseOfferEntryBP"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_MakeArray_0 6441FD2F434099F1DD9CF2BE40A8A775,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=0F67E87149B48265A4874A97F6ECFDA5,PinName="OfferNamespace",PinFriendlyName="Offer Namespace",PinToolTip="Offer Namespace\\nString\\n\\nOffer Namespace",PinType.PinCategory="string",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=52EE8F394290AAC1B169048D7CA7455F,PinName="OfferId",PinFriendlyName="Offer Id",PinToolTip="Offer Id\\nString\\n\\nOffer Id",PinType.PinCategory="string",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,DefaultValue="itemdef:100",PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=CABC02364903623C4387AEABD6401592,PinName="Quantity",PinFriendlyName="Quantity",PinToolTip="Quantity\\nInteger\\n\\nQuantity",PinType.PinCategory="int",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,DefaultValue="1",AutogeneratedDefaultValue="0",PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_MakeStruct Name="K2Node_MakeStruct_4"
+   bMadeAfterOverridePinRemoval=True
+   ShowPinForProperties(0)=(PropertyName="OfferNamespace",PropertyFriendlyName="Offer Namespace",PropertyTooltip="Offer Namespace",CategoryName="Online|Entitlement",bShowPin=True,bCanToggleVisibility=True)
+   ShowPinForProperties(1)=(PropertyName="OfferId",PropertyFriendlyName="Offer Id",PropertyTooltip="Offer Id",CategoryName="Online|Entitlement",bShowPin=True,bCanToggleVisibility=True)
+   ShowPinForProperties(2)=(PropertyName="Quantity",PropertyFriendlyName="Quantity",PropertyTooltip="Quantity",CategoryName="Online|Entitlement",bShowPin=True,bCanToggleVisibility=True)
+   StructType=ScriptStruct'"/Script/OnlineSubsystemBlueprints.PurchaseOfferEntryBP"'
+   NodePosX=-704
+   NodePosY=160
+   NodeGuid=F129E13E475C249591B683941B37E685
+   CustomProperties Pin (PinId=A2D63CD04DC2BF258368A4A06617671C,PinName="PurchaseOfferEntryBP",Direction="EGPD_Output",PinType.PinCategory="struct",PinType.PinSubCategory="",PinType.PinSubCategoryObject=ScriptStruct'"/Script/OnlineSubsystemBlueprints.PurchaseOfferEntryBP"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_MakeArray_0 FDEFD90A4470B3707DCD3DBAEE1E1F05,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=8DA56D544081C1898CAF62BB3FD8B973,PinName="OfferNamespace",PinFriendlyName="Offer Namespace",PinToolTip="Offer Namespace\\nString\\n\\nOffer Namespace",PinType.PinCategory="string",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=8E2AE0004CFA9AA16E282794FD42F484,PinName="OfferId",PinFriendlyName="Offer Id",PinToolTip="Offer Id\\nString\\n\\nOffer Id",PinType.PinCategory="string",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,DefaultValue="itemdef:200",PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=C2A0F5C9493868136E898EB3139077BB,PinName="Quantity",PinFriendlyName="Quantity",PinToolTip="Quantity\\nInteger\\n\\nQuantity",PinType.PinCategory="int",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,DefaultValue="1",AutogeneratedDefaultValue="0",PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+`} />
+
+</TabItem>
+</Tabs>
+
+## Querying and consuming entitlements on Epic Games Store
+
+To consume a purchase that was made on Epic Games Store, you need to:
+
+- [Query for the entitlements](entitlements.mdx#querying-a-list-of-entitlements) the user currently has using the entitlements interface.
+- Check the entitlement's `ItemType` attribute to see if it is set to `Consumable`.
+- Then call `IOnlinePurchase::FinalizeReceiptValidationInfo` with the entitlement ID passed in as `InReceiptValidationInfo`.
+
+### Consuming an entitlement on Epic Games Store
+
+<Tabs lazy groupId="code-format" defaultValue="c++" values={[ { label: 'C++', value: 'c++' }, { label: 'Blueprints', value: 'blueprints' } ]}>
+<TabItem value="c++">
+
+Once you have the entitlement ID from the entitlements interface, call `FinalizeReceiptValidationInfo` and pass the entitlement ID in the `InReceiptValidationInfo` parameter:
+
+```cpp
+Purchase->FinalizeReceiptValidationInfo(
+    *Identity->GetUniquePlayerId(0).Get(), // The local player to get offers for.
+    EntitlementId,                         // The entitlement ID.
+    FOnFinalizeReceiptValidationInfoComplete::CreateLambda([
+        PurchaseWk = TWeakPtr<IOnlinePurchase, ESPMode::ThreadSafe>(Purchase),
+        UserId = this->Identity->GetUniquePlayerId(0)](
+        const FOnlineError& Result, 
+        const FString& ValidationInfo))
+    {
+        if (auto Purchase = PurchaseWk.Pin())
+        {
+            if (Result.WasSuccessful())
+            {
+                // The entitlement was successfully consumed.
+            }
+        }
+    })
+)
+```
+
+</TabItem>
+<TabItem value="blueprints">
+
+Once you have the entitlement ID from the entitlements interface, use the "Finalize Receipt Validation Info" blueprint node and pass in the entitlement ID as the receipt validation info parameter:
+
+<Blueprint height="300px" blueprint={`
+Begin Object Class=/Script/BlueprintGraph.K2Node_GetSubsystem Name="K2Node_GetSubsystem_1"
+   NodePosY=54
+   NodeGuid=00000000000000000000000000000001
+   CustomClass=Class'"/Script/OnlineSubsystemBlueprints.OnlinePurchaseSubsystem"'
+   CustomProperties Pin (PinId=00000000000000000000000000000002,PinName="ReturnValue",Direction="EGPD_Output",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/OnlineSubsystemBlueprints.OnlinePurchaseSubsystem"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_CallFunction_8 00000000000000000000000000000009,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_AsyncAction Name="K2Node_CallFunction_8"
+   NodePosX=250
+   NodeGuid=00000000000000000000000000000006
+   ProxyFactoryFunctionName="FinalizeReceiptValidationInfo"
+   ProxyFactoryClass=Class'"/Script/OnlineSubsystemBlueprints.OnlinePurchaseSubsystemFinalizeReceiptValidationInfo"'
+   ProxyClass=Class'"/Script/OnlineSubsystemBlueprints.OnlinePurchaseSubsystemFinalizeReceiptValidationInfo"'
+   CustomProperties Pin (PinId=00000000000000000000000000000007,PinName="execute",PinToolTip="\\nExec",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=00000000000000000000000000000008,PinName="then",PinToolTip="\\nExec",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=00000000000000000000000000000009,PinName="Subsystem",PinToolTip="Target\\nOnline Purchase Subsystem Object Reference",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/OnlineSubsystemBlueprints.OnlinePurchaseSubsystem"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_GetSubsystem_1 00000000000000000000000000000002,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=0000000000000000000000000000000E,PinName="OnCallFailed",PinFriendlyName="On Call Failed",PinToolTip="On Call Failed",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=0000000000000000000000000000000F,PinName="OnFinalizeReceiptValidationInfoComplete",PinFriendlyName="On Finalize Receipt Validation Info Complete",PinToolTip="On Finalize Receipt Validation Info Complete",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=0000000000000000000000000000000A,PinName="UserId",PinToolTip="",PinType.PinCategory="struct",PinType.PinSubCategory="",PinType.PinSubCategoryObject=ScriptStruct'"/Script/Engine.UniqueNetIdRepl"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=0000000000000000000000000000000B,PinName="InReceiptValidationInfo",PinToolTip="",Direction="EGPD_Input",PinType.PinCategory="string",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=0000000000000000000000000000000C,PinName="Result",PinToolTip="",Direction="EGPD_Output",PinType.PinCategory="struct",PinType.PinSubCategory="",PinType.PinSubCategoryObject=ScriptStruct'"/Script/OnlineSubsystemBlueprints.OnlineErrorInfo"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=0000000000000000000000000000000D,PinName="ValidationInfo",PinToolTip="",Direction="EGPD_Output",PinType.PinCategory="string",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+`} />
+
+</TabItem>
+</Tabs>
+
+## Querying entitlements on Steam
+
+To query what has been purchased on Steam, use the [entitlements interface](entitlements.mdx) to query entitlements.
+
+## Querying receipts and finalizing purchases on Google Play
+
+To finalize purchases on Google Play, you need to check for outstanding receipts and call `FinalizeReceipt`.
+
+### Querying receipts on startup
+
+When the game starts up, you should query for any outstanding receipts so that you can finalize the purchases and award items.
+
+After a purchase is consumed with `FinalizePurchase`, the receipt will no longer appear when querying receipts or calling `GetReceipts`.
+
+<Tabs lazy groupId="code-format" defaultValue="c++" values={[ { label: 'C++', value: 'c++' }, { label: 'Blueprints', value: 'blueprints' } ]}>
+<TabItem value="c++">
+
+To query receipts, use `QueryReceipts` to start the query and `GetReceipts` to fetch the receipt data.
+
+```cpp
+Purchase->QueryReceipts(
+    *Identity->GetUniquePlayerId(0).Get(), // The local player to get offers for.
+    true,                                  // This value is ignored.
+    FOnQueryReceiptsComplete::CreateLambda([
+        PurchaseWk = TWeakPtr<IOnlinePurchase, ESPMode::ThreadSafe>(Purchase),
+        UserId = this->Identity->GetUniquePlayerId(0)](
+        const FOnlineError& Result)
+    {
+        if (auto Purchase = PurchaseWk.Pin())
+        {
+            if (Result.WasSuccessful())
+            {
+                // Receipts were successfully queried. Access via GetReceipts.
+                TArray<FPurchaseReceipt> Receipts;
+                Purchase->GetReceipts(*UserId, Receipts);
+            }
+        }
+    })
+)
+```
+
+</TabItem>
+<TabItem value="blueprints">
+
+To query receipts, use "Query Receipts" blueprint node.
+
+<Blueprint height="500px" blueprint={`
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="K2Node_CallFunction_0"
+   bIsPureFunc=True
+   FunctionReference=(MemberParent=/Script/CoreUObject.Class'"/Script/Engine.GameplayStatics"',MemberName="GetPlayerController")
+   NodePosX=304
+   NodePosY=-320
+   NodeGuid=C17BD4CD4D0C6AF3178435AD95E81185
+   CustomProperties Pin (PinId=6B2801E04599309100EDA59C94EF81B0,PinName="self",PinFriendlyName=NSLOCTEXT("K2Node", "Target", "Target"),PinToolTip="Target\\nGameplay Statics Object Reference",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=/Script/CoreUObject.Class'"/Script/Engine.GameplayStatics"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,DefaultObject="/Script/Engine.Default__GameplayStatics",PersistentGuid=00000000000000000000000000000000,bHidden=True,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=72B2500B42D615C50D1E0B95AB94DCED,PinName="WorldContextObject",PinToolTip="World Context Object\\nObject Reference",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=/Script/CoreUObject.Class'"/Script/CoreUObject.Object"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=True,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=True,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=1BF9A2D8486448029A7D3FB491331FDD,PinName="PlayerIndex",PinToolTip="Player Index\\nInteger\\n\\nIndex in the player controller list, starting first with local players and then available remote ones",PinType.PinCategory="int",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,DefaultValue="0",AutogeneratedDefaultValue="0",PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=6D132F974A8B43ED7DEDFFA1B67A2D5F,PinName="ReturnValue",PinToolTip="Return Value\\nPlayer Controller Object Reference",Direction="EGPD_Output",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=/Script/CoreUObject.Class'"/Script/Engine.PlayerController"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_CallFunction_1 2B1B659D4DA3E259F212BE8A41ED69E3,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="K2Node_CallFunction_1"
+   bIsPureFunc=True
+   FunctionReference=(MemberParent=/Script/CoreUObject.Class'"/Script/OnlineSubsystemBlueprints.OnlineHelpers"',MemberName="GetControllerUniqueNetId")
+   NodePosX=592
+   NodePosY=-320
+   NodeGuid=0F0C288140761040FA69D2BD8A21E847
+   CustomProperties Pin (PinId=1BDD30624881E661DC6D6C9E6E7F8887,PinName="self",PinFriendlyName=NSLOCTEXT("K2Node", "Target", "Target"),PinToolTip="Target\\nOnline Helpers Object Reference",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=/Script/CoreUObject.Class'"/Script/OnlineSubsystemBlueprints.OnlineHelpers"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,DefaultObject="/Script/OnlineSubsystemBlueprints.Default__OnlineHelpers",PersistentGuid=00000000000000000000000000000000,bHidden=True,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=2B1B659D4DA3E259F212BE8A41ED69E3,PinName="PlayerController",PinToolTip="Player Controller\\nPlayer Controller Object Reference",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=/Script/CoreUObject.Class'"/Script/Engine.PlayerController"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_CallFunction_0 6D132F974A8B43ED7DEDFFA1B67A2D5F,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=307C7EE642FE1ADD1AED718258817116,PinName="ReturnValue",PinToolTip="Return Value\\nUnique Net Id Structure\\n\\nGets the unique net ID for the player controller",Direction="EGPD_Output",PinType.PinCategory="struct",PinType.PinSubCategory="",PinType.PinSubCategoryObject=/Script/CoreUObject.ScriptStruct'"/Script/Engine.UniqueNetIdRepl"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_AsyncAction_2 55FBD44245D1787101011594EC67853D,K2Node_Knot_6 F1A7D7924BA3E22B3FA713A022140864,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_GetSubsystem Name="K2Node_GetSubsystem_1"
+   CustomClass=/Script/CoreUObject.Class'"/Script/OnlineSubsystemBlueprints.OnlinePurchaseSubsystem"'
+   NodePosX=624
+   NodePosY=-432
+   NodeGuid=FB9B82614546063D7BC3639B644E0831
+   CustomProperties Pin (PinId=3807EE1844703EF2B5D3FC989B6582D0,PinName="ReturnValue",Direction="EGPD_Output",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=/Script/CoreUObject.Class'"/Script/OnlineSubsystemBlueprints.OnlinePurchaseSubsystem"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_AsyncAction_2 2E23F2AA4E5F95CBB0C521803EDDA140,K2Node_Knot_3 BE1EFE8845BCD603A2A5BB9D3A5FFD00,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_AsyncAction Name="K2Node_AsyncAction_2"
+   ProxyFactoryFunctionName="QueryReceipts"
+   ProxyFactoryClass=/Script/CoreUObject.Class'"/Script/OnlineSubsystemBlueprints.OnlinePurchaseSubsystemQueryReceipts"'
+   ProxyClass=/Script/CoreUObject.Class'"/Script/OnlineSubsystemBlueprints.OnlinePurchaseSubsystemQueryReceipts"'
+   NodePosX=896
+   NodePosY=-432
+   NodeGuid=07F4B7274FB7C548C9AEA48A26D46348
+   CustomProperties Pin (PinId=14D0FF234062B606B466F6B3BA3E328B,PinName="execute",PinToolTip="\\nExec",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=71BD2DE647C1BCEFCDB6C4B3C437FB0F,PinName="then",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=58FFB9E84BE3FD64966802AA766F8CC8,PinName="OnCallFailed",PinFriendlyName="On Call Failed",PinToolTip="On Call Failed",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=ED19AFEB496CC25F79D3D697088F69F1,PinName="OnQueryReceiptsComplete",PinFriendlyName="On Query Receipts Complete",PinToolTip="On Query Receipts Complete",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_IfThenElse_1 F93A42524B8759B43764019C6352B0CD,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=292A40DE49989B4FFB1F7C99ACB1CB59,PinName="Result",PinToolTip="Result\\nOnline Error Info Structure",Direction="EGPD_Output",PinType.PinCategory="struct",PinType.PinSubCategory="",PinType.PinSubCategoryObject=/Script/CoreUObject.ScriptStruct'"/Script/OnlineSubsystemBlueprints.OnlineErrorInfo"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_BreakStruct_1 F4E7CFCF4593E2B61E6C6D9ADA85DC8F,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=2E23F2AA4E5F95CBB0C521803EDDA140,PinName="Subsystem",PinToolTip="Subsystem\\nOnline Purchase Subsystem Object Reference",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=/Script/CoreUObject.Class'"/Script/OnlineSubsystemBlueprints.OnlinePurchaseSubsystem"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_GetSubsystem_1 3807EE1844703EF2B5D3FC989B6582D0,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=55FBD44245D1787101011594EC67853D,PinName="UserId",PinToolTip="User Id\\nUnique Net Id Structure",PinType.PinCategory="struct",PinType.PinSubCategory="",PinType.PinSubCategoryObject=/Script/CoreUObject.ScriptStruct'"/Script/Engine.UniqueNetIdRepl"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_CallFunction_1 307C7EE642FE1ADD1AED718258817116,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=040FBFC64781A3270A8CADBBA6DA2F56,PinName="bRestoreReceipts",PinToolTip="Restore Receipts\\nBoolean",PinType.PinCategory="bool",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,DefaultValue="true",AutogeneratedDefaultValue="false",PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="K2Node_CallFunction_3"
+   FunctionReference=(MemberParent=/Script/CoreUObject.Class'"/Script/OnlineSubsystemBlueprints.OnlinePurchaseSubsystem"',MemberName="GetReceipts")
+   NodePosX=1841
+   NodePosY=-382
+   NodeGuid=BEE813AB4BD7DFC983824C8382D2BE7A
+   CustomProperties Pin (PinId=95061CC14338A9A6FD53A996BCFE972A,PinName="execute",PinToolTip="\\nExec",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_IfThenElse_1 45D9060E4A8150AA66F3ABB106D206F9,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=9212A87B45785B2FF6FF6FB3AD917736,PinName="then",PinToolTip="\\nExec",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=562FDE274D7A87E0C46A5E9E51A6F2D6,PinName="self",PinFriendlyName=NSLOCTEXT("K2Node", "Target", "Target"),PinToolTip="Target\\nOnline Purchase Subsystem Object Reference",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=/Script/CoreUObject.Class'"/Script/OnlineSubsystemBlueprints.OnlinePurchaseSubsystem"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_Knot_2 0FD19BA54F85BF6ABD699A9D96EEC884,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=225DEAE74CD75FF3F549BBB8D5B44B04,PinName="UserId",PinToolTip="User Id\\nUnique Net Id Structure",PinType.PinCategory="struct",PinType.PinSubCategory="",PinType.PinSubCategoryObject=/Script/CoreUObject.ScriptStruct'"/Script/Engine.UniqueNetIdRepl"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_Knot_5 7200225F4AEC30FFDF2678810E291636,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=50A33BC942BE1919A4C8548DC339FC3A,PinName="OutReceipts",PinToolTip="Out Receipts\\nArray of Purchase Receipt Object References",Direction="EGPD_Output",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=/Script/CoreUObject.Class'"/Script/OnlineSubsystemBlueprints.PurchaseReceipt"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=Array,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_IfThenElse Name="K2Node_IfThenElse_1"
+   NodePosX=1600
+   NodePosY=-368
+   NodeGuid=E741DBC7491618A4B78BE49E7D716EBF
+   CustomProperties Pin (PinId=F93A42524B8759B43764019C6352B0CD,PinName="execute",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_AsyncAction_2 ED19AFEB496CC25F79D3D697088F69F1,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=701F20974C6F5DA88A86C6A1EFD8BB1A,PinName="Condition",PinType.PinCategory="bool",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,DefaultValue="true",AutogeneratedDefaultValue="true",LinkedTo=(K2Node_BreakStruct_1 DAB892074F07508AAF3A4E9FA0DEF5D3,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=45D9060E4A8150AA66F3ABB106D206F9,PinName="then",PinFriendlyName=NSLOCTEXT("K2Node", "true", "true"),Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_CallFunction_3 95061CC14338A9A6FD53A996BCFE972A,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=4B512DE34BD05B7A43E67C874E26616B,PinName="else",PinFriendlyName=NSLOCTEXT("K2Node", "false", "false"),Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_Knot Name="K2Node_Knot_2"
+   NodePosX=1761
+   NodePosY=-494
+   NodeGuid=7BB101014E0A1A04AABA90A41ACAEE40
+   CustomProperties Pin (PinId=F1D1C92B4D3A634386383AA759F38D81,PinName="InputPin",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=/Script/CoreUObject.Class'"/Script/OnlineSubsystemBlueprints.OnlinePurchaseSubsystem"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_Knot_3 2BC044254F9DE8CE464DF5B87F8D53E7,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=True,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=0FD19BA54F85BF6ABD699A9D96EEC884,PinName="OutputPin",Direction="EGPD_Output",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=/Script/CoreUObject.Class'"/Script/OnlineSubsystemBlueprints.OnlinePurchaseSubsystem"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_CallFunction_3 562FDE274D7A87E0C46A5E9E51A6F2D6,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_Knot Name="K2Node_Knot_3"
+   NodePosX=880
+   NodePosY=-496
+   NodeGuid=072F6C074B309B45198B30B30DAB4773
+   CustomProperties Pin (PinId=BE1EFE8845BCD603A2A5BB9D3A5FFD00,PinName="InputPin",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=/Script/CoreUObject.Class'"/Script/OnlineSubsystemBlueprints.OnlinePurchaseSubsystem"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_GetSubsystem_1 3807EE1844703EF2B5D3FC989B6582D0,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=True,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=2BC044254F9DE8CE464DF5B87F8D53E7,PinName="OutputPin",Direction="EGPD_Output",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=/Script/CoreUObject.Class'"/Script/OnlineSubsystemBlueprints.OnlinePurchaseSubsystem"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_Knot_2 F1D1C92B4D3A634386383AA759F38D81,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_Knot Name="K2Node_Knot_5"
+   NodePosX=1761
+   NodePosY=-478
+   NodeGuid=6F383EEB487511917FF09C9AD1307A2B
+   CustomProperties Pin (PinId=2735798546B01C90B6416FB7F49EB649,PinName="InputPin",PinType.PinCategory="struct",PinType.PinSubCategory="",PinType.PinSubCategoryObject=/Script/CoreUObject.ScriptStruct'"/Script/Engine.UniqueNetIdRepl"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_Knot_6 AF8AA115416777960DB5E0BFF23F24ED,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=True,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=7200225F4AEC30FFDF2678810E291636,PinName="OutputPin",Direction="EGPD_Output",PinType.PinCategory="struct",PinType.PinSubCategory="",PinType.PinSubCategoryObject=/Script/CoreUObject.ScriptStruct'"/Script/Engine.UniqueNetIdRepl"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_CallFunction_3 225DEAE74CD75FF3F549BBB8D5B44B04,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_Knot Name="K2Node_Knot_6"
+   NodePosX=880
+   NodePosY=-480
+   NodeGuid=860833E245D6EF74EE03388196AFE7B8
+   CustomProperties Pin (PinId=F1A7D7924BA3E22B3FA713A022140864,PinName="InputPin",PinType.PinCategory="struct",PinType.PinSubCategory="",PinType.PinSubCategoryObject=/Script/CoreUObject.ScriptStruct'"/Script/Engine.UniqueNetIdRepl"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_CallFunction_1 307C7EE642FE1ADD1AED718258817116,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=True,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=AF8AA115416777960DB5E0BFF23F24ED,PinName="OutputPin",Direction="EGPD_Output",PinType.PinCategory="struct",PinType.PinSubCategory="",PinType.PinSubCategoryObject=/Script/CoreUObject.ScriptStruct'"/Script/Engine.UniqueNetIdRepl"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_Knot_5 2735798546B01C90B6416FB7F49EB649,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_BreakStruct Name="K2Node_BreakStruct_1"
+   bMadeAfterOverridePinRemoval=True
+   ShowPinForProperties(0)=(PropertyName="Successful",PropertyFriendlyName="Successful",PropertyTooltip="Successful",CategoryName="Online",bShowPin=True,bCanToggleVisibility=True)
+   ShowPinForProperties(1)=(PropertyName="ErrorRaw",PropertyFriendlyName="Error Raw",PropertyTooltip="Error Raw",CategoryName="Online",bShowPin=True,bCanToggleVisibility=True)
+   ShowPinForProperties(2)=(PropertyName="ErrorCode",PropertyFriendlyName="Error Code",PropertyTooltip="Error Code",CategoryName="Online",bShowPin=True,bCanToggleVisibility=True)
+   ShowPinForProperties(3)=(PropertyName="ErrorMessage",PropertyFriendlyName="Error Message",PropertyTooltip="Error Message",CategoryName="Online",bShowPin=True,bCanToggleVisibility=True)
+   StructType=/Script/CoreUObject.ScriptStruct'"/Script/OnlineSubsystemBlueprints.OnlineErrorInfo"'
+   NodePosX=1296
+   NodePosY=-288
+   NodeGuid=F38D759D46B593DB462E1AADFDD7758E
+   CustomProperties Pin (PinId=F4E7CFCF4593E2B61E6C6D9ADA85DC8F,PinName="OnlineErrorInfo",PinType.PinCategory="struct",PinType.PinSubCategory="",PinType.PinSubCategoryObject=/Script/CoreUObject.ScriptStruct'"/Script/OnlineSubsystemBlueprints.OnlineErrorInfo"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=True,PinType.bIsConst=True,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_AsyncAction_2 292A40DE49989B4FFB1F7C99ACB1CB59,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=DAB892074F07508AAF3A4E9FA0DEF5D3,PinName="Successful",PinFriendlyName="Successful",PinToolTip="Successful\\nBoolean\\n\\nSuccessful",Direction="EGPD_Output",PinType.PinCategory="bool",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_IfThenElse_1 701F20974C6F5DA88A86C6A1EFD8BB1A,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=B9024D814CA81BF92764F99009956983,PinName="ErrorRaw",PinFriendlyName="Error Raw",PinToolTip="Error Raw\\nString\\n\\nError Raw",Direction="EGPD_Output",PinType.PinCategory="string",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=0F7EF7C6488EF33CC58D2CB16D8F4C13,PinName="ErrorCode",PinFriendlyName="Error Code",PinToolTip="Error Code\\nString\\n\\nError Code",Direction="EGPD_Output",PinType.PinCategory="string",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=DE25B6774E36156218EFE7913726CE5B,PinName="ErrorMessage",PinFriendlyName="Error Message",PinToolTip="Error Message\\nText\\n\\nError Message",Direction="EGPD_Output",PinType.PinCategory="text",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+`} />
+
+</TabItem>
+</Tabs>
+
+### Watching for changes to receipts
+
+When a purchase completes on Google Play, the receipt can end up with a `TransactionState` of either `Purchased` or `Deferred`. You must not award items to players until the receipt is in a `Purchased` state.
+
+If a purchase ends up in the `Deferred` state, you may later see the receipt move to the `Purchased` state. When this happens, the `OnUnexpectedPurchaseReceipt` event will fire, and you can re-check the receipts via `GetReceipts` to see if any have moved from `Deferred` to `Purchased`.
+
+You *must* handle deferred purchases on Google Play. Also, you can not know when a deferred purchase fails; this is a limitation of how Google Play Billing works. Instead, you simply don't award items until the receipt moves into a `Purchased` state, so a failed deferred receipt never gets handled by the game.
+
+The `OnUnexpectedPurchaseReceipt` event fires:
+
+- When a deferred purchase moves to the `Purchased` state.
+- When a receipt is consumed via `FinalizePurchase` and removed from the `GetReceipts` array.
+
+:::note
+The `TransactionId` field of a receipt is the `ReceiptId` to use in other functions.
+:::
+
+### Consuming a purchase via `FinalizePurchase`
+
+To acknowledge a purchase on Google Play and consume the purchase, you must call `FinalizePurchase`. If you don't call this function for a receipt, the user's purchase will automatically be refunded 3 days after it moved into the `Purchased` state.
+
+
+<Tabs lazy groupId="code-format" defaultValue="c++" values={[ { label: 'C++', value: 'c++' }, { label: 'Blueprints', value: 'blueprints' } ]}>
+<TabItem value="c++">
+
+To consume a purchase, call `FinalizePurchase`:
+
+```cpp
+Purchase->FinalizePurchase(
+    *Identity->GetUniquePlayerId(0).Get(), // The local player to get offers for.
+    ReceiptId                             // The TransactionId field of the receipt.
+);
+```
+
+:::caution
+There is no callback to pass into `FinalizePurchase`. You can know when the purchase was consumed by listening for the `OnUnexpectedPurchaseReceipt` event.
+:::
+
+</TabItem>
+<TabItem value="blueprints">
+
+To consume a purchase, use the "Finalize Purchase" blueprint node.
+
+:::caution
+This function is not an asynchronous blueprint node, and it returns immediately even before the purchase has been consumed.
+
+If you need to know when the purchase is consumed, listen for the "On Unexpected Purchase Receipt" event and check that the receipt is no longer present when calling "Get Receipts".
+:::
+
+<Blueprint height="500px" blueprint={`
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="K2Node_CallFunction_0"
+   bIsPureFunc=True
+   FunctionReference=(MemberParent=/Script/CoreUObject.Class'"/Script/Engine.GameplayStatics"',MemberName="GetPlayerController")
+   NodePosX=304
+   NodePosY=-320
+   NodeGuid=C17BD4CD4D0C6AF3178435AD95E81185
+   CustomProperties Pin (PinId=6B2801E04599309100EDA59C94EF81B0,PinName="self",PinFriendlyName=NSLOCTEXT("K2Node", "Target", "Target"),PinToolTip="Target\\nGameplay Statics Object Reference",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=/Script/CoreUObject.Class'"/Script/Engine.GameplayStatics"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,DefaultObject="/Script/Engine.Default__GameplayStatics",PersistentGuid=00000000000000000000000000000000,bHidden=True,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=72B2500B42D615C50D1E0B95AB94DCED,PinName="WorldContextObject",PinToolTip="World Context Object\\nObject Reference",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=/Script/CoreUObject.Class'"/Script/CoreUObject.Object"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=True,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=True,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=1BF9A2D8486448029A7D3FB491331FDD,PinName="PlayerIndex",PinToolTip="Player Index\\nInteger\\n\\nIndex in the player controller list, starting first with local players and then available remote ones",PinType.PinCategory="int",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,DefaultValue="0",AutogeneratedDefaultValue="0",PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=6D132F974A8B43ED7DEDFFA1B67A2D5F,PinName="ReturnValue",PinToolTip="Return Value\\nPlayer Controller Object Reference",Direction="EGPD_Output",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=/Script/CoreUObject.Class'"/Script/Engine.PlayerController"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_CallFunction_1 2B1B659D4DA3E259F212BE8A41ED69E3,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="K2Node_CallFunction_1"
+   bIsPureFunc=True
+   FunctionReference=(MemberParent=/Script/CoreUObject.Class'"/Script/OnlineSubsystemBlueprints.OnlineHelpers"',MemberName="GetControllerUniqueNetId")
+   NodePosX=592
+   NodePosY=-320
+   NodeGuid=0F0C288140761040FA69D2BD8A21E847
+   CustomProperties Pin (PinId=1BDD30624881E661DC6D6C9E6E7F8887,PinName="self",PinFriendlyName=NSLOCTEXT("K2Node", "Target", "Target"),PinToolTip="Target\\nOnline Helpers Object Reference",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=/Script/CoreUObject.Class'"/Script/OnlineSubsystemBlueprints.OnlineHelpers"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,DefaultObject="/Script/OnlineSubsystemBlueprints.Default__OnlineHelpers",PersistentGuid=00000000000000000000000000000000,bHidden=True,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=2B1B659D4DA3E259F212BE8A41ED69E3,PinName="PlayerController",PinToolTip="Player Controller\\nPlayer Controller Object Reference",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=/Script/CoreUObject.Class'"/Script/Engine.PlayerController"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_CallFunction_0 6D132F974A8B43ED7DEDFFA1B67A2D5F,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=307C7EE642FE1ADD1AED718258817116,PinName="ReturnValue",PinToolTip="Return Value\\nUnique Net Id Structure\\n\\nGets the unique net ID for the player controller",Direction="EGPD_Output",PinType.PinCategory="struct",PinType.PinSubCategory="",PinType.PinSubCategoryObject=/Script/CoreUObject.ScriptStruct'"/Script/Engine.UniqueNetIdRepl"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_CallFunction_4 6670375F402676F027BDB28AFBDA035A,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_GetSubsystem Name="K2Node_GetSubsystem_1"
+   CustomClass=/Script/CoreUObject.Class'"/Script/OnlineSubsystemBlueprints.OnlinePurchaseSubsystem"'
+   NodePosX=624
+   NodePosY=-432
+   NodeGuid=FB9B82614546063D7BC3639B644E0831
+   CustomProperties Pin (PinId=3807EE1844703EF2B5D3FC989B6582D0,PinName="ReturnValue",Direction="EGPD_Output",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=/Script/CoreUObject.Class'"/Script/OnlineSubsystemBlueprints.OnlinePurchaseSubsystem"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_CallFunction_4 0B43F7024D91B29D94E30B891DE237CE,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="K2Node_CallFunction_4"
+   FunctionReference=(MemberParent=/Script/CoreUObject.Class'"/Script/OnlineSubsystemBlueprints.OnlinePurchaseSubsystem"',MemberName="FinalizePurchase")
+   NodePosX=880
+   NodePosY=-400
+   NodeGuid=DA98CEDE43BD08A1954785984A91F677
+   CustomProperties Pin (PinId=DCEA3B4F48D30F6A1F1F888D40FA16A4,PinName="execute",PinToolTip="\\nExec",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=E1ABCE0F46D35775E31E05A72B0A740F,PinName="then",PinToolTip="\\nExec",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=0B43F7024D91B29D94E30B891DE237CE,PinName="self",PinFriendlyName=NSLOCTEXT("K2Node", "Target", "Target"),PinToolTip="Target\\nOnline Purchase Subsystem Object Reference",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=/Script/CoreUObject.Class'"/Script/OnlineSubsystemBlueprints.OnlinePurchaseSubsystem"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_GetSubsystem_1 3807EE1844703EF2B5D3FC989B6582D0,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=6670375F402676F027BDB28AFBDA035A,PinName="UserId",PinToolTip="User Id\\nUnique Net Id Structure",PinType.PinCategory="struct",PinType.PinSubCategory="",PinType.PinSubCategoryObject=/Script/CoreUObject.ScriptStruct'"/Script/Engine.UniqueNetIdRepl"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_CallFunction_1 307C7EE642FE1ADD1AED718258817116,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=8DCF9F754D4ABA3C9AEBE6949E5E4440,PinName="ReceiptId",PinToolTip="Receipt Id\\nString",PinType.PinCategory="string",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_CallFunction_5 B256AB7243A1D28B6AA99AB610D06E4A,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=B49DBB9647FC2CD1773052B5DA9DBA71,PinName="ReceiptInfo",PinToolTip="Receipt Info\\nString",PinType.PinCategory="string",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_VariableGet Name="K2Node_VariableGet_0"
+   VariableReference=(MemberName="Receipt",MemberGuid=176FF00842DB5150C410FA875EDCA033,bSelfContext=True)
+   NodePosX=480
+   NodePosY=-199
+   NodeGuid=A68C4A91496851D3A2224E8CB7DEA9C5
+   CustomProperties Pin (PinId=B9FE017B4BECD7AC14C266A49C89AB00,PinName="Receipt",Direction="EGPD_Output",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=/Script/CoreUObject.Class'"/Script/OnlineSubsystemBlueprints.PurchaseReceipt"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_CallFunction_5 5842A2D545BE87BC35F731A6C9D4968D,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=A89ADF524F7F82FCF0FD61AB44257313,PinName="self",PinFriendlyName=NSLOCTEXT("K2Node", "Target", "Target"),PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=/Script/Engine.BlueprintGeneratedClass'"/Game/ExampleOSS/Test/NewBlueprint.NewBlueprint_C"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=True,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="K2Node_CallFunction_5"
+   bIsPureFunc=True
+   FunctionReference=(MemberParent=/Script/CoreUObject.Class'"/Script/OnlineSubsystemBlueprints.PurchaseReceipt"',MemberName="GetTransactionId")
+   NodePosX=640
+   NodePosY=-240
+   NodeGuid=C3CC1EC947E5DAE451CBB9BB2FE4ABF4
+   CustomProperties Pin (PinId=5842A2D545BE87BC35F731A6C9D4968D,PinName="self",PinFriendlyName=NSLOCTEXT("K2Node", "Target", "Target"),PinToolTip="Target\\nPurchase Receipt Object Reference",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=/Script/CoreUObject.Class'"/Script/OnlineSubsystemBlueprints.PurchaseReceipt"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_VariableGet_0 B9FE017B4BECD7AC14C266A49C89AB00,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=B256AB7243A1D28B6AA99AB610D06E4A,PinName="ReturnValue",PinToolTip="Return Value\\nString\\n\\nGet Transaction Id",Direction="EGPD_Output",PinType.PinCategory="string",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_CallFunction_4 8DCF9F754D4ABA3C9AEBE6949E5E4440,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+`} />
+
+</TabItem>
+</Tabs>

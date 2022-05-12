@@ -1,0 +1,25 @@
+---
+title: Joining sessions from the Overlay
+description: Allow players to join sessions from the Epic Games Overlay.
+---
+
+Turning on presence sessions allows players to join sessions from the Epic Games Overlay.
+
+## Configuration
+
+To enable **Join** and **Invite** functionality in the Epic Games Overlay for parties, make sure you set the `PresenceAdvertises` setting to `Session`, like so:
+
+```ini
+[OnlineSubsystem] 
+PresenceAdvertises=Session
+```
+
+## Handling events
+
+To handle session invites being accepted in the overlay (when you click **Accept** on a session invite) and to handle session joins in the overlay (when you click **Join** on a friend's session), your game needs to listen for the `OnSessionUserInviteAccepted` event on the session interface.
+
+The delegate handler for this event **must call JoinSession** (and once that succeeds, perform the `open` call to actually connect the client to the server).
+
+### Specifying the presence session
+
+Only one session can be set as the "presence session" (that is, the one associated with the overlay). This is determined by setting `bUsesPresence` when the session is created, and this setting is inherited on all clients that join the session.

@@ -1,0 +1,65 @@
+---
+id: queryblockeduser
+title: Query Blocked User
+description: The QueryBlockedUser function of the MessageSanitizer subsystem.
+---
+
+import TypeRenderer from '@site/src/TypeRenderer';
+import FunctionRenderer from '@site/src/FunctionRenderer';
+
+This is an asynchronous latent blueprint node.
+
+The C++ documentation for this function is available on [the Unreal Engine documentation website](https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Plugins/OnlineSubsystem/Interfaces/IOnlineMessageSanitizer/).
+
+## Example
+
+<FunctionRenderer subsystemName="MessageSanitizer" func={{"Identifier":"QueryBlockedUser","Supported":false,"Async":true,"AsyncPins":["OnCallFailed","OnQueryUserBlockedResponse"],"Pure":false,"Parameters":[{"Position":0,"Identifier":"LocalUserNum","Type":{"Type":"Simple","Identifier":"int32"}},{"Position":1,"Identifier":"FromUserId","Type":{"Type":"Simple","Identifier":"FString","Out":false}},{"Position":2,"Identifier":"FromPlatform","Type":{"Type":"Simple","Identifier":"FString","Out":false}},{"Position":3,"Identifier":"QueryResult","Type":{"Type":"Wrapped","Identifier":"FBlockedQueryResultInfo","Out":true}}],"ReturnType":null}} />
+
+## Inputs
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Input Name</th>
+      <th>Input Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td>Local User Num</td>
+      <td><TypeRenderer typeInfo={{"Type":"Simple","Identifier":"int32"}} /></td>
+    </tr>
+    <tr>
+      <td>From User Id</td>
+      <td><TypeRenderer typeInfo={{"Type":"Simple","Identifier":"FString","Out":false}} /></td>
+    </tr>
+    <tr>
+      <td>From Platform</td>
+      <td><TypeRenderer typeInfo={{"Type":"Simple","Identifier":"FString","Out":false}} /></td>
+    </tr>
+  </tbody>
+</table>
+
+
+## Outputs
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Output Name</th>
+      <th>Output Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td>Query Result</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"FBlockedQueryResultInfo","Out":true}} /></td>
+    </tr>
+  </tbody>
+</table>
+
+

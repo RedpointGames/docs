@@ -1,0 +1,62 @@
+---
+title: Updating your game client
+description: Update the behaviour of your game client to optimize server usage and reduce latency for players.
+---
+
+Now that you have your game server containers running, you might need to update your game client to correctly search for and connect to them.
+
+## Options for server discovery
+
+When your game server containers start up, they'll register themselves with the EOS sessions list. You can find available servers to join by using the [FindSessions](ossv1/sessions/finding.mdx) operation.
+
+In terms of discovering appropriate game servers to join, there's two approaches you could take:
+
+- You can implement the `FindSessions` calls yourself, filtering for servers based on the session attributes. You would call `FindSessions` in a loop until the game client finds a suitable server to join.
+  - You can also use network beacons to communicate with the game server containers before doing a full connection. This can allow you to discover other players on the game server containers and perform additional checks that can be done with session attributes, such as reserving enough capacity for the player's entire party.
+- You can use the [Matchmaking](https://www.fab.com/listings/34844f4f-4c1c-4d9c-a8f7-97bc0e86ece8) plugin, which handles game server discovery as part of the matchmaking process.
+
+## Latency testing with Agones UDP ping services
+
+To discover which Kubernetes clusters are closest to the player latency-wise, you can use the Agones UDP ping service. This roughly involves:
+
+- Making the region the game server container is running in an attribute on the EOS sessions list. You could do this by [passing an environment variable through to the sessions list](/dedis/preparing_your_game_server.mdx#optional-read-environment-variables-for-extra-session-settings).
+- Keeping a map of "region -> ping server IP address" in your game. You could hard code this, or you could load it as JSON from the Title File service. By storing it in the Title File service, you can roll out new regions without having to push out updates to the game client binaries.
+  - The ping server IP address of the UDP ping service in the cluster can be discovered with `kubectl get services`. Refer to the `EXTERNAL-IP` column.
+  - You might need to open the appropriate port on the firewall with `ufw allow in on eth1 proto udp to any port <external port of UDP ping service>`.
+- When the game starts up, create a UDP socket and send a small UDP packet to the ping service endpoint in each region. Measure how long it takes to get the same packet back from the service; this will be the round-trip time (RTT) for connections to game server containers in that region.
+  - You'll probably want to sample with multiple ping packets over time. This will also allow you to measure jitter (variance) and packet loss, and exclude regions where the jitter or packet loss is too high.
+- When searching for sessions, filter to only include regions where the latency is sufficiently low. If the game client can't find any sessions available in a region, search additional regions for capacity - they might have a higher latency, but the closest region might be full and not able to burst into the cloud, so it's important that you game client can fallback to other regions.
+
+## Adjusting search results to prioritize local providers over public cloud
+
+If you've set up one or more regions to burst into cloud, you'll want game clients to prioritize selecting game server containers running on local providers over a public cloud. This ensures that as demand lowers, the public cloud can scale back down to zero virtual machines.
+
+You'll need to pass information about the Kubernetes node through to the game server container when it launches. You can do this by setting it as an environment variable:
+
+```yaml
+spec:
+  containers:
+    - name: eos-dedicated-server
+      # rest of game server definition
+      env:
+        - name: KUBERNETES_NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+```
+
+Then, update your game server binary to read the `KUBERNETES_NODE_NAME` variable. There's two approaches to determining whether the game server container is running on a public cloud VM:
+
+- You could prefix all public cloud nodes with a specific prefix, like `cloud-`. Thus the name for a Kubernetes node on a public cloud might be `cloud-west-europe-01-aj7fk`. When the game serevr binary starts up, it checks to see if the node name starts with `cloud-`.
+- You could read the node name in a wrapper script, and use `kubectl` within the container to read a label on the node. This is more advanced, requires setting up additional RBAC policies to allow reading node labels from within the game server container, and isn't covered by this guide.
+
+Once you know if the game server container is running on a public cloud, you could then set a `priority` attribute on the EOS session like so:
+
+- `100`: Running on a local provider
+- `0`: Running on a public cloud
+
+When game clients search for sessions, they should use a `EOnlineComparisonOp::Near` filter for `priority` near `100`. This will cause the EOS sessions service to return game server containers running on a local provider first.
+
+## Filtering on unique build ID
+
+If you're providing a unique build ID when building your game client and game server binaries, you can filter on the build ID when searching for sessions. This ensures your game client will only connect to compatible game server containers.

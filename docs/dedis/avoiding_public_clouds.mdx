@@ -1,0 +1,50 @@
+---
+title: Avoiding public clouds
+description: Significantly reduce your future and ongoing server costs by avoiding public clouds.
+---
+
+import PricingCalculator from '@site/src/PricingCalculator';
+import BurstCalculator from '@site/src/BurstCalculator';
+
+To host game server containers, you'll need to rent computing power from someone. It can be tempting to use well-known services such as PlayFab and GameLift, or generic compute on public clouds such as AWS, Azure or Google Cloud. These providers have the benefit of capacity and instant provisioning, but come at a significant cost: on public clouds you can expect to pay **6-12 times** more than a local provider for the same hardware and bandwidth in a given region.
+
+By almost every metric, dedicated servers from a local provider will be cheaper and more performant than running the same workload on virtualized machines in a public cloud. The downside to dedicated servers is that you have to pay month-to-month and the provisioning time is often a few days.
+
+While this makes local providers unsuitable for burst workloads, most games will have a minimum concurrent player count that is met at all times. Even in cases where a concurrent user count is only hit for a percentage of time, it can still be cheaper to use local providers because public cloud is so expensive: it's literally cheaper to have a month-to-month dedicated server sitting idle than it is to burst into public clouds for a shorter period of time.
+
+By comparing prices of public clouds and local providers, this document will aim to convince you that you should deploy month-to-month fixed hardware as a first preference, and burst into public clouds only when absolutely necessary.
+
+Later in this document we'll model when you should consider bursting into cloud. For this we'll need to know the __*public cloud cost multipler*__ which is a measure of how much more expensive the cheapest public cloud is than the cheapest local provider in any given region.
+
+## Pricing comparison calculator
+
+The pricing calculator below shows the total estimated costs you would pay for a game that has a minimum of 1500 concurrent players at all times in the chosen region. In this calculator, the game might burst above 1500 concurrent players, but costs associated with that burst are not shown here; this is simply a baseline cost per month to serve the lowest number of concurrent players the game experiences.
+
+This calculator assumes:
+
+- 1500 concurrent players is the minimum number of players in the chosen region at all times.
+- Each game server container hosts 8 players at a time; for example, the game operates 4v4 matches.
+- Each game server container requires 1.5 threads for execution. This will depend on the nature of the specific game, but since optimizing CPU requirements per game server container will result in a CPU usage reduction on all providers, this won't change the relative cost factors between providers that much.
+- Each player uses approximately 400 kilobits per second up and down. Public clouds only charge for egress, so those are billed at 400kbps. Private clouds often bill for both ingress and egress, but include bandwidth in their monthly price.
+
+This calculator doesn't include additional storage (SSD or HDD) costs associated with instances. Public clouds often charge extra for storage, but unless your game server container is performing a high amount of disk I/O, you can usually choose cheaper storage tiers to reduce costs here. Almost all private clouds include storage in the monthly price of instances, yet they're still cheaper than public clouds as per the table below.
+
+Public clouds here do not apply 1-year or 3-year reservations, as these can have significant upfront costs, and it can be difficult to predict player counts that far in advance to take advantage of these savings.
+
+Public clouds here also do not use spot instance pricing, as interrupting dedicated servers mid-match is unacceptable to most games.
+
+Values here are rounded to the nearest dollar, and all values are in USD.
+
+:::info
+We don't vouch for any of the local providers listed here; this pricing calculator is for illustrative purposes. The intent of this pricing calculator is to demonstrate that you can find local providers in various regions with significantly lower list prices.
+
+Also, these prices are accurate as of the time this document was written. However, since all the listed prices are "frozen in time", they're still useful for relative comparisons.
+:::
+
+<PricingCalculator />
+
+## Burst threshold calculator
+
+The burst calculator determines the point at which you should move workloads from a public cloud provider to a local provider in the same region. Beyond the burst threshold, it is cheaper to have a dedicated server at a local provider sitting idle than to use a virtual machine in a public cloud, even when the public cloud does per-second or per-hour billing.
+
+<BurstCalculator />

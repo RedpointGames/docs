@@ -1,0 +1,130 @@
+---
+title: Accessing support
+description: How to get access to support and source code.
+---
+
+Support is only available to developers who have [purchased EOS Online Framework on Fab](https://www.fab.com/listings/b900b244-0ff6-49e3-8562-5fc630ba9515).
+
+## Verify your purchase to open a support case
+
+Login to the [Redpoint Games License Manager](https://licensing.redpoint.games/) and upload your receipt.
+
+Once we've checked your receipt, you'll be able to create a support case in the `#eos-online-framework` channel under the **Support - Standard Support** category.
+
+:::warning
+Please make sure you include full logs with verbosity increased as per the instructions below when opening a support case. If you don't include logs and we have to ask for them, it will increase the time it takes for us to solve your issue.
+:::
+
+## Increasing log levels
+
+By default the plugin omits some types of logs due to the amount of logging generated. When we're helping you with a support case, it's important that we have as much information as possible to diagnose the problem you're running into. Before you upload logs, please ensure you add the following to `DefaultEngine.ini` so that we have the maximum amount of information available to help you:
+
+```ini
+[Core.Log]
+LogDiscordRuntime=VeryVerbose
+LogOnlineSubsystemRedpointEOS=VeryVerbose
+LogRedpointDiscord=VeryVerbose
+LogRedpointEOS=VeryVerbose
+LogRedpointEOSAntiCheat=VeryVerbose
+LogRedpointEOSAPI=VeryVerbose
+LogRedpointEOSAuth=VeryVerbose
+LogRedpointEOSCloudMessagingHub=VeryVerbose
+LogRedpointEOSConfig=VeryVerbose
+LogRedpointEOSCore=VeryVerbose
+LogRedpointEOSEditor=VeryVerbose
+LogRedpointEOSEditorTests=VeryVerbose
+LogRedpointEOSEditorTestsModule=VeryVerbose
+LogRedpointEOSFileTransfer=VeryVerbose
+LogRedpointEOSFriends=VeryVerbose
+LogRedpointEOSIdentity=VeryVerbose
+LogRedpointEOSLicenseValidation=VeryVerbose
+LogRedpointEOSLicenseValidation=VeryVerbose
+LogRedpointEOSNetworkAuth=VeryVerbose
+LogRedpointEOSNetworkTrace=VeryVerbose
+LogRedpointEOSPlatform=VeryVerbose
+LogRedpointEOSPlatformAndroid=VeryVerbose
+LogRedpointEOSPlatformDesktop=VeryVerbose
+LogRedpointEOSPlatformIntegrationApple=VeryVerbose
+LogRedpointEOSPlatformIntegrationEpic=VeryVerbose
+LogRedpointEOSPlatformIntegrationGOG=VeryVerbose
+LogRedpointEOSPlatformIntegrationOculus=VeryVerbose
+LogRedpointEOSPlatformIntegrationOSSv1=VeryVerbose
+LogRedpointEOSPlatformIntegrationSteam=VeryVerbose
+LogRedpointEOSPlatformIOS=VeryVerbose
+LogRedpointEOSPresence=VeryVerbose
+LogRedpointEOSRooms=VeryVerbose
+LogRedpointEOSSessionListening=VeryVerbose
+LogRedpointEOSSocket=VeryVerbose
+LogRedpointEOSSocketLifecycle=VeryVerbose
+LogRedpointEOSStat=VeryVerbose
+LogRedpointEOSTests=VeryVerbose
+LogRedpointEOSUserCache=VeryVerbose
+LogRedpointEOSVoiceChat=VeryVerbose
+LogRedpointGoogle=VeryVerbose
+LogRedpointItchIo=VeryVerbose
+LogRedpointOculus=VeryVerbose
+LogRedpointSteam=VeryVerbose
+```
+
+## Enabling logs in Shipping builds
+
+If you have an issue that only reproduces in a Shipping build, you'll need to enable logs in Shipping builds so that we have enough information to diagnose the issue.
+
+To enable logs in Shipping builds, you must:
+
+- Have at least one C++ file in your Unreal Engine project, so that `YourProject.Target.cs` exists, and
+- Have the [plugin cloned from Git](/setup/index.mdx#source-code-access) and installed in the project's Plugins folder.
+
+Locate the `YourProject.Target.cs` file in your project. If you're using a version of the engine installed via the Epic Games Launcher, you also need to add:
+
+```csharp
+bUseLoggingInShipping = true;
+bOverrideBuildEnvironment = true;
+```
+
+Alternatively, if you're using a source version of Unreal Engine (i.e. from GitHub or Perforce), instead add:
+
+```csharp
+bUseLoggingInShipping = true;
+BuildEnvironment = TargetBuildEnvironment.Unique;
+```
+
+Now when you build and run your game in Shipping configuration, logs will be generated to the `Saved/Logs` folder the same as it would for the Development configuration.
+
+### Additional instructions for Android
+
+On Android, you need to modify `AndroidPlatformMisc.cpp` to replace an incorrect logging guard. Locate `FAndroidMisc::LocalPrint` and then replace:
+
+```cpp
+#if !UE_BUILD_SHIPPING || ENABLE_PGO_PROFILE
+```
+
+with:
+
+```cpp
+#if !NO_LOGGING || ENABLE_PGO_PROFILE
+```
+
+This requires building the engine from source; if you do not use a source-based engine, logs will not be emitted on Android as `AndroidPlatformMisc.cpp` will not be rebuilt.
+
+## Enabling additional diagnostics
+
+There are a few diagnostic options which must be manually enabled at compile-time if you want to use them. This is because they emit huge amounts of data to the logs, but they can be useful for diagnosing otherwise subtle problems.
+
+In your project's `Build.cs` file:
+
+```csharp
+// Emits the full state of all parties and lobbies to the log whenever a lobby operation or event occurs.
+// This allows you to see the full state of all lobbies at every moment in time.
+ProjectDefinitions.Add("ONLINE_SUBSYSTEM_EOS_ENABLE_STATE_DIAGNOSTICS=1");
+
+// Turns on network tracing, which emits information about every packet sent or received over P2P
+// connections through the EOS networking driver. Network packet information is emitted to the
+// LogRedpointEOSNetworkTrace category, which is on by default if you've enabled compile-time support with
+// this option below.
+ProjectDefinitions.Add("ONLINE_SUBSYSTEM_EOS_ENABLE_NETWORK_TRACING=1");
+```
+
+## Accessing the source code
+
+You can access the source code on the [Redpoint GitLab](https://src.redpoint.games/redpointgames/). Use the same Redpoint ID to sign in that you use with the License Manager.

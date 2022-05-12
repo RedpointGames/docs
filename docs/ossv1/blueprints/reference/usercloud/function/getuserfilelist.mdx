@@ -1,0 +1,57 @@
+---
+id: getuserfilelist
+title: Get User File List
+description: The GetUserFileList function of the UserCloud subsystem.
+---
+
+import TypeRenderer from '@site/src/TypeRenderer';
+import FunctionRenderer from '@site/src/FunctionRenderer';
+
+This is a normal blueprint node.
+
+The C++ documentation for this function is available on [the Unreal Engine documentation website](https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Plugins/OnlineSubsystem/Interfaces/IOnlineUserCloud/).
+
+## Example
+
+<FunctionRenderer subsystemName="UserCloud" func={{"Identifier":"GetUserFileList","Supported":false,"Async":false,"AsyncPins":[],"Pure":false,"Parameters":[{"Position":0,"Identifier":"UserId","Type":{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl","Out":false}},{"Position":1,"Identifier":"UserFiles","Type":{"Type":"Array","Element":{"Type":"Wrapped","Identifier":"FCloudFileHeaderBP"},"Out":true}}],"ReturnType":null}} />
+
+## Inputs
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Input Name</th>
+      <th>Input Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td>User Id</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl","Out":false}} /></td>
+    </tr>
+  </tbody>
+</table>
+
+
+## Outputs
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Output Name</th>
+      <th>Output Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td>User Files</td>
+      <td><TypeRenderer typeInfo={{"Type":"Array","Element":{"Type":"Wrapped","Identifier":"FCloudFileHeaderBP"},"Out":true}} /></td>
+    </tr>
+  </tbody>
+</table>
+
+

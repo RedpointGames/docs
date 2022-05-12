@@ -1,0 +1,61 @@
+---
+id: sanitizedisplaynames
+title: Sanitize Display Names
+description: The SanitizeDisplayNames function of the MessageSanitizer subsystem.
+---
+
+import TypeRenderer from '@site/src/TypeRenderer';
+import FunctionRenderer from '@site/src/FunctionRenderer';
+
+This is an asynchronous latent blueprint node.
+
+The C++ documentation for this function is available on [the Unreal Engine documentation website](https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Plugins/OnlineSubsystem/Interfaces/IOnlineMessageSanitizer/).
+
+## Example
+
+<FunctionRenderer subsystemName="MessageSanitizer" func={{"Identifier":"SanitizeDisplayNames","Supported":false,"Async":true,"AsyncPins":["OnCallFailed","OnMessageArrayProcessed"],"Pure":false,"Parameters":[{"Position":0,"Identifier":"DisplayNames","Type":{"Type":"Array","Element":{"Type":"Simple","Identifier":"FString"},"Out":false}},{"Position":1,"Identifier":"bSuccess","Type":{"Type":"Simple","Identifier":"bool","Out":true}},{"Position":2,"Identifier":"SanitizedMessages","Type":{"Type":"Array","Element":{"Type":"Simple","Identifier":"FString"},"Out":true}}],"ReturnType":null}} />
+
+## Inputs
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Input Name</th>
+      <th>Input Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td>Display Names</td>
+      <td><TypeRenderer typeInfo={{"Type":"Array","Element":{"Type":"Simple","Identifier":"FString"},"Out":false}} /></td>
+    </tr>
+  </tbody>
+</table>
+
+
+## Outputs
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Output Name</th>
+      <th>Output Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td>Success</td>
+      <td><TypeRenderer typeInfo={{"Type":"Simple","Identifier":"bool","Out":true}} /></td>
+    </tr>
+    <tr>
+      <td>Sanitized Messages</td>
+      <td><TypeRenderer typeInfo={{"Type":"Array","Element":{"Type":"Simple","Identifier":"FString"},"Out":true}} /></td>
+    </tr>
+  </tbody>
+</table>
+
+

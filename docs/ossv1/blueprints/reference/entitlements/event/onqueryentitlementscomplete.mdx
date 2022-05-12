@@ -1,0 +1,49 @@
+---
+id: onqueryentitlementscomplete
+title: On Query Entitlements Complete
+description: The OnQueryEntitlementsComplete event of the Entitlements subsystem.
+---
+
+import TypeRenderer from '@site/src/TypeRenderer';
+import EventRenderer from '@site/src/EventRenderer';
+
+This is a bindable event.
+
+The C++ documentation for this event is available on [the Unreal Engine documentation website](https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Plugins/OnlineSubsystem/Interfaces/IOnlineEntitlements/).
+
+## Example
+
+<EventRenderer subsystemName="Entitlements" event={{"Identifier":"OnQueryEntitlementsComplete","Parameters":[{"Position":0,"Identifier":"bWasSuccessful","Type":{"Type":"Simple","Identifier":"bool"}},{"Position":1,"Identifier":"UserId","Type":{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl","Out":false}},{"Position":2,"Identifier":"Namespace","Type":{"Type":"Simple","Identifier":"FString","Out":false}},{"Position":3,"Identifier":"Error","Type":{"Type":"Simple","Identifier":"FString","Out":false}}]}} />
+
+## Outputs
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Output Name</th>
+      <th>Output Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td>bWasSuccessful</td>
+      <td><TypeRenderer typeInfo={{"Type":"Simple","Identifier":"bool"}} /></td>
+    </tr>
+    <tr>
+      <td>UserId</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl","Out":false}} /></td>
+    </tr>
+    <tr>
+      <td>Namespace</td>
+      <td><TypeRenderer typeInfo={{"Type":"Simple","Identifier":"FString","Out":false}} /></td>
+    </tr>
+    <tr>
+      <td>Error</td>
+      <td><TypeRenderer typeInfo={{"Type":"Simple","Identifier":"FString","Out":false}} /></td>
+    </tr>
+  </tbody>
+</table>
+
+

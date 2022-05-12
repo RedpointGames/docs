@@ -1,0 +1,61 @@
+---
+id: showweburl
+title: Show Web URL
+description: The ShowWebURL function of the ExternalUI subsystem.
+---
+
+import TypeRenderer from '@site/src/TypeRenderer';
+import FunctionRenderer from '@site/src/FunctionRenderer';
+
+This is an asynchronous latent blueprint node.
+
+The C++ documentation for this function is available on [the Unreal Engine documentation website](https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Plugins/OnlineSubsystem/Interfaces/IOnlineExternalUI/).
+
+## Example
+
+<FunctionRenderer subsystemName="ExternalUI" func={{"Identifier":"ShowWebURL","Supported":false,"Async":true,"AsyncPins":["OnCallFailed","OnShowWebUrlClosed"],"Pure":false,"Parameters":[{"Position":0,"Identifier":"Url","Type":{"Type":"Simple","Identifier":"FString","Out":false}},{"Position":1,"Identifier":"ShowParams","Type":{"Type":"Wrapped","Identifier":"FShowWebUrlParameters","Out":false}},{"Position":2,"Identifier":"FinalUrl","Type":{"Type":"Simple","Identifier":"FString","Out":true}}],"ReturnType":null}} />
+
+## Inputs
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Input Name</th>
+      <th>Input Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td>Url</td>
+      <td><TypeRenderer typeInfo={{"Type":"Simple","Identifier":"FString","Out":false}} /></td>
+    </tr>
+    <tr>
+      <td>Show Params</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"FShowWebUrlParameters","Out":false}} /></td>
+    </tr>
+  </tbody>
+</table>
+
+
+## Outputs
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Output Name</th>
+      <th>Output Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td>Final Url</td>
+      <td><TypeRenderer typeInfo={{"Type":"Simple","Identifier":"FString","Out":true}} /></td>
+    </tr>
+  </tbody>
+</table>
+
+

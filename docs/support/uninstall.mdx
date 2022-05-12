@@ -1,0 +1,59 @@
+---
+id: uninstall
+title: Uninstall the plugin
+description: How to remove the plugin from your project.
+---
+
+If you need to remove the plugin from your project, it's important to remove all references otherwise you may not be able to package your project successfully.
+
+## Standard uninstall
+
+These steps should work for most projects. If you have difficulty packaging your project after following these steps, try [Advanced uninstall](#advanced-uninstall).
+
+### 1. Turn off the plugin in the project settings
+
+Under `Settings` -> `Plugins...`, turn off the plugin. You can also do this by removing the entry from the `Plugins` section of the `.uproject` file.
+
+### 2. Delete the "Saved" and "Intermediate" folders
+
+These folders contain temporary data that Unreal Engine generates during builds. To ensure there are no references left in these temporary artifacts, delete the "Saved" and "Intermediate" folders.
+
+### 3. Package your game
+
+You should now try to package your game. If you are unable to package your game, try [Advanced uninstall](#advanced-uninstall).
+
+## Advanced uninstall
+
+These steps should only be taken once you've tried the standard uninstall and still can not package your game. This will destructively remove all references to the plugin from your project.
+
+:::danger
+Back up your project before you do this. Some of these steps are destructive, so <u><strong>BACK UP YOUR PROJECT</strong></u>.
+:::
+
+- Download and install `grep` using the installer: http://downloads.sourceforge.net/gnuwin32/grep-2.5.4-setup.exe
+- Open a command prompt in the project directory
+- Make sure Unreal Engine is closed
+- Make sure the plugin is **uninstalled** from the Epic Games Launcher, if you installed the Paid Edition that way
+- Make sure you've deleted the plugin under `Plugins` if you're using the Paid Edition from source or the Free Edition
+- Run `"%PROGRAMFILES(x86)%\GnuWin32\bin\grep.exe" -l -c -r Redpoint .`
+- It will then output a list of files that contain references to the plugin
+
+Depending on the results, you will need to do different things:
+
+- For files located in `./Build`, `./Intermediate`, `./Binaries` or `./Saved`, delete these files. They are temporary and not usually stored in source control, so they can be safely deleted.
+- For the `.uproject` you will need to open it up and remove the plugin. You can also do this from the editor under `Plugins` (though you will need to re-run grep after closing the editor in case it wrote any more references).
+- For files located in `./Config/*.ini`, make sure you remove any configuration you added when setting up the plugin. You can Ctrl-F (Find) in for "Redpoint" in these files to find out where it's referenced. It is especially important to remove the asset manager entries in `DefaultGame.ini`.
+- For files located in `./Content`, you will need to open up these blueprints in Unreal Engine and remove any remaining references. It is **not** safe to just delete these files as they are your game's content!
+- For files located in `./Source`, you will need to modify your C++ code to remove any remaining references to the plugin.
+- For files located in `./Plugins`, make sure you have uninstalled the plugin completely (as instructed above) and then run `grep` again.
+
+Once you've done all the steps above, run `grep` again with the same arguments and it should output nothing because there are no references left.
+
+## Troubleshooting: LongPackageNameToFilename failed to convert
+
+If you don't remove the plugin entirely, you might get errors like this when cooking. Follow the steps above (including usage of `grep`) to ensure all references to the plugin are removed:
+
+```
+ProcessResult.StdOut:   LogWindows: Error: Fatal error: [File:D:/Build/++UE4+Licensee/Sync/Engine/Source/Runtime/CoreUObject/Private/Misc/PackageName.cpp] [Line: 512]
+ProcessResult.StdOut:   LogWindows: Error: LongPackageNameToFilename failed to convert '/OnlineSubsystemEOS/'. Path does not map to any roots.
+```

@@ -1,0 +1,55 @@
+---
+title: Configure networking
+description: How to configure networking for Epic Online Services.
+---
+
+Networking is configured automatically for you by default. If you've [turned off auto-configuration](/support/advanced_configuration.mdx#turning-off-auto-configuration), you might need to add the following settings to `Config\DefaultEngine.ini`:
+
+```ini
+[/Script/Engine.Engine]
+!NetDriverDefinitions=ClearArray
++NetDriverDefinitions=(DefName="GameNetDriver",DriverClassName="/Script/RedpointEOSNetworking.RedpointEOSNetDriver",DriverClassNameFallback="/Script/OnlineSubsystemUtils.IpNetDriver")
++NetDriverDefinitions=(DefName="BeaconNetDriver",DriverClassName="/Script/RedpointEOSNetworking.RedpointEOSNetDriver",DriverClassNameFallback="/Script/OnlineSubsystemUtils.IpNetDriver")
+```
+
+:::info
+You need to be using the configuration above even if your game is only using dedicated servers over IP. Using the Redpoint networking driver is required for session registration, automatic encryption, trusted dedicated servers, sanction checks and Anti-Cheat support.
+:::
+
+## Customizing UNetDriver settings
+
+If you'd like to customize the UNetDriver settings (such as changing `MaxClientRate`), you'll need to create a separate `DefaultOnlineSubsystemRedpointEOS.ini` config file underneath your project's `Config` folder. Note that this file is named differently and is _not_ `DefaultEngine.ini`.
+
+Once you've created that file, you can override the default settings like so:
+
+```ini
+[/Script/RedpointEOSNetworking.RedpointEOSNetDriver]
+MaxClientRate=100000
+MaxInternetClientRate=100000
+```
+
+A full list of default settings for the EOS net driver is shown below:
+
+```ini
+[/Script/RedpointEOSNetworking.RedpointEOSNetDriver]
+!ChannelDefinitions=ClearArray
++ChannelDefinitions=(ChannelName=Control, ClassName=/Script/RedpointEOSNetworking.RedpointEOSControlChannel, StaticChannelIndex=0, bTickOnCreate=true, bServerOpen=false, bClientOpen=true, bInitialServer=false, bInitialClient=true)
++ChannelDefinitions=(ChannelName=Voice, ClassName=/Script/Engine.VoiceChannel, StaticChannelIndex=1, bTickOnCreate=true, bServerOpen=true, bClientOpen=true, bInitialServer=true, bInitialClient=true)
++ChannelDefinitions=(ChannelName=Actor, ClassName=/Script/Engine.ActorChannel, StaticChannelIndex=-1, bTickOnCreate=false, bServerOpen=true, bClientOpen=false, bInitialServer=false, bInitialClient=false)
++ChannelDefinitions=(ChannelName=DataStream, ClassName=/Script/Engine.DataStreamChannel, StaticChannelIndex=2, bTickOnCreate=true, bServerOpen=true, bClientOpen=true, bInitialServer=true, bInitialClient=true)
+NetConnectionClassName="/Script/RedpointEOSNetworking.RedpointEOSNetConnection"
+ConnectionTimeout=80.0
+InitialConnectTimeout=120.0
+NetServerMaxTickRate=30
+MaxNetTickRate=120
+KeepAliveTime=0.2
+MaxClientRate=100000
+MaxInternetClientRate=100000
+RelevantTimeout=5.0
+SpawnPrioritySeconds=1.0
+ServerTravelPause=4.0
+TimeoutMultiplierForUnoptimizedBuilds=1
+RecentlyDisconnectedTrackingTime=120
+MaxPortCountToTry=512
+ResolutionConnectionTimeout=20.0
+```

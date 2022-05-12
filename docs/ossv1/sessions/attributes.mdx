@@ -1,0 +1,27 @@
+---
+title: Supported attribute types
+description: View the list of supported attribute types.
+---
+
+The EOS session backend only supports a subset of attribute types. Although the online subsystem APIs support a wide range of session attribute types, attempting to create or update a session while using an unsupported attribute type will cause the operation to fail.
+
+## Supported types
+
+EOS supports the following attribute types:
+
+- Bool
+- Int64
+- Double
+- String
+
+## Unsupported types
+
+EOS does not support the following attribute types. Attempting to create or update a session with one of these attribute types will fail.
+
+- Empty
+- Int32
+- UInt32
+- UInt64
+- Float
+- Blob
+- Json

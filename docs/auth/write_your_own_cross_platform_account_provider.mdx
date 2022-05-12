@@ -1,0 +1,423 @@
+---
+title: Using your own cross-platform account system
+sidebar_label: Custom Provider
+description: How to implement your own custom cross-platform account provider to use your own first-party account system across platforms.
+---
+
+You can write your own cross-platform account provider to connect players to your own first-party account system. This is a very advanced topic, and requires strong knowledge of C++.
+
+## Before you begin
+
+You should first read the document [Writing a custom authentication graph](auth/write_your_own_authentication_graph.mdx). You'll need to understand how to write authentication graphs and authentication graph nodes in order to implement your own cross-platform account provider.
+
+## The concept of a cross-platform account provider
+
+Before writing your own cross-platform account provider, it's important to understand the concepts behind the design.
+
+The plugin ships built-in support for obtaining credentials from various different platforms (including Steam, Discord, itch.io, etc.). Each of these platforms requires specific code to be written to support the integration, which we do as part of the plugin offering.
+
+Typically with a cross-platform account provider, you'll want to allow a user to sign into their account manually once, and then have their account linked with the native platform so you can use the platform's credentials (like Steam) to sign the user straight into their cross-platform account.
+
+Separating the authentication graph from the cross-platform account provider allows all of the credential obtainment for the native platforms to be re-used across cross-platform account providers. Whether you're using Epic Games or your own account system, you can implicitly sign users into their accounts using the credentials provided by the native platform.
+
+To allow for this separation, there are some well defined APIs on cross-platform account providers which authentication graphs will use at appropriate times. This allows you to hook into those points to authenticate with your own APIs, without having to be aware of how each authentication graph is implemented.
+
+## Creating an cross-platform account provider
+
+First, create the skeleton for the new cross-platform account provider that you want to define:
+
+```cpp
+// YourCrossPlatformAccountProvider.h
+
+#pragma once
+
+#if EOS_HAS_AUTHENTICATION
+
+#include "OnlineSubsystemRedpointEOS/Shared/Authentication/CrossPlatform/CrossPlatformAccountId.h"
+#include "OnlineSubsystemRedpointEOS/Shared/Authentication/CrossPlatform/CrossPlatformAccountProvider.h"
+
+#define YOUR_ACCOUNT_ID FName(TEXT("YourAccountSystem"))
+
+class FYourCrossPlatformAccountId : public FCrossPlatformAccountId
+{
+private:
+    uint8 *DataBytes;
+    int32 DataBytesSize;
+    // Add further fields to store your cross-platform account ID.
+    
+public:
+    // Change the constructor to accept your cross-platform account ID as a parameter.
+    FYourCrossPlatformAccountId(/* ... */);
+    virtual ~FYourCrossPlatformAccountId();
+    UE_NONCOPYABLE(FYourCrossPlatformAccountId);
+
+    virtual bool Compare(const FCrossPlatformAccountId &Other) const override;
+    virtual FName GetType() const override;
+    virtual const uint8 *GetBytes() const override;
+    virtual int32 GetSize() const override;
+    virtual bool IsValid() const override;
+    virtual FString ToString() const override;
+
+    static TSharedPtr<const FCrossPlatformAccountId> ParseFromString(const FString &In);
+
+    // You can add helper methods to return the native type here...
+    // int64 GetFirstPartyAccountId() const;
+};
+
+class FYourCrossPlatformAccountProvider : public ICrossPlatformAccountProvider
+{
+public:
+    FYourCrossPlatformAccountProvider(){};
+
+    virtual FName GetName() override;
+    virtual TSharedPtr<const FCrossPlatformAccountId> CreateCrossPlatformAccountId(
+        const FString &InStringRepresentation) override;
+    virtual TSharedPtr<const FCrossPlatformAccountId> CreateCrossPlatformAccountId(uint8 *InBytes, int32 InSize)
+        override;
+    virtual TSharedRef<FAuthenticationGraphNode> GetInteractiveAuthenticationSequence() override;
+    virtual TSharedRef<FAuthenticationGraphNode> GetInteractiveOnlyAuthenticationSequence() override;
+    virtual TSharedRef<FAuthenticationGraphNode> GetNonInteractiveAuthenticationSequence(
+        bool bOnlyUseExternalCredentials) override;
+    virtual TSharedRef<FAuthenticationGraphNode> GetUpgradeCurrentAccountToCrossPlatformAccountSequence() override;
+    virtual TSharedRef<FAuthenticationGraphNode> GetLinkUnusedExternalCredentialsToCrossPlatformAccountSequence()
+        override;
+    virtual TSharedRef<FAuthenticationGraphNode> GetAutomatedTestingAuthenticationSequence() override;
+};
+
+#endif // #if EOS_HAS_AUTHENTICATION
+```
+
+```cpp
+// YourCrossPlatformAccountProvider.cpp
+
+#if EOS_HAS_AUTHENTICATION
+
+#include "YourCrossPlatformAccountProvider.h"
+
+#include "OnlineSubsystemRedpointEOS/Shared/Authentication/AuthenticationGraph.h"
+#include "OnlineSubsystemRedpointEOS/Shared/Authentication/Nodes/NoopAuthenticationGraphNode.h"
+// Add further #include directives for other nodes you want to use.
+
+FYourCrossPlatformAccountId::FYourCrossPlatformAccountId(/* ... */)
+{
+    // Assign inputs to fields as necessary.
+
+    auto Str = StringCast<ANSICHAR>(*this->ToString());
+    this->DataBytesSize = Str.Length() + 1;
+    this->DataBytes = (uint8 *)Compat_MallocZeroed(this->DataBytesSize);
+    FMemory::Memcpy(this->DataBytes, Str.Get(), Str.Length());
+}
+
+bool FYourCrossPlatformAccountId::Compare(const FCrossPlatformAccountId &Other) const
+{
+    if (Other.GetType() != GetType())
+    {
+        return false;
+    }
+
+    if (Other.GetType() == YOUR_ACCOUNT_ID)
+    {
+        const FYourCrossPlatformAccountId &OtherId = (const FYourCrossPlatformAccountId &)Other;
+        return OtherId.GetFirstPartyAccountId() == this->GetFirstPartyAccountId();
+    }
+
+    return (GetType() == Other.GetType() && GetSize() == Other.GetSize()) &&
+           (FMemory::Memcmp(GetBytes(), Other.GetBytes(), GetSize()) == 0);
+}
+
+FYourCrossPlatformAccountId::~FYourCrossPlatformAccountId()
+{
+    FMemory::Free(this->DataBytes);
+}
+
+FName FYourCrossPlatformAccountId::GetType() const
+{
+    return YOUR_ACCOUNT_ID;
+}
+
+const uint8 *FYourCrossPlatformAccountId::GetBytes() const
+{
+    return this->DataBytes;
+}
+
+int32 FYourCrossPlatformAccountId::GetSize() const
+{
+    return this->DataBytesSize;
+}
+
+bool FYourCrossPlatformAccountId::IsValid() const
+{
+    // Implement whether or not the ID is valid.
+}
+
+FString FYourCrossPlatformAccountId::ToString() const
+{
+    // Return the cross-platform account ID as a string. You 
+    // need to be able to convert it back to a 
+    // FYourCrossPlatformAccountId inside ParseFromString(const FString &In).
+    return FString::Printf(TEXT("%lld"), this->FirstPartyAccountId);
+}
+
+/*
+int64 FYourCrossPlatformAccountId::GetFirstPartyAccountId() const
+{
+    return this->FirstPartyAccountId;
+}
+*/
+
+TSharedPtr<const FCrossPlatformAccountId> FYourCrossPlatformAccountId::ParseFromString(const FString &In)
+{
+    return MakeShared<FYourCrossPlatformAccountId>(/* ... */);
+}
+
+FName FYourCrossPlatformAccountProvider::GetName()
+{
+    return YOUR_ACCOUNT_ID;
+}
+
+TSharedPtr<const FCrossPlatformAccountId> FYourCrossPlatformAccountProvider::CreateCrossPlatformAccountId(
+    const FString &InStringRepresentation)
+{
+    return FYourCrossPlatformAccountId::ParseFromString(InStringRepresentation);
+}
+
+TSharedPtr<const FCrossPlatformAccountId> FYourCrossPlatformAccountProvider::CreateCrossPlatformAccountId(
+    uint8 *InBytes,
+    int32 InSize)
+{
+    FString Data = BytesToString(InBytes, InSize);
+    return FYourCrossPlatformAccountId::ParseFromString(Data);
+}
+
+TSharedRef<FAuthenticationGraphNode> FYourCrossPlatformAccountProvider::
+    GetInteractiveAuthenticationSequence()
+{
+    // We'll cover implementing this in a moment.
+    return MakeShared<FNoopAuthenticationGraphNode>();
+}
+
+TSharedRef<FAuthenticationGraphNode> FYourCrossPlatformAccountProvider::
+    GetInteractiveOnlyAuthenticationSequence()
+{
+    // We'll cover implementing this in a moment.
+    return MakeShared<FNoopAuthenticationGraphNode>();
+}
+
+TSharedRef<FAuthenticationGraphNode> FYourCrossPlatformAccountProvider::
+    GetNonInteractiveAuthenticationSequence(bool bOnlyUseExternalCredentials)
+{
+    // We'll cover implementing this in a moment.
+    return MakeShared<FNoopAuthenticationGraphNode>();
+}
+
+TSharedRef<FAuthenticationGraphNode> FYourCrossPlatformAccountProvider::
+    GetUpgradeCurrentAccountToCrossPlatformAccountSequence()
+{
+    // We'll cover implementing this in a moment.
+    return MakeShared<FNoopAuthenticationGraphNode>();
+}
+
+TSharedRef<FAuthenticationGraphNode> FYourCrossPlatformAccountProvider::
+    GetLinkUnusedExternalCredentialsToCrossPlatformAccountSequence()
+{
+    // We'll cover implementing this in a moment.
+    return MakeShared<FNoopAuthenticationGraphNode>();
+}
+
+TSharedRef<FAuthenticationGraphNode> FYourCrossPlatformAccountProvider::
+    GetAutomatedTestingAuthenticationSequence()
+{
+    // We'll cover implementing this in a moment.
+    return MakeShared<FNoopAuthenticationGraphNode>();
+}
+
+#endif // #if EOS_HAS_AUTHENTICATION
+```
+
+Now you need to register your cross-platform account provider in your game's `StartupModule` function:
+
+```cpp
+FAuthenticationGraphRegistry::RegisterCrossPlatformAccountProvider(
+    FName(TEXT("YourAccountSystem")),
+    MakeShared<FYourCrossPlatformAccountProvider>());
+```
+
+You can then select your cross-platform account provider from Project Settings.
+
+## Implementing your cross-platform account provider
+
+Now that you have the basic template in your game, you need to implement each of the functions in the cross-platform account provider.
+
+### Implementing the cross-platform account ID
+
+You need to add the required fields and functions to your cross-platform account ID. The account ID class is what serializes and deserializes the IDs that you use in your external systems. Some account systems use integer IDs and others use strings, so this class abstracts IDs so you can use the format that suits you.
+
+### GetInteractiveAuthenticationSequence
+
+This sequence of nodes should attempt to:
+
+- Implicitly sign the user in using any persisted credentials or exchange codes passed in on the command line (i.e. if you're using a launcher which authenticates the user instead).
+- Implicitly sign the user into their cross-platform account using the credentials in `State->AvailableExternalCredentials`.
+- Interactively sign the user in.
+
+You should stop running through the sequence of nodes once the user has been signed in.
+
+If successful, you should set `State->AuthenticatedCrossPlatformAccountId`, then proceed to authenticate with EOS as outlined in the next section.
+
+If the user can't be signed in, this sequence should error with `EAuthenticationGraphNodeResult::Error`. `FAuthenticationGraphNodeUntil_CrossPlatformAccountPresent` will take care of this for you if it runs out of ways to authenticate.
+
+For reference, this is what the Epic Games account provider does:
+
+```cpp
+return MakeShared<FAuthenticationGraphNodeUntil_Forever>()
+    ->Add(MakeShared<FAuthenticationGraphNodeUntil_CrossPlatformAccountPresent>()
+        ->Add(MakeShared<FTryExchangeCodeAuthenticationNode>())
+        ->Add(MakeShared<FTryPIEDeveloperAuthenticationEASCredentialsNode>())
+        ->Add(MakeShared<FTryDefaultDeveloperAuthenticationEASCredentialsNode>())
+        ->Add(MakeShared<FTryPersistentEASCredentialsNode>())
+        ->Add(MakeShared<FGatherEASAccountsWithExternalCredentialsNode>())
+        ->Add(MakeShared<FPerformInteractiveEASLoginNode>()))
+    ->Add(MakeShared<FChainEASResultToEOSNode>());
+```
+
+#### Authenticating to EOS
+
+Once you've completed the sign in into the cross-platform account provider, you then need to "chain" the cross-platform authentication into EOS.
+
+To do this, you need to call `FEOSAuthentication::DoRequest` with the OpenID access token of your cross-platform account provider. You should then call `State->AddEOSConnectCandidate` with the candidate type set to `EAuthenticationGraphEOSCandidateType::CrossPlatform` if the result code is either `EOS_Success` or `EOS_InvalidUser`:
+
+```cpp
+State->AddEOSConnectCandidate(
+    NSLOCTEXT("YourGame", "YourAccountSystem", "Our Account System"),
+    Attributes /* Custom user attributes */,
+    Data /* The EOS_Connect_LoginCallbackInfo */,
+    RefreshCallback,
+    EAuthenticationGraphEOSCandidateType::CrossPlatform,
+    MakeShared<FYourCrossPlatformAccountId>(YourFirstPartyAccountId));
+```
+
+You'll need to implement `RefreshCallback`. It will be called by the plugin when the user's login needs to be refreshed. This means that your cross-platform sign in will need to issue both an access token (for the EOS backend) and a refresh token (which can be used to obtain a new refresh token and access token). You would then use the refresh token to sign in on your backend and call `FEOSAuthentication::DoRequest` during the `RefreshCallback`.
+
+You should implement the steps above separate to the attempts to authenticate with the cross-platform account provider, because this logic is the same regardless of whether you implicitly or interactively sign into the cross-platform account provider. Epic Games implements the "chaining" logic inside `FChainEASResultToEOSNode`.
+
+### GetInteractiveOnlyAuthenticationSequence
+
+This sequence is the same as `GetInteractiveAuthenticationSequence`, except that you should only attempt to do interactive login.
+
+This is because the implicit login methods have usually already been run as part of `GetNonInteractiveAuthenticationSequence` (see below). The player is probably wanting an interactive sign in because the way that they typically authenticate with their account is not available on this platform (e.g. their cross-platform account only has Steam linked, but they are playing on Xbox).
+
+All of the behaviour / semantics of this sequence are otherwise identical to `GetInteractiveAuthenticationSequence` (including the need to "chain" authentication into EOS).
+
+For reference, this is what the Epic Games account provider does:
+
+```cpp
+return MakeShared<FAuthenticationGraphNodeUntil_Forever>()
+    ->Add(MakeShared<FAuthenticationGraphNodeUntil_CrossPlatformAccountPresent>()
+        ->Add(MakeShared<FPerformInteractiveEASLoginNode>()))
+    ->Add(MakeShared<FChainEASResultToEOSNode>());
+```
+
+### GetNonInteractiveAuthenticationSequence
+
+This sequence is the same as `GetInteractiveAuthenticationSequence`, except that you should not attempt to authenticate interactively.
+
+- If `bOnlyUseExternalCredentials` is true, you should only attempt to authenticate with the credentials in `State->AvailableExternalCredentials`.
+- If `bOnlyUseExternalCredentials` is false, you can also attempt to authenticate using persisted credentials or exchange code on the command line.
+
+All of the behaviour / semantics of this sequence are otherwise identical to `GetInteractiveAuthenticationSequence` (including the need to "chain" authentication into EOS).
+
+For reference, this is what the Epic Games account provider does:
+
+```cpp
+auto Sequence = MakeShared<FAuthenticationGraphNodeUntil_CrossPlatformAccountPresent>()->AllowFailure(true);
+if (!bOnlyUseExternalCredentials)
+{
+    Sequence->Add(MakeShared<FTryExchangeCodeAuthenticationNode>())
+        ->Add(MakeShared<FTryPIEDeveloperAuthenticationEASCredentialsNode>())
+        ->Add(MakeShared<FTryDefaultDeveloperAuthenticationEASCredentialsNode>())
+        ->Add(MakeShared<FTryPersistentEASCredentialsNode>());
+}
+Sequence->Add(MakeShared<FGatherEASAccountsWithExternalCredentialsNode>());
+return MakeShared<FAuthenticationGraphNodeUntil_Forever>()->Add(Sequence)->Add(
+    MakeShared<FAuthenticationGraphNodeConditional>()
+        ->If(
+            FAuthenticationGraphCondition::CreateStatic(
+                &FAuthenticationGraph::Condition_CrossPlatformAccountIsValid),
+            MakeShared<FChainEASResultToEOSNode>())
+        ->Else(MakeShared<FNoopAuthenticationGraphNode>()));
+```
+
+### GetUpgradeCurrentAccountToCrossPlatformAccountSequence
+
+This sequence is called when the user is currently using a non-cross platform account (i.e. if you have not made them mandatory via Project Settings), and they want to upgrade their native platform account into a cross-platform account.
+
+Before this sequence is run, the user will have already been asked to sign into a cross-platform account in `GetInteractiveOnlyAuthenticationSequence`. Therefore when this sequence begins you will have:
+
+- A local EOS user ID stored in `State->ExistingUserId`.
+- A cross-platform account available as an EOS candidate inside `State->EOSCandidates` (check for `Candidate.Type == EAuthenticationGraphEOSCandidateType::CrossPlatform`).
+
+#### Sign into EOS using the cross-platform account
+
+First you need to sign into EOS using the OpenID access token associated with the cross-platform account. This involves calling `FEOSAuthentication::DoRequest`.
+
+The result code **must** be `EOS_InvalidUser` and you **must** get a ContinuanceToken. If you get `EOS_Success` then:
+
+- If the returned product user ID is equal to the user ID in `State->ExistingUserId`, then the user already linked their local account with the cross-platform account and everything is fine.
+- If the returned product user ID is *different*, then the cross-platform account they signed into already has a different player account associated with it. They can't link it with this local platform, because there are effectively two sets of player data. The only way to fix this is up is to have the player contact your support, who can unlink or delete the extra EOS accounts via the Epic Games Developer Portal.
+
+#### Link the continuance token against the existing user ID
+
+You then need to call `EOS_Connect_LinkAccount`. Use the continuance token for the cross-platform account, and the `State->ExistingUserId` for the local user ID.
+
+It will look something like this:
+
+```cpp
+EOS_Connect_LinkAccountOptions Opts = {};
+Opts.ApiVersion = EOS_CONNECT_LINKACCOUNT_API_LATEST;
+Opts.ContinuanceToken = ContinuanceToken;
+Opts.LocalUserId = State->ExistingUserId->GetProductUserId();
+
+EOSRunOperation<EOS_HConnect, EOS_Connect_LinkAccountOptions, EOS_Connect_LinkAccountCallbackInfo>(
+    State->EOSConnect,
+    &Opts,
+    EOS_Connect_LinkAccount,
+    [WeakThis = GetWeakThis(this), State, OnDone](const EOS_Connect_LinkAccountCallbackInfo *Info) {
+        if (Info->ResultCode != EOS_EResult::EOS_Success)
+        {
+            // Failed to link cross-platform continuance token against current account. Check result code, log error message and fail.
+            return;
+        }
+
+        // Success, now the cross-platform account is associated with the existing account.
+        OnDone.ExecuteIfBound(EAuthenticationGraphNodeResult::Continue);
+    });
+```
+
+This step ensures that when the user uses their cross-platform account to sign in in the future (whether implicitly or interactively), it will sign them into the account they are currently playing on, with all their data intact.
+
+#### Link the external credentials against your cross-platform account API
+
+You need to make an API call to your backend to associate the external credentials that the user used to sign in with the cross-platform account. It should be such that running `GetNonInteractiveAuthenticationSequence` on the current platform will implicitly sign the user into the cross-platform account they just linked.
+
+The external credentials that were used to sign in the local user are available in `State->ExistingExternalCredentials`.
+
+This step ensures the user will be signed into their cross-platform account implicitly when using this platform in the future, instead of having to do an interactive sign in.
+
+### GetLinkUnusedExternalCredentialsToCrossPlatformAccountSequence
+
+This sequence is called when the user has finished doing an interactive sign in with their cross-platform account (where they weren't able to implicitly sign in), and now you want to associate the external credentials which couldn't be used with the cross-platform account.
+
+This sequence is the highlighted section in the following list of steps:
+
+- User launches the game on Steam.
+- Cross-platform account provider tries to implicitly sign into a cross-platform account using the Steam credentials, as part of `GetNonInteractiveAuthenticationSequence`.
+- The Steam credentials aren't yet associated with a cross-platform account.
+- Either the user is required to sign into a cross-platform account via Project Settings, or they opted to sign into an existing cross-platform account when prompted to "sign in or create an account".
+- The user interactively signs into their cross-platform account.
+- **The unused Steam credentials are now associated with said cross-platform account**, so that implicitly signing in with the Steam credentials works in `GetNonInteractiveAuthenticationSequence` the next time the game is launched.
+
+Prior to this sequence being called, the cross-platform EOS candidate will have been selected and authenticated. The `State->ResultUserId` will be pointing at the EOS product user ID that is associated with the cross-platform account already. The authentication graph is typically in it's final stages of execution here.
+
+All you need to do is call `EOS_Connect_LinkAccount` for each of the non-cross-platform EOS candidates, where those candidiates have a `ContinuanceToken`. The local user ID should be the user that has just signed in and is stored in `State->ResultUserId`.
+
+You can *almost* think of this sequence as the reverse of `GetUpgradeCurrentAccountToCrossPlatformAccountSequence`. Where-as the upgrade process is linking an unused or newly created cross-platform account with an existing native platform account, the linking process is linking an unused native platform account with an existing cross-platform account.

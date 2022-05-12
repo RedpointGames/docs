@@ -1,0 +1,57 @@
+---
+id: createsessionidfromstring
+title: Create Session Id From String
+description: The CreateSessionIdFromString function of the Session subsystem.
+---
+
+import TypeRenderer from '@site/src/TypeRenderer';
+import FunctionRenderer from '@site/src/FunctionRenderer';
+
+This is a normal blueprint node.
+
+The C++ documentation for this function is available on [the Unreal Engine documentation website](https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Plugins/OnlineSubsystem/Interfaces/IOnlineSession/).
+
+## Example
+
+<FunctionRenderer subsystemName="Session" func={{"Identifier":"CreateSessionIdFromString","Supported":false,"Async":false,"AsyncPins":[],"Pure":false,"Parameters":[{"Position":0,"Identifier":"SessionIdStr","Type":{"Type":"Simple","Identifier":"FString","Out":false}}],"ReturnType":{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl"}}} />
+
+## Inputs
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Input Name</th>
+      <th>Input Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td>Session Id Str</td>
+      <td><TypeRenderer typeInfo={{"Type":"Simple","Identifier":"FString","Out":false}} /></td>
+    </tr>
+  </tbody>
+</table>
+
+
+## Outputs
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Output Name</th>
+      <th>Output Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td>Return  Value</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl"}} /></td>
+    </tr>
+  </tbody>
+</table>
+
+

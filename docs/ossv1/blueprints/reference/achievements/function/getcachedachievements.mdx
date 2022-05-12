@@ -1,0 +1,61 @@
+---
+id: getcachedachievements
+title: Get Cached Achievements
+description: The GetCachedAchievements function of the Achievements subsystem.
+---
+
+import TypeRenderer from '@site/src/TypeRenderer';
+import FunctionRenderer from '@site/src/FunctionRenderer';
+
+This is a normal blueprint node.
+
+The C++ documentation for this function is available on [the Unreal Engine documentation website](https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Plugins/OnlineSubsystem/Interfaces/IOnlineAchievements/).
+
+## Example
+
+<FunctionRenderer subsystemName="Achievements" func={{"Identifier":"GetCachedAchievements","Supported":false,"Async":false,"AsyncPins":[],"Pure":false,"Parameters":[{"Position":0,"Identifier":"PlayerId","Type":{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl","Out":false}},{"Position":1,"Identifier":"OutAchievements","Type":{"Type":"Array","Element":{"Type":"Wrapped","Identifier":"FOnlineAchievementBP"},"Out":true}}],"ReturnType":{"Type":"Wrapped","Identifier":"EOnlineCachedResult_"}}} />
+
+## Inputs
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Input Name</th>
+      <th>Input Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td>Player Id</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl","Out":false}} /></td>
+    </tr>
+  </tbody>
+</table>
+
+
+## Outputs
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Output Name</th>
+      <th>Output Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td>Return  Value</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"EOnlineCachedResult_"}} /></td>
+    </tr>
+    <tr>
+      <td>Achievements</td>
+      <td><TypeRenderer typeInfo={{"Type":"Array","Element":{"Type":"Wrapped","Identifier":"FOnlineAchievementBP"},"Out":true}} /></td>
+    </tr>
+  </tbody>
+</table>
+
+

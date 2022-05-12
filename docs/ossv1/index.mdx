@@ -1,0 +1,32 @@
+---
+title: Online subsystem guide
+sidebar_label: Introduction
+description: Learn how to access Epic Online Services through the online subsystem APIs in blueprints or C++.
+---
+
+You can use the online subsystem APIs built into the engine to access Epic Online Services. These APIs provide granular control over your Epic Online Services integration.
+
+:::info
+We recommend that developers new to Epic Online Services use [our higher-level framework components](../framework/index.mdx) to start their implementation.
+:::
+
+:::warning
+This documentation assumes that you've run through the [Getting started](../setup/index.mdx) guide first.
+:::
+
+- **[Identity](./identity/authentication.mdx)**: Sign the user into Epic Online Services, and inspect user attributes.
+- **[Achievements](./achievements/querying.mdx)**: Query achievements that the player has unlocked. If you need to unlock achievements, use [Stats](./stats/configuring.mdx).
+- **[Avatars](./avatars/fetching.mdx)**: We recommend using the [avatar widget instead](../framework/displaying_avatars.mdx).
+- **[E-commerce](./ecom/offers.mdx)**: Access e-commerce on the Epic Games Store, Steam and Google Play.
+- **[External UI](./external_ui/invite.mdx)**: Open the Epic Games or Steam overlay to invite players via the platform UI.
+- **[Friends](./friends/retrieving.mdx)**: Access the cross-platform friends list, which works on every platform, even when you don't use Epic Games accounts.
+- **[Leaderboards](./leaderboards/querying.mdx)**: Query global and friend leaderboards.
+- **[Lobbies](./lobbies/creating.mdx)**: Low-level access to Epic Online Services lobbies. You most likely want to use [Parties](./parties/creating.mdx) instead.
+- **[Parties](./parties/creating.mdx)**: Create and manage parties of players. To automatically create parties, turn on [automatic parties](../framework/automatic_parties.mdx).
+- **[Presence](./presence/updating.mdx)**: Change the presence status of the current player, and query presence information of friends.
+- **[Sessions](./sessions/creating.mdx)**: Advertise and search for multiplayer games that the player can join.
+- **[Stats](./stats/configuring.mdx)**: Update stats, which can be configured to unlock achievements and feed into leaderboards.
+- **[Title File](./title_file/configuration.mdx):** Access custom data at runtime that you, as the developer, upload to the EOS portal.
+- **[User](./user/id.mdx):** Query information about other players.
+- **[User Cloud](./user_cloud/reading.mdx):** Store and retrieve custom data against the local player, such as save data and player preferences.
+- **[Voice Chat](./voice_chat/index.mdx):** Use Epic Online Service voice chat in parties and multiplayer games.

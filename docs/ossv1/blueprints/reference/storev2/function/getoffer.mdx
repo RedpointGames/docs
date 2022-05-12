@@ -1,0 +1,57 @@
+---
+id: getoffer
+title: Get Offer
+description: The GetOffer function of the StoreV2 subsystem.
+---
+
+import TypeRenderer from '@site/src/TypeRenderer';
+import FunctionRenderer from '@site/src/FunctionRenderer';
+
+This is a normal blueprint node.
+
+The C++ documentation for this function is available on [the Unreal Engine documentation website](https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Plugins/OnlineSubsystem/Interfaces/IOnlineStoreV2/).
+
+## Example
+
+<FunctionRenderer subsystemName="StoreV2" func={{"Identifier":"GetOffer","Supported":false,"Async":false,"AsyncPins":[],"Pure":true,"Parameters":[{"Position":0,"Identifier":"OfferId","Type":{"Type":"Wrapped","Identifier":"FString","Out":false}}],"ReturnType":{"Type":"Wrapped","Identifier":"UOnlineStoreOffer*"}}} />
+
+## Inputs
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Input Name</th>
+      <th>Input Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td>Offer Id</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"FString","Out":false}} /></td>
+    </tr>
+  </tbody>
+</table>
+
+
+## Outputs
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Output Name</th>
+      <th>Output Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td>Return  Value</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"UOnlineStoreOffer*"}} /></td>
+    </tr>
+  </tbody>
+</table>
+
+

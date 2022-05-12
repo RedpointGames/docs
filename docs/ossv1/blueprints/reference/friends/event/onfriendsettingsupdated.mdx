@@ -1,0 +1,53 @@
+---
+id: onfriendsettingsupdated
+title: On Friend Settings Updated
+description: The OnFriendSettingsUpdated event of the Friends subsystem.
+---
+
+import TypeRenderer from '@site/src/TypeRenderer';
+import EventRenderer from '@site/src/EventRenderer';
+
+This is a bindable event.
+
+The C++ documentation for this event is available on [the Unreal Engine documentation website](https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Plugins/OnlineSubsystem/Interfaces/IOnlineFriends/).
+
+## Example
+
+<EventRenderer subsystemName="Friends" event={{"Identifier":"OnFriendSettingsUpdated","Parameters":[{"Position":0,"Identifier":"UserId","Type":{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl","Out":false}},{"Position":1,"Identifier":"bWasSuccessful","Type":{"Type":"Simple","Identifier":"bool"}},{"Position":2,"Identifier":"bWasUpdate","Type":{"Type":"Simple","Identifier":"bool"}},{"Position":3,"Identifier":"Settings","Type":{"Type":"Wrapped","Identifier":"FFriendSettingsData","Out":false}},{"Position":4,"Identifier":"ErrorStr","Type":{"Type":"Simple","Identifier":"FString","Out":false}}]}} />
+
+## Outputs
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Output Name</th>
+      <th>Output Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td>UserId</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl","Out":false}} /></td>
+    </tr>
+    <tr>
+      <td>bWasSuccessful</td>
+      <td><TypeRenderer typeInfo={{"Type":"Simple","Identifier":"bool"}} /></td>
+    </tr>
+    <tr>
+      <td>bWasUpdate</td>
+      <td><TypeRenderer typeInfo={{"Type":"Simple","Identifier":"bool"}} /></td>
+    </tr>
+    <tr>
+      <td>Settings</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"FFriendSettingsData","Out":false}} /></td>
+    </tr>
+    <tr>
+      <td>ErrorStr</td>
+      <td><TypeRenderer typeInfo={{"Type":"Simple","Identifier":"FString","Out":false}} /></td>
+    </tr>
+  </tbody>
+</table>
+
+

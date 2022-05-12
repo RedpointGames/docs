@@ -1,0 +1,666 @@
+---
+title: Writing a custom authentication graph
+sidebar_label: Writing a custom authentication graph
+description: How to implement your own custom authentication graph to fully control authentication in your project.
+---
+
+You can write your own custom authentication graph to fully control how authentication works in your game. This is a very advanced topic, and requires strong knowledge of C++.
+
+## The concept of an authentication graph
+
+Before we dive into writing a custom authentication graph, it's important to understand the concepts behind the design.
+
+Writing long sections of asynchronous code in C++ is tricky; we don't have the benefits of `async`/`await` yet, so often it becomes long chains of callbacks and state which are hard to manage and customize.
+
+An authentication graph is essentially a graph of asynchronous graph nodes. Each authentication graph node gets executed with a callback function, and it can execute the callback function when it's finished doing it's work. This allows each of the authentication graph nodes to be implemented in isolation without needing to be aware how they are chained together.
+
+To share state between authentication graph nodes, we have the authentication graph state, which is a structure that contains all of the state relevant to authentication. It contains:
+
+- The input parameters, such as the FOnlineAccountCredentials that gets passed into `Login`.
+- The context, such as the current world and user interface controls.
+- The intermediate state and metadata that nodes might want to store temporarily.
+- The intermediate state that nodes want to store across authentication calls for account linking, and
+- The output parameters for the result of authentication.
+
+## An example authentication graph
+
+Here is an example authentication graph implementation; the one used for authenticating with the Developer Authentication Tool. We'll break down what each node does in a second.
+
+```cpp
+TSharedRef<FAuthenticationGraphNode> FAuthenticationGraphDevAuthTool::CreateGraph(
+    TSharedRef<FAuthenticationGraphState> InitialState)
+{
+    // Force the cross-platform provider to be Epic Games if we are using this provider.
+    InitialState->CrossPlatformAccountProvider = MakeShared<FEpicGamesCrossPlatformAccountProvider>();
+
+    return MakeShared<FAuthenticationGraphNodeUntil_Forever>()
+        ->Add(MakeShared<FBailIfAlreadyAuthenticatedNode>())
+        ->Add(MakeShared<FAuthenticationGraphNodeUntil_LoginComplete>(
+                TEXT(
+                    "The credential provided by the Developer Authentication Tool "
+                    "could not be used. Credentials in the Developer Authentication "
+                    "Tool expire after about 4 hours, so please restart the Developer "
+                    "Authentication Tool and try again."))
+                ->Add(MakeShared<FAuthenticationGraphNodeUntil_CrossPlatformAccountPresent>(
+                        TEXT(
+                            "Unable to authenticate with Developer Authentication Tool. "
+                            "Ensure you have started it using the EOS dropdown in the toolbar."))
+                        ->Add(MakeShared<FTryPIEDeveloperAuthenticationEASCredentialsNode>())
+                        ->Add(MakeShared<FTryDefaultDeveloperAuthenticationEASCredentialsNode>()))
+                ->Add(MakeShared<FChainEASResultToEOSNode>())
+                ->Add(MakeShared<FSelectCrossPlatformAccountNode>())
+                ->Add(MakeShared<FLoginWithSelectedEOSAccountNode>()));
+}
+```
+
+### "Until" nodes, sequences and conditions
+
+First up we have `FAuthenticationGraphNodeUntil_Forever`. The "until" nodes run through a sequence of nodes (added with `->Add`) until a particular condition is met. In the case of `FAuthenticationGraphNodeUntil_Forever`, it just runs through the sequence of nodes unconditionally. If you were to write this in C#, it would look something like this:
+
+```csharp
+async Task DoAuthentication()
+{
+    await FBailIfAlreadyAuthenticatedNode();
+    await FAuthenticationGraphNodeUntil_LoginComplete();
+}
+```
+
+Note that most of the nodes in this graph are actually added to `FAuthenticationGraphNodeUntil_LoginComplete`, not the parent `FAuthenticationGraphNodeUntil_Forever`. We use intendation to help align the `->Add` calls with the parent node so that it's easier to read.
+
+Speaking of, `FAuthenticationGraphNodeUntil_LoginComplete` runs through the sequence of nodes until the user has been logged in. If you were to write this in C#, it would look something like this:
+
+```csharp
+async Task FAuthenticationGraphNodeUntil_LoginComplete()
+{
+    await FAuthenticationGraphNodeUntil_CrossPlatformAccountPresent();
+    if (State.IsLoginComplete()) { return; }
+    await FChainEASResultToEOSNode();
+    if (State.IsLoginComplete()) { return; }
+    await FSelectCrossPlatformAccountNode();
+    if (State.IsLoginComplete()) { return; }
+    await FLoginWithSelectedEOSAccountNode();
+    if (State.IsLoginComplete()) { return; }
+}
+```
+
+You should therefore be able to conclude that `FAuthenticationGraphNodeUntil_CrossPlatformAccountPresent` will run until a cross-platform account has been signed into and exists in the authentication graph state.
+
+### Cross-platform accounts vs. EOS candidates
+
+When you authenticate with the EOS backend, it only understands EOS accounts. With the exception of a few APIs, it isn't aware of any cross-platform account system you might have.
+
+This is why in the example above where we are authenticating with Epic Games, we first do the Epic Games authentication (in the `FTry*DeveloperAuthenticationEASCredentialsNode` nodes) and then we chain the Epic Games authentication into an EOS account, which we can actually use to login.
+
+This is effectively the breakdown of the remaining nodes:
+
+- `FTry*DeveloperAuthenticationEASCredentialsNode`: Obtain the Epic Games token from the Developer Authentication Tool.
+- `FChainEASResultToEOSNode`: Use the obtained Epic Games token and authenticate into an EOS account. Adds the EOS account or continuance token as an EOS candidate in the authentication graph state.
+- `FSelectCrossPlatformAccountNode`: Of the available EOS candidates, selects the one associated with a cross-platform account. The selected EOS candidate is a field in the authentication graph state.
+- `FLoginWithSelectedEOSAccountNode`: Signs into EOS using the selected candidate. If the EOS account doesn't exist (and we only have a continuance token), it creates the EOS account and completes sign in.
+
+There's a few relevant fields and functions in the authentication graph state that are used for managing credentials, cross-platform accounts and EOS candidates. They are:
+
+```cpp
+// The cross-platform account provider (as chosen in Project Settings).
+TSharedPtr<ICrossPlatformAccountProvider> CrossPlatformAccountProvider;
+
+// The cross-platform account ID, as set by the cross-platform account provider. If you need to get this at a later point, it's recommended that you use GetAuthenticatedCrossPlatformAccountId() instead.
+TSharedPtr<const class FCrossPlatformAccountId> AuthenticatedCrossPlatformAccountId;
+
+// Gets the cross-platform account ID, casting it to the specified type if the provider name matches.
+template <typename T> TSharedPtr<const T> GetAuthenticatedCrossPlatformAccountId(FName ProviderName) const;
+
+// The list of external credentials (such as Steam app tickets, Discord tokens, etc.) that are available to use for authentication. These are usually gathered by a node and then made available for either directly signing into EOS, or for cross-platform account providers to use for implicit authentication.
+TArray<TSharedRef<IOnlineExternalCredentials>> AvailableExternalCredentials;
+
+// Adds an EOS candidate based on the EOS_Connect_Login result data, where the given external credentials were used for the login attempt. This automatically wires up any necessary refresh logic.
+FAuthenticationGraphEOSCandidate AddEOSConnectCandidateFromExternalCredentials(
+        const EOS_Connect_LoginCallbackInfo *Data,
+        TSharedRef<IOnlineExternalCredentials> ExternalCredentials);
+
+// Adds an EOS candidate manually, providing all of the required details.
+FAuthenticationGraphEOSCandidate AddEOSConnectCandidate(
+        FText ProviderDisplayName,
+        TMap<FString, FString> UserAuthAttributes,
+        const EOS_Connect_LoginCallbackInfo *Data,
+        FAuthenticationGraphRefreshEOSCredentials RefreshCallback,
+        EAuthenticationGraphEOSCandidateType InType = EAuthenticationGraphEOSCandidateType::Generic,
+        TSharedPtr<const FCrossPlatformAccountId> InCrossPlatformAccountId = nullptr);
+
+// Selects the EOS candidate to be used to login.
+void SelectEOSCandidate(const FAuthenticationGraphEOSCandidate &Candidate);
+
+// Returns whether or not an EOS candidate has been selected.
+bool HasSelectedEOSCandidate();
+
+// Returns the currently selected EOS candidate. Only valid if HasSelectedEOSCandidate returns true.
+FAuthenticationGraphEOSCandidate GetSelectedEOSCandidate();
+```
+
+More detailed documentation is available in the `AuthenticationGraphState.h` header file, where all of the fields in the authentication graph state are documented.
+
+### Using the cross-platform account provider
+
+In the example above, we cheated a little bit. Rather than using the cross-platform account provider, we referenced the Epic Games-specific authentication nodes directly.
+
+This is because the Developer Authentication Tool only works with Epic Games accounts (it's also why the authentication graph overrides the cross-platform account provider when it's being used).
+
+However, this isn't normally the case. When you're writing an authentication graph, you should defer to the cross-platform account provider to do cross-platform authentication. This allows you to re-use authentication graphs with different cross-platform account systems, and is how we allow developers to leverage all of the existing credential obtainment code (for Steam, Discord, etc.) in their own cross-platform account systems.
+
+The cross-platform account providers have the following methods available (through `InState->CrossPlatformAccountProvider` when building the graph):
+
+```cpp
+// Return the authentication graph node sequence that is used 
+// for interactive login into this cross-platform account provider. 
+// This should include non-interactive attempts if necessary.
+virtual TSharedRef<class FAuthenticationGraphNode> GetInteractiveAuthenticationSequence() = 0;
+
+// Return the authentication graph node sequence that is used 
+// for performing *only* interactive login into this cross-platform 
+// account provider. This should NOT include non-interactive login 
+// attempts, as they are likely to already have been performed 
+// through the use of GetNonInteractiveAuthenticationSequence.
+virtual TSharedRef<class FAuthenticationGraphNode> GetInteractiveOnlyAuthenticationSequence() = 0;
+
+// Returns the authentication graph node sequence that is used for 
+// non-interactive login into this cross-platform account provider. 
+// This will never prompt the user or require interaction.
+virtual TSharedRef<class FAuthenticationGraphNode> GetNonInteractiveAuthenticationSequence(bool bOnlyUseExternalCredentials = false) = 0;
+
+// Returns the authentication graph node sequence which links the 
+// current account (the state will have ExistingUserId populated)
+// into a cross-platform account.
+virtual TSharedRef<class FAuthenticationGraphNode> GetUpgradeCurrentAccountToCrossPlatformAccountSequence() = 0;
+
+// Returns the authentication graph node sequence which links unused 
+// external credentials against the just authenticated cross-platform 
+// account.
+virtual TSharedRef<class FAuthenticationGraphNode> GetLinkUnusedExternalCredentialsToCrossPlatformAccountSequence() = 0;
+```
+
+More detailed documentation is available in the `CrossPlatformAccountProvider.h` header file, where all of the available functions are documented.
+
+You can also refer to [Using your own cross-platform account system](auth/write_your_own_cross_platform_account_provider.mdx) as that document goes further in depth about how to implement a cross-platform account provider and the expected behaviour.
+
+As an example of using the cross-platform account provider, we could write this simple graph which always performs interactive authentication with a cross-platform account provider:
+
+```cpp
+TSharedRef<FAuthenticationGraphNode> FAuthenticationGraphCrossPlatformOnly::CreateGraph(
+    TSharedRef<FAuthenticationGraphState> InitialState)
+{
+    if (InitialState->CrossPlatformAccountProvider.IsValid())
+    {
+        return MakeShared<FAuthenticationGraphNodeUntil_Forever>()
+            ->Add(MakeShared<FBailIfAlreadyAuthenticatedNode>())
+            ->Add(InitialState->CrossPlatformAccountProvider->GetInteractiveAuthenticationSequence())
+            ->Add(MakeShared<FSelectCrossPlatformAccountNode>())
+            ->Add(MakeShared<FLoginWithSelectedEOSAccountNode>());
+    }
+    else
+    {
+        return MakeShared<FFailAuthenticationNode>(TEXT("There is no cross-platform account provider configured."));
+    }
+}
+```
+
+As you can see, whenever you use the `CrossPlatformAccountProvider` field, you need to check that it is valid. If the developer selects `None` as the cross-platform account provider in Project Settings, then it will be nullptr (`!IsValid()`) at runtime.
+
+## Writing your own authentication graph
+
+Now that we've gone through the concepts and examples, you can write your own authentication graph in your game.
+
+In a new header and source file in your game project, add the following content:
+
+```cpp
+// AuthenticationGraphChangeThis.h
+
+#pragma once
+
+#if EOS_HAS_AUTHENTICATION
+
+#include "CoreMinimal.h"
+#include "OnlineSubsystemRedpointEOS/Shared/Authentication/AuthenticationGraph.h"
+
+#define EOS_AUTH_GRAPH_CHANGE_THIS FName(TEXT("ChangeThis"))
+
+class FAuthenticationGraphChangeThis : public FAuthenticationGraph
+{
+protected:
+    virtual TSharedRef<FAuthenticationGraphNode> CreateGraph(
+        TSharedRef<FAuthenticationGraphState> InitialState) override;
+
+public:
+    static void Register();
+};
+
+#endif // #if EOS_HAS_AUTHENTICATION
+```
+
+```cpp
+// AuthenticationGraphChangeThis.cpp
+
+#if EOS_HAS_AUTHENTICATION
+
+#include "AuthenticationGraphChangeThis.h"
+
+#include "OnlineSubsystemRedpointEOS/Shared/Authentication/AuthenticationGraphRegistry.h"
+
+// Add the #include directives here for the nodes that you want to use in your graph.
+
+TSharedRef<FAuthenticationGraphNode> FAuthenticationGraphChangeThis::CreateGraph(
+    TSharedRef<FAuthenticationGraphState> InitialState)
+{
+    // Implement the authentication graph here.
+    return ...;
+}
+
+void FAuthenticationGraphChangeThis::Register()
+{
+    FAuthenticationGraphRegistry::Register(
+        EOS_AUTH_GRAPH_CHANGE_THIS,
+        NSLOCTEXT("YourGame", "AuthGraph_ChangeThis", "The name for your authentication graph, as it will appear in Project Settings"),
+        MakeShared<FAuthenticationGraphChangeThis>());
+}
+
+#endif // #if EOS_HAS_AUTHENTICATION
+```
+
+Note that you need to add the `#if EOS_HAS_AUTHENTICATION` checks so that your game will compile as a dedicated server. The authentication graph infrastructure is not defined on dedicated servers (because it is not needed), so you need to make sure that your custom graph doesn't get compiled for dedicated servers either.
+
+In your `YourGame.Build.cs` file, you'll need to add a reference to `OnlineSubsystemRedpointEOS` if you haven't already, so you can access the headers and link correctly:
+
+```csharp
+PublicDependencyModuleNames.AddRange(new string[] { "OnlineSubsystemRedpointEOS" });
+```
+
+In your game's `StartupModule` function, you need to register the authentication graph. You need to make sure this code runs for both the game and editor targets (the latter so you can choose it in Project Settings):
+
+```cpp
+FAuthenticationGraphChangeThis::Register();
+```
+
+This code can technically run later than `StartupModule`, as long as it happens before `Login`/`AutoLogin` is called. However, `StartupModule` is recommended for consistency.
+
+For a full reference of authentication graph nodes that you can use, see the end of this document. Otherwise, read on to see how you can implement your own custom authentication graph nodes.
+
+## Writing your own authentication graph node
+
+Beyond the built-in authentication graph nodes, you can implement your own by creating a class that inherits from `FAuthenticationGraphNode`. The most minimal authentication graph node implementation you could write is this:
+
+```cpp
+// FNoopAuthenticationGraphNode.h
+
+#pragma once
+
+#if EOS_HAS_AUTHENTICATION
+
+#include "CoreMinimal.h"
+#include "OnlineSubsystemRedpointEOS/Shared/Authentication/AuthenticationGraphNode.h"
+
+class FNoopAuthenticationGraphNode : public FAuthenticationGraphNode
+{
+public:
+    virtual void Execute(TSharedRef<FAuthenticationGraphState> State, FAuthenticationGraphNodeOnDone OnDone) override;
+
+    virtual FString GetDebugName() const override
+    {
+        return TEXT("FNoopAuthenticationGraphNode");
+    }
+};
+
+#endif // #if EOS_HAS_AUTHENTICATION
+```
+
+```cpp
+// FNoopAuthenticationGraphNode.cpp
+
+#if EOS_HAS_AUTHENTICATION
+
+#include "OnlineSubsystemRedpointEOS/Shared/Authentication/Nodes/NoopAuthenticationGraphNode.h"
+
+void FNoopAuthenticationGraphNode::Execute(
+    TSharedRef<FAuthenticationGraphState> State,
+    FAuthenticationGraphNodeOnDone OnDone)
+{
+    OnDone.ExecuteIfBound(EAuthenticationGraphNodeResult::Continue);
+}
+
+#endif // #if EOS_HAS_AUTHENTICATION
+```
+
+In fact, this implementation already exists in the plugin, since sometimes it is necessary to pass in "no-operation" nodes to conditional `If`/`Else` nodes. It can be found in the `OnlineSubsystemRedpointEOS/Shared/Authentication/Nodes/NoopAuthenticationGraphNode.h` header file.
+
+You can implement your custom authentication graph nodes however you want. You can manipulate the authentication graph state, make HTTP requests using the Unreal Engine C++ libraries, use third-party SDKs to obtain tokens; it's up to you. The only thing you *need* to do is call `OnDone` at some point with either `Continue` or `Error` as the parameter.
+
+If you pass `Continue`, the authentication graph continues executing the nodes that are defined.
+
+If you pass `Error`, the authentication graph stops processing nodes and authentication fails. All of the standard nodes (such as until and condition nodes) are implemented to treat `Error` as an immediate error, which they propagate upwards until it reaches the authentication graph, at which point execution stops and authentication returns with a failure result. This return should only be used for fatal errors where authentication can't really continue in any meaningful way.
+
+If instead an operation is simply unable to change the state or can't obtain the resources it might want, it should return `Continue` and then allow the authentication graph to decide what to do using an until or condition node. This is what allows for "fallthrough" behaviour, where the authentication graph will try nodes in sequence until it gets one that changes the state to meet a certain condition (like a cross-platform account being present).
+
+## Writing your own authentication graph resolver
+
+Sometimes you want to be able to choose different authentication graphs based on the runtime state. An example of this is the default authentication graph, which internally resolves to authentication graphs like `Steam Only` and `Discord Only`, depending on how the game was launched and what platform it is running on.
+
+An authentication graph resolver allows you to dynamically change the name of the actual authentication graph that will be used at runtime. Authentication graph resolvers are also recursive, so you can return the name of another authentication graph resolver from a resolver, and it too will be evaluated, until the name of a real authentication graph is returned.
+
+To implement an authentication graph resolver, define a function like this:
+
+```cpp
+FName FAuthenticationGraphMyCustomResolver::Resolve(
+    TSharedRef<class FAuthenticationGraphRegistry> InRegistry,
+    TSharedRef<class FEOSConfig> InConfig,
+    FOnlineAccountCredentials InProvidedCredentials,
+    TSoftObjectPtr<UWorld> InWorld)
+{
+    return FName(TEXT("NameOfAnotherAuthenticationGraph"));
+}
+```
+
+And then register the resolver, like so:
+
+```cpp
+FAuthenticationGraphRegistry::Register(
+    FName(TEXT("MyResolverName")),
+    NSLOCTEXT("YourGame", "CustomResolverName", "The name of the resolver as it appears in Project Settings"),
+    FResolveAuthenticationGraphDelegate::CreateStatic(&FAuthenticationGraphMyCustomResolver::Resolve));
+```
+
+You can now select it as the authentication graph to use from Project Settings. Refer to `FAuthenticationGraphDefault` for a detailed example of how to implement an authentication graph resolver.
+
+## Built-in authentication graph node reference
+
+Below is a full list of available authentication graph nodes and their behaviour.
+
+### AuthenticationGraphNodeConditional
+
+**Class Name:** `FAuthenticationGraphNodeConditional`
+
+**Header File:** `#include "OnlineSubsystemRedpointEOS/Shared/Authentication/Nodes/AuthenticationGraphNodeConditional.h`
+
+Evaluates one or more conditions, and chooses the specified node based on which one evaluates to true first, or falls back to the `Else` condition if none of them are true.
+
+You can use it in an authentication graph like this:
+
+```cpp
+MakeShared<FAuthenticationGraphNodeConditional>()
+    ->If(
+        FAuthenticationGraphCondition::CreateStatic(&FMyGraph::SomeCondition),
+        MakeShared<FSomeNode>())
+    ->If(
+        FAuthenticationGraphCondition::CreateStatic(&FMyGraph::SomeOtherCondition),
+        MakeShared<FSomeOtherNode>())
+    ->Else(
+        MakeShared<FAndAnotherNode>())
+```
+
+The definition of `FMyGraph::SomeCondition` in this case would be a function like so:
+
+```cpp
+bool FMyGraph::SomeCondition(const FAuthenticationGraphState &State)
+{
+    // Evaluate the State in some way and return true if the condition passes.
+    return true;
+}
+```
+
+### AuthenticationGraphNodeUntil
+
+**Class Name:** `FAuthenticationGraphNodeUntil`
+
+**Header File:** `#include "OnlineSubsystemRedpointEOS/Shared/Authentication/Nodes/AuthenticationGraphNodeUntil.h`
+
+Evaluates a sequence of nodes until a condition passes.
+
+You can use it in an authentication graph like so:
+
+```cpp
+MakeShared<FAuthenticationGraphNodeUntil>(
+    FAuthenticationGraphCondition::CreateStatic(&FMyGraph::SomeCondition),
+    TEXT("Error message if the condition never passes"))
+    ->Add(MakeShared<FSomeNode>())
+    ->Add(MakeShared<FSomeOtherNode>())
+    ->Add(MakeShared<FAndAnotherNode>())
+```
+
+The error message is optional; you can omit that parameter.
+
+There are subclasses of this node (see below). If you subclass this node, you can optionally allow execution to run through all of the nodes without failing with an error due to the condition never passing. This allows you to exit out of the sequence early if the condition passes, while not treating it not passing as a fatal error.
+
+### AuthenticationGraphNodeUntil_CrossPlatformAccountPresent
+
+**Class Name:** `FAuthenticationGraphNodeUntil_CrossPlatformAccountPresent`
+
+**Header File:** `#include "OnlineSubsystemRedpointEOS/Shared/Authentication/Nodes/AuthenticationGraphNodeUntil_CrossPlatformAccountPresent.h`
+
+Evaluates a sequence of nodes until `State->AuthenticatedCrossPlatformAccountId` is set. Typically used inside cross-platform account providers when attempting to authenticate in multiple ways.
+
+It is used the same way [AuthenticationGraphNodeUntil](#authenticationgraphnodeuntil) is used.
+
+### AuthenticationGraphNodeUntil_Forever
+
+**Class Name:** `FAuthenticationGraphNodeUntil_Forever`
+
+**Header File:** `#include "OnlineSubsystemRedpointEOS/Shared/Authentication/Nodes/AuthenticationGraphNodeUntil_Forever.h`
+
+Evaluates a sequence of nodes completely. All of the nodes added to this node are run in sequence, until either the sequence is complete or one of the nodes returns with `Error`.
+
+Unlike other until nodes, it is not a fatal error if the until condition never passes (because it won't).
+
+This node is the most commonly used, as it is effectively just a block of `await` statements with no conditions (to draw an analogy in C#).
+
+It is used the same way [AuthenticationGraphNodeUntil](#authenticationgraphnodeuntil) is used.
+
+### AuthenticationGraphNodeUntil_LoginComplete
+
+**Class Name:** `FAuthenticationGraphNodeUntil_LoginComplete`
+
+**Header File:** `#include "OnlineSubsystemRedpointEOS/Shared/Authentication/Nodes/AuthenticationGraphNodeUntil_LoginComplete.h`
+
+Evalutes a sequence of nodes until `State->ResultUserId` is set. This field represents the account that the user has been signed in as, so if it is set, authentication is effectively complete.
+
+This can be used to try multiple different ways of logging in, and returning early once one of them works.
+
+It is used the same way [AuthenticationGraphNodeUntil](#authenticationgraphnodeuntil) is used.
+
+### BailIfAlreadyAuthenticatedNode
+
+**Class Name:** `FBailIfAlreadyAuthenticatedNode`
+
+**Header File:** `#include "OnlineSubsystemRedpointEOS/Shared/Authentication/Nodes/BailIfAlreadyAuthenticatedNode.h`
+
+This node returns with an `Error` result if the user is already logged in.
+
+It's possible for authentication graphs to be executed after the user has already signed in, to initiate linking an EOS account with a cross-platform account (if your cross-platform account provider supports this flow).
+
+This node is often used when you don't have anything to do when a user is already signed in.
+
+### BailIfNotExactlyOneExternalCredentialNode
+
+**Class Name:** `FBailIfNotExactlyOneExternalCredentialNode`
+
+**Header File:** `#include "OnlineSubsystemRedpointEOS/Shared/Authentication/Nodes/BailIfNotExactlyOneExternalCredentialNode.h`
+
+This node returns with an `Error` result if there is not exactly one external credential in the `State->AvailableExternalCredentials` array. This is used by the online subsystem-based authentication graphs to ensure that a credential has been obtained from the target online subsystem before continuing with the rest of the authentication logic.
+
+### CreateDeviceIdNode
+
+**Class Name:** `FCreateDeviceIdNode`
+
+**Header File:** `#include "OnlineSubsystemRedpointEOS/Shared/Authentication/Nodes/CreateDeviceIdNode.h`
+
+Creates a device ID (anonymous account) on the local machine if one does not already exist.
+
+### FailAuthenticationNode
+
+**Class Name:** `FFailAuthenticationNode`
+
+**Header File:** `#include "OnlineSubsystemRedpointEOS/Shared/Authentication/Nodes/FailAuthenticationNode.h`
+
+Immediately fails authentication with the specified error message. It can be used like this:
+
+```cpp
+MakeShared<FFailAuthenticationNode>(TEXT("This is the error message."))
+```
+
+You can use this in condition and until nodes to error from the authentication graph when you encounter a situation you can't handle (without having to write a custom authentication graph node just to emit an error).
+
+### GatherEOSAccountsWithExternalCredentialsNode
+
+**Class Name:** `FGatherEOSAccountsWithExternalCredentialsNode`
+
+**Header File:** `#include "OnlineSubsystemRedpointEOS/Shared/Authentication/Nodes/GatherEOSAccountsWithExternalCredentialsNode.h`
+
+Iterates through all of the credentials in the `State->AvailableExternalCredentials` array in parallel, and adds each result as an EOS candidate when either:
+
+- An account exists for the external credential, or
+- An account doesn't exist for the external credential, but the credential is valid and you could create a new EOS account using the credential.
+
+This node is the one that calls `State->AddEOSConnectCandidateFromExternalCredentials` for you.
+
+### GetExternalCredentialsFromOnlineSubsystemNode
+
+**Class Name:** `FGetExternalCredentialsFromOnlineSubsystemNode`
+
+**Header File:** `#include "OnlineSubsystemRedpointEOS/Shared/Authentication/Nodes/GetExternalCredentialsFromOnlineSubsystemNode.h`
+
+Obtains external credentials from the target online subsystem by calling `GetAuthToken` on the local user (based on `State->LocalUserNum`). You can use it like this:
+
+```cpp
+MakeShared<FGetExternalCredentialsFromOnlineSubsystemNode>(
+    FName(TEXT("MyOSS")),
+    EOS_EExternalCredentialType::EOS_ECT_OPENID_ACCESS_TOKEN,
+    TEXT("myoss"),
+    TEXT("myoss.token"))
+```
+
+The local user must already be signed into the target online subsystem when this graph node is evaluated (see [LogUserIntoOnlineSubsystemNode](#loguserintoonlinesubsystemnode)).
+
+This is the default implementation used by the online subsystem-based authentication graph unless it is otherwise overridden. Please note that most online subsystem implementations do not correctly implement `GetAuthToken`, or they return an authentication token that is not suitable for use with the EOS backend, so this node is often replaced with a specialized implementation for the specific platform.
+
+### IssueJwtForAutomatedTestingNode
+
+**Class Name:** `FIssueJwtForAutomatedTestingNode`
+
+**Header File:** `#include "OnlineSubsystemRedpointEOS/Shared/Authentication/Nodes/IssueJwtForAutomatedTestingNode.h`
+
+Issues a JWT from the Redpoint Games automated testing server. You can't use this in your own games, but it's a decent reference on how to obtain a JWT from a HTTP endpoint using the Unreal Engine C++ HTTP library.
+
+### JumpToNamedNode
+
+**Class Name:** `FJumpToNamedNode`
+
+**Header File:** `#include "OnlineSubsystemRedpointEOS/Shared/Authentication/Nodes/JumpToNamedNode.h`
+
+Complicated! You can actually give any node in an authentication graph a name using `RegisterNode`, like so:
+
+```cpp
+MakeShared<FMyNode>()
+    ->RegisterNode(this, FName(TEXT("SomeCustomName")))
+```
+
+Later on in the authentication graph, you can jump to the named node by using `FJumpToNamedNode`, like so:
+
+```cpp
+MakeShared<FJumpToNamedNode>(this->AsShared(), FName(TEXT("SomeCustomName")))
+```
+
+With this you can create loops in logic and other complex flows.
+
+### LoginWithSelectedEOSAccountNode
+
+**Class Name:** `FLoginWithSelectedEOSAccountNode`
+
+**Header File:** `#include "OnlineSubsystemRedpointEOS/Shared/Authentication/Nodes/LoginWithSelectedEOSAccountNode.h`
+
+Logs the selected EOS candidate (as specified by `State->GetSelectedEOSCandidate()`) into the EOS backend.
+
+If the EOS candidate is an account that already exists, the account is set as the `State->ResultUserId`.
+
+If the EOS candidate does not already have an account associated with it, a new account is created in the EOS backend tied to the credential that was used to make the selected EOS candidate.
+
+### LogUserIntoOnlineSubsystemNode
+
+**Class Name:** `FLogUserIntoOnlineSubsystemNode`
+
+**Header File:** `#include "OnlineSubsystemRedpointEOS/Shared/Authentication/Nodes/LogUserIntoOnlineSubsystemNode.h`
+
+Logs the local user (as specified by `State->LocalUserNum`) into the target online subsystem. It first attempts to use ExternalUI to show the interactive login screen if one is needed, followed by a call to `IOnlineIdentity->Login` on the target subsystem.
+
+You can use it like so:
+
+```cpp
+MakeShared<FLogUserIntoOnlineSubsystemNode>(FName(TEXT("MyOSS")))
+```
+
+### NoopAuthenticationGraphNode
+
+**Class Name:** `FNoopAuthenticationGraphNode`
+
+**Header File:** `#include "OnlineSubsystemRedpointEOS/Shared/Authentication/Nodes/NoopAuthenticationGraphNode.h`
+
+This node does nothing, and returns with a `Continue` result immediately.
+
+### PerformOpenIdLoginForAutomatedTestingNode
+
+**Class Name:** `FPerformOpenIdLoginForAutomatedTestingNode`
+
+**Header File:** `#include "OnlineSubsystemRedpointEOS/Shared/Authentication/Nodes/PerformOpenIdLoginForAutomatedTestingNode.h`
+
+Uses the JWT previously issued by the Redpoint Games automated testing server, and uses it to add an EOS candidate. You can't use this in your own games, but it's a decent reference on how to take a JWT and add it as a candidate for authentication.
+
+### PromptToSignInOrCreateAccountNode
+
+**Class Name:** `FPromptToSignInOrCreateAccountNode`
+
+**Header File:** `#include "OnlineSubsystemRedpointEOS/Shared/Authentication/Nodes/PromptToSignInOrCreateAccountNode.h`
+
+Interactively asks the user whether this is their first time playing the game. This is used by the newer authentication graphs when a cross-platform account provider is present (but optional), to decide whether the user wants to create a new account with the local platform credentials, or whether they have an existing profile that they want to sign into using their cross-platform login.
+
+### SelectAutomatedTestingEOSAccountNode
+
+**Class Name:** `FSelectAutomatedTestingEOSAccountNode`
+
+**Header File:** `#include "OnlineSubsystemRedpointEOS/Shared/Authentication/Nodes/SelectAutomatedTestingEOSAccountNode.h`
+
+Used internally by automated testing.
+
+### SelectCrossPlatformAccountNode
+
+**Class Name:** `FSelectCrossPlatformAccountNode`
+
+**Header File:** `#include "OnlineSubsystemRedpointEOS/Shared/Authentication/Nodes/SelectCrossPlatformAccountNode.h`
+
+Selects the EOS candidate that has `EAuthenticationGraphEOSCandidateType::CrossPlatform` as it's type.
+
+### SelectOnlyEOSAccountNode
+
+**Class Name:** `FSelectOnlyEOSAccountNode`
+
+**Header File:** `#include "OnlineSubsystemRedpointEOS/Shared/Authentication/Nodes/SelectOnlyEOSAccountNode.h`
+
+Selects the only EOS candidate that is present.
+
+### SelectSingleContinuanceTokenEOSCandidateNode
+
+**Class Name:** `FSelectSingleContinuanceTokenEOSCandidateNode`
+
+**Header File:** `#include "OnlineSubsystemRedpointEOS/Shared/Authentication/Nodes/SelectSingleContinuanceTokenEOSCandidateNode.h`
+
+Selects the EOS candidate that has a continuance token (i.e. the credentials are valid but there's no EOS account created for them yet). Errors if there is more than one candidate with a continuance token, or if there are no candidates with a continuance token.
+
+### SelectSingleSuccessfulEOSAccountNode
+
+**Class Name:** `FSelectSingleSuccessfulEOSAccountNode`
+
+**Header File:** `#include "OnlineSubsystemRedpointEOS/Shared/Authentication/Nodes/SelectSingleSuccessfulEOSAccountNode.h`
+
+Selects the EOS candidate that has an existing account associated with it. Errors if there is more than one candidate with a valid account, or if there are no candidates with a valid account.
+
+### TryDeviceIdAuthenticationNode
+
+**Class Name:** `FTryDeviceIdAuthenticationNode`
+
+**Header File:** `#include "OnlineSubsystemRedpointEOS/Shared/Authentication/Nodes/TryDeviceIdAuthenticationNode.h`
+
+Authenticates with the EOS backend using anonymous authentication and adds the anonymous account as an EOS candidate. This node should only be used after [CreateDeviceIdNode](#createdeviceidnode).

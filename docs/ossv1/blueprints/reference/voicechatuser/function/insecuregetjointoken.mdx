@@ -1,0 +1,65 @@
+---
+id: insecuregetjointoken
+title: Insecure Get Join Token
+description: The InsecureGetJoinToken function of the VoiceChatUser subsystem.
+---
+
+import TypeRenderer from '@site/src/TypeRenderer';
+import FunctionRenderer from '@site/src/FunctionRenderer';
+
+This is a normal blueprint node.
+
+The C++ documentation for this function is available on [the Unreal Engine documentation website](https://dev.epicgames.com/documentation/en-us/unreal-engine/voice-chat-interface-in-unreal-engine).
+
+## Example
+
+<FunctionRenderer subsystemName="VoiceChatUser" func={{"Identifier":"InsecureGetJoinToken","Supported":false,"Async":false,"AsyncPins":[],"Pure":false,"Parameters":[{"Position":0,"Identifier":"ChannelName","Type":{"Type":"Simple","Identifier":"FString","Out":false}},{"Position":1,"Identifier":"ChannelType","Type":{"Type":"Wrapped","Identifier":"EVoiceChatChannelType_"}},{"Position":2,"Identifier":"Channel3dProperties","Type":{"Type":"Wrapped","Identifier":"FVoiceChatChannel3dPropertiesBP"}}],"ReturnType":{"Type":"Simple","Identifier":"FString"}}} />
+
+## Inputs
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Input Name</th>
+      <th>Input Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td>Channel Name</td>
+      <td><TypeRenderer typeInfo={{"Type":"Simple","Identifier":"FString","Out":false}} /></td>
+    </tr>
+    <tr>
+      <td>Channel Type</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"EVoiceChatChannelType_"}} /></td>
+    </tr>
+    <tr>
+      <td>Channel 3d Properties</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"FVoiceChatChannel3dPropertiesBP"}} /></td>
+    </tr>
+  </tbody>
+</table>
+
+
+## Outputs
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Output Name</th>
+      <th>Output Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td>Return  Value</td>
+      <td><TypeRenderer typeInfo={{"Type":"Simple","Identifier":"FString"}} /></td>
+    </tr>
+  </tbody>
+</table>
+
+

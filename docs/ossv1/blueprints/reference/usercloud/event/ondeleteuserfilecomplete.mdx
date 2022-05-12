@@ -1,0 +1,45 @@
+---
+id: ondeleteuserfilecomplete
+title: On Delete User File Complete
+description: The OnDeleteUserFileComplete event of the UserCloud subsystem.
+---
+
+import TypeRenderer from '@site/src/TypeRenderer';
+import EventRenderer from '@site/src/EventRenderer';
+
+This is a bindable event.
+
+The C++ documentation for this event is available on [the Unreal Engine documentation website](https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Plugins/OnlineSubsystem/Interfaces/IOnlineUserCloud/).
+
+## Example
+
+<EventRenderer subsystemName="UserCloud" event={{"Identifier":"OnDeleteUserFileComplete","Parameters":[{"Position":0,"Identifier":"bWasSuccessful","Type":{"Type":"Simple","Identifier":"bool"}},{"Position":1,"Identifier":"UserId","Type":{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl","Out":false}},{"Position":2,"Identifier":"FileName","Type":{"Type":"Simple","Identifier":"FString","Out":false}}]}} />
+
+## Outputs
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Output Name</th>
+      <th>Output Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td>bWasSuccessful</td>
+      <td><TypeRenderer typeInfo={{"Type":"Simple","Identifier":"bool"}} /></td>
+    </tr>
+    <tr>
+      <td>UserId</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl","Out":false}} /></td>
+    </tr>
+    <tr>
+      <td>FileName</td>
+      <td><TypeRenderer typeInfo={{"Type":"Simple","Identifier":"FString","Out":false}} /></td>
+    </tr>
+  </tbody>
+</table>
+
+

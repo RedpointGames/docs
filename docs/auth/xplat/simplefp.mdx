@@ -1,0 +1,16 @@
+---
+title: Cross-platform accounts with a simple first-party
+sidebar_label: Simple First Party
+description: How to use a simple-first party system as a cross-platform account provider.
+---
+
+This account provider is shown as `SimpleFirstParty` in the cross-platform account provider setting in Project Settings.
+
+If you want to use a simple "username-password" login system across platforms, the plugin ships with an example implementation you can use to get started. This implementation doesn't support implicitly logging users in through their platform account, so users will have to interactively sign in even on platforms like Steam. However, you can extend the implementation to support this if you want (see [Using your own cross-platform account system](auth/write_your_own_cross_platform_account_provider.mdx)).
+
+In order to use the simple first-party account provider, you will need the following:
+
+- You must have verified your license through the License Manager, so you can [access the source code for the CloudFlare worker you will need to deploy](https://src.redpoint.games/redpointgames/eos-online-framework/-/tree/main/Extras/SimpleFirstPartyCloudFlareWorker).
+- You will need your own backend server that you can use to authenticate users. This backend server will need a URL that accepts a `username` and `password` as form parameters as a HTTP POST operation.
+
+For full documentation on how to use the simple "username-password" account provider, follow [the documentation in the source code repository](https://src.redpoint.games/redpointgames/eos-online-framework/-/tree/main/Extras/SimpleFirstPartyCloudFlareWorker) which has full details on how to deploy the CloudFlare worker, configure the Epic Games backend, and implement the required HTTP POST method.

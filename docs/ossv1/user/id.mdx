@@ -1,0 +1,137 @@
+---
+title: Find user by product user ID
+description: Get user information based on a product user ID.
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import Blueprint from '@site/src/Blueprint';
+
+You can fetch user account information based on their player ID. Although interfaces such as the friends interface return user accounts by default, you might need to lookup the accounts of other players in a multiplayer game, so you can show the display names of those users in-game or in match results.
+
+## Query users based on IDs
+
+<Tabs lazy groupId="code-format" defaultValue="c++" values={[ { label: 'C++', value: 'c++' }, { label: 'Blueprints', value: 'blueprints' } ]}>
+<TabItem value="c++">
+
+To load one or more accounts from player IDs, first get the user interface, like so:
+
+```cpp
+#include "OnlineSubsystem.h"
+#include "OnlineSubsystemUtils.h"
+#include "Interfaces/OnlineUserInterface.h"
+
+// ...
+
+IOnlineSubsystem *Subsystem = Online::GetSubsystem(this->GetWorld());
+IOnlineUserPtr User = Subsystem->GetUserInterface();
+```
+
+Register the event handler so you know when the users have been looked up. `QueryUserInfoDelegateHandle` is declared as an `FDelegateHandle`.
+
+```cpp
+this->QueryUserInfoDelegateHandle = User->AddOnQueryUserInfoCompleteDelegate_Handle(
+    0, // Should match the LocalUserNum passed to `QueryUserInfo` below.
+    FOnQueryUserInfoComplete::FDelegate::CreateUObject(
+        this,
+        &UMyClass::HandleQueryUserInfoComplete));
+```
+
+Then add the player IDs (`TSharedRef<const FUniqueNetId>`) to an array, and call `QueryUserInfo`:
+
+```cpp
+TArray<TSharedRef<const FUniqueNetId>> UserIds;
+UserIds.Add(/* first player ID to lookup */);
+// ... more user IDs here ...
+
+User->QueryUserInfo(0 /* LocalUserNum */, UserIds);
+```
+
+When your callback fires, you'll want to handle any errors (check `bWasSuccessful`), and then deregister the event handler:
+
+```cpp
+void UMyClass::HandleQueryUserInfoComplete(
+    int32 LocalUserNum,
+    bool bWasSuccessful,
+    const TArray<TSharedRef<const FUniqueNetId>> &UserIds,
+    const FString &ErrorStr)
+{
+    // TODO: Check bWasSuccessful, if it wasn't successful the error will be in ErrorStr.
+
+    IOnlineSubsystem *Subsystem = Online::GetSubsystem(WorldContextObject->GetWorld());
+    IOnlineUserPtr User = Subsystem->GetUserInterface();
+
+    if (bWasSuccessful)
+    {
+        for (auto UserId : UserIds)
+        {
+            // You can now call GetUserInfo to get the account for the returned IDs.
+            TSharedPtr<FOnlineUser> UserAcc = User->GetUserInfo(LocalUserNum, *UserId);
+
+            // ...
+        }
+    }
+
+    User->ClearOnQueryUserInfoCompleteDelegate_Handle(LocalUserNum, this->QueryUserInfoDelegateHandle);
+    this->QueryUserInfoDelegateHandle.Reset();
+}
+```
+
+</TabItem>
+<TabItem value="blueprints">
+
+First, call the "Query User Info" function with the UniqueNetIds of the users you wish to query.
+
+<Blueprint height="350px" blueprint={`
+Begin Object Class=/Script/BlueprintGraph.K2Node_GetSubsystem Name="K2Node_GetSubsystem_2"
+   CustomClass=Class'"/Script/OnlineSubsystemBlueprints.OnlineUserSubsystem"'
+   NodePosX=64
+   NodePosY=80
+   NodeGuid=D22C18D2422B3CDF6854758143274F76
+   CustomProperties Pin (PinId=B7C714F74DB0ABAC61F5E6887651EBAF,PinName="ReturnValue",Direction="EGPD_Output",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/OnlineSubsystemBlueprints.OnlineUserSubsystem"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_AsyncAction_1 3DF109964A02ED0A6BEED897543250BB,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_AsyncAction Name="K2Node_AsyncAction_1"
+   ProxyFactoryFunctionName="QueryUserInfo"
+   ProxyFactoryClass=Class'"/Script/OnlineSubsystemBlueprints.OnlineUserSubsystemQueryUserInfo"'
+   ProxyClass=Class'"/Script/OnlineSubsystemBlueprints.OnlineUserSubsystemQueryUserInfo"'
+   NodePosX=272
+   NodePosY=47
+   NodeGuid=87ECDF2F49625F73399F558136B3F8A7
+   CustomProperties Pin (PinId=50A26E374C0AA028FFA0059BB1262545,PinName="execute",PinToolTip="\\nExec",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=A331F6DA4943E618AF1CBDAB4E32C0C9,PinName="then",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=834A0B2442CC5AD34953E1BBD1A6F41F,PinName="OnCallFailed",PinFriendlyName="On Call Failed",PinToolTip="On Call Failed",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=3A99FFB34B7C881CB17802824E8C26B8,PinName="OnQueryUserInfoComplete",PinFriendlyName="On Query User Info Complete",PinToolTip="On Query User Info Complete",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=0DB577684C988DAF56A340B313A8BF53,PinName="bWasSuccessful",PinToolTip="Was Successful",Direction="EGPD_Output",PinType.PinCategory="bool",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=E1C48D274BCE25279AF1E29E468A821E,PinName="UserIds",PinToolTip="User Ids",Direction="EGPD_Output",PinType.PinCategory="struct",PinType.PinSubCategory="",PinType.PinSubCategoryObject=ScriptStruct'"/Script/Engine.UniqueNetIdRepl"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=Array,PinType.bIsReference=True,PinType.bIsConst=True,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=FE863CB34E4C7CD936E51AB2955E8D98,PinName="ErrorStr",PinToolTip="Error Str",Direction="EGPD_Output",PinType.PinCategory="string",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=3DF109964A02ED0A6BEED897543250BB,PinName="Subsystem",PinToolTip="Subsystem\\nOnline User Subsystem Object Reference",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/OnlineSubsystemBlueprints.OnlineUserSubsystem"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_GetSubsystem_2 B7C714F74DB0ABAC61F5E6887651EBAF,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=0A0AC708428A29A9C36B94B3D0D371E7,PinName="LocalUserNum",PinToolTip="Local User Num\\nInteger",PinType.PinCategory="int",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,DefaultValue="0",AutogeneratedDefaultValue="0",PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=3E08F7754A677B905E26929F3AAD5537,PinName="UserIds",PinToolTip="User Ids\\nArray of Unique Net Id Repl Structures",PinType.PinCategory="struct",PinType.PinSubCategory="",PinType.PinSubCategoryObject=ScriptStruct'"/Script/Engine.UniqueNetIdRepl"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=Array,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+`} />
+
+Then, on Query Info Complete, call the function "Get User Info" on each UniqueNetId you want the user info of.
+
+<Blueprint height="350px" blueprint={`
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="K2Node_CallFunction_4"
+   FunctionReference=(MemberParent=Class'"/Script/OnlineSubsystemBlueprints.OnlineUserSubsystem"',MemberName="GetUserInfo")
+   NodePosX=944
+   NodePosY=96
+   NodeGuid=D5EB44D542B39E30A35FF1BCEC603556
+   CustomProperties Pin (PinId=DB57B9404DE37569CE038FAB56F1B523,PinName="execute",PinToolTip="\\nExec",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=38281E3D4D43BB41E1A3858BC1B290D6,PinName="then",PinToolTip="\\nExec",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=11890C6B4255A642532735B9B86C6B1A,PinName="self",PinFriendlyName=NSLOCTEXT("K2Node", "Target", "Target"),PinToolTip="Target\\nOnline User Subsystem Object Reference",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/OnlineSubsystemBlueprints.OnlineUserSubsystem"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_GetSubsystem_2 B7C714F74DB0ABAC61F5E6887651EBAF,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=8AE36BE74FE9C7159482D0A5A3048E9A,PinName="LocalUserNum",PinToolTip="Local User Num\\nInteger",PinType.PinCategory="int",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,DefaultValue="0",AutogeneratedDefaultValue="0",PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=C8C7F01D4FAE16E7B72E15AD8FD29FF8,PinName="UserId",PinToolTip="User Id\\nUnique Net Id Repl Structure",PinType.PinCategory="struct",PinType.PinSubCategory="",PinType.PinSubCategoryObject=ScriptStruct'"/Script/Engine.UniqueNetIdRepl"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=6AA18D5C4BBD43B40C7D3583BC3751AE,PinName="ReturnValue",PinToolTip="Return Value\\nOnline User Ref Object Reference\\n\\nGet User Info",Direction="EGPD_Output",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/OnlineSubsystemBlueprints.OnlineUserRef"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_GetSubsystem Name="K2Node_GetSubsystem_2"
+   CustomClass=Class'"/Script/OnlineSubsystemBlueprints.OnlineUserSubsystem"'
+   NodePosX=720
+   NodePosY=144
+   NodeGuid=0472C5F246B6CF9DDC6AF4822335ECDA
+   CustomProperties Pin (PinId=B7C714F74DB0ABAC61F5E6887651EBAF,PinName="ReturnValue",Direction="EGPD_Output",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/OnlineSubsystemBlueprints.OnlineUserSubsystem"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_CallFunction_4 11890C6B4255A642532735B9B86C6B1A,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+`} />
+</TabItem>
+</Tabs>

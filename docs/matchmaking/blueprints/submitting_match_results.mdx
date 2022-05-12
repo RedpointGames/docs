@@ -1,0 +1,23 @@
+---
+title: Submitting match results in Blueprints
+sidebar_label: Submitting match results
+description: Learn how to submit match results from blueprints.
+---
+
+import Blueprint from "@site/src/Blueprint";
+
+import bpSubmit from "./bp/submit.bp";
+
+If you're using skill-based matchmaking, your game server will need to submit match results once the game is complete.
+
+You can do so by using the "Submit Match Results" blueprint node on the Matchmaker Subsystem, like so:
+
+<Blueprint height="410px" blueprint={bpSubmit} />
+
+In the example above, we are reporting the scores as follows:
+
+- Team 0 scored 200 points.
+- Team 1 scored 100 points.
+- Team 2 scored 150 points.
+
+The plugin will order the teams by their score, and then adjust each player's Openskill ranking based on whether they won or lost the match.

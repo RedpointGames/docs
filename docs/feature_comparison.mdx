@@ -1,0 +1,555 @@
+---
+id: feature_comparison
+title: Feature Comparison
+description: Comparison of features between EOS Online Framework and other options.
+---
+
+This page outlines the difference in features between EOS Online Framework and other options for using EOS in your Unreal Engine game.
+
+If you have additional questions about differences in functionality or platform support, you can [ask these questions on our Discord server](https://redpoint.games/support/).
+
+<table style={{ fontSize: "90%" }}>
+  <thead>
+    <tr>
+      <th></th>
+      <th>EOS&nbsp;Online&nbsp;Subsystem: Paid&nbsp;Edition</th>
+      <th>EOS&nbsp;Online&nbsp;Subsystem: Free&nbsp;Edition</th>
+      <th>OSS in Unreal Engine Repository</th>
+    </tr>
+  </thead>
+  <tr>
+    <th>Availability</th>
+    <td>
+      Now,{" "}
+      <a href="https://www.fab.com/listings/b900b244-0ff6-49e3-8562-5fc630ba9515">
+        $119 USD on Fab
+      </a>
+    </td>
+    <td>
+      Now,{" "}
+      <a href="https://licensing.redpoint.games/get/eos-online-subsystem-free">
+        available in the License Manager
+      </a>
+    </td>
+    <td>Install Unreal Engine</td>
+  </tr>
+  <tr>
+    <th>Stability</th>
+    <td>Stable</td>
+    <td>Stable</td>
+    <td>Beta</td>
+  </tr>
+  <tr>
+    <th>Developed By</th>
+    <td>Redpoint Games</td>
+    <td>Redpoint Games</td>
+    <td>Epic Games</td>
+  </tr>
+  <tr>
+    <th>Support</th>
+    <td>
+      Yes, included.
+      <br />
+      <a href="https://licensing.redpoint.games/support/plans">
+        Premium support
+      </a>{" "}
+      available with SLAs.
+    </td>
+    <td>-</td>
+    <td>-</td>
+  </tr>
+  <tr>
+    <th>Source&nbsp;Code</th>
+    <td>Yes</td>
+    <td>-</td>
+    <td>Yes</td>
+  </tr>
+  <tr>
+    <th>Engine Versions</th>
+    <td>
+      Current stable version, and two previous major versions (e.g. 5.5, 5.4 and
+      5.3)
+    </td>
+    <td>Current stable version (e.g. 5.5 only)</td>
+    <td>-</td>
+  </tr>
+  <tr>
+    <th colspan="4">Development Experience</th>
+  </tr>
+  <tr>
+    <th>Packaging</th>
+    <td colspan="2">
+      The plugin automatically wraps your packaged project with the EOS
+      Bootstrapper and signs for Anti-Cheat where necessary.
+    </td>
+    <td>-</td>
+  </tr>
+  <tr>
+    <th colspan="4">Platform Support</th>
+  </tr>
+  <tr>
+    <th>Desktop</th>
+    <td>Windows, macOS and Linux</td>
+    <td>Windows, macOS and Linux</td>
+    <td>Windows and macOS</td>
+  </tr>
+  <tr>
+    <th>Mobile</th>
+    <td>iOS and Android</td>
+    <td>iOS and Android</td>
+    <td>-</td>
+  </tr>
+  <tr>
+    <th>Consoles</th>
+    <td>
+      Yes;{" "}
+      <a
+        href="https://licensing.redpoint.games/organisation/console-access"
+        target="_blank"
+      >
+        get console access
+      </a>
+    </td>
+    <td>-</td>
+    <td>Yes; via Epic Games console access</td>
+  </tr>
+  <tr>
+    <th>VR/AR/XR</th>
+    <td>Meta Quest and PC-based headsets</td>
+    <td>Meta Quest and PC-based headsets</td>
+    <td>-</td>
+  </tr>
+  <tr>
+    <th colspan="4">Authentication Features</th>
+  </tr>
+  <tr>
+    <th>User Experience</th>
+    <td colspan="2">
+      <em>Automatic.</em> The plugin shows any necessary login prompts and
+      implements UI for you (though you can customize it).
+    </td>
+    <td>
+      <em>Manual.</em> You need to build the UI and login flows.
+    </td>
+  </tr>
+  <tr>
+    <th>Authentication Flow</th>
+    <td colspan="2">
+      Sensible defaults for most games.
+      <br />
+      <br />
+      Fully customize the authentication experience by implementing custom authentication
+      graphs and cross-platform account providers.
+    </td>
+    <td>
+      Relatively fixed. Requires patching the engine to do anything
+      non-standard.
+    </td>
+  </tr>
+  <tr>
+    <th>Cross-Platform Account Linking</th>
+    <td>Yes</td>
+    <td>Yes</td>
+    <td>-</td>
+  </tr>
+  <tr>
+    <th>Login with Developer Auth Tool</th>
+    <td>Yes</td>
+    <td>Yes</td>
+    <td>Yes</td>
+  </tr>
+  <tr>
+    <th>Epic Games on Mobile Platforms</th>
+    <td colspan="2">
+      Signing in with an Epic Games account on iOS and Android is supported.
+    </td>
+    <td>-</td>
+  </tr>
+  <tr>
+    <th colspan="4">Authentication Platforms</th>
+  </tr>
+  <tr>
+    <th>Epic Games Store</th>
+    <td>Yes</td>
+    <td>Yes</td>
+    <td>Yes</td>
+  </tr>
+  <tr>
+    <th>Steam</th>
+    <td>Yes</td>
+    <td>Yes</td>
+    <td>Yes</td>
+  </tr>
+  <tr>
+    <th>itch.io</th>
+    <td>Yes</td>
+    <td>Yes</td>
+    <td>-</td>
+  </tr>
+  <tr>
+    <th>Oculus</th>
+    <td>Yes</td>
+    <td>Yes</td>
+    <td>-</td>
+  </tr>
+  <tr>
+    <th>Discord</th>
+    <td>Yes</td>
+    <td>-</td>
+    <td>-</td>
+  </tr>
+  <tr>
+    <th>GOG Galaxy</th>
+    <td>Yes</td>
+    <td>-</td>
+    <td>-</td>
+  </tr>
+  <tr>
+    <th>PlayStation&trade;Network</th>
+    <td>Yes</td>
+    <td>-</td>
+    <td>Yes</td>
+  </tr>
+  <tr>
+    <th>Nintendo Switch&trade;</th>
+    <td>Yes</td>
+    <td>-</td>
+    <td>Yes</td>
+  </tr>
+  <tr>
+    <th>Xbox</th>
+    <td>Yes</td>
+    <td>-</td>
+    <td>Yes</td>
+  </tr>
+  <tr>
+    <th>
+      Google
+      <br />
+      <span style={{ fontWeight: "normal" }}>(Android)</span>
+    </th>
+    <td>Yes</td>
+    <td>-</td>
+    <td>-</td>
+  </tr>
+  <tr>
+    <th>
+      Apple
+      <br />
+      <span style={{ fontWeight: "normal" }}>(iOS)</span>
+    </th>
+    <td>Yes</td>
+    <td>-</td>
+    <td>-</td>
+  </tr>
+  <tr>
+    <th>
+      Anonymous
+      <br />
+      <span style={{ fontWeight: "normal" }}>(Device ID)</span>
+    </th>
+    <td colspan="2">Yes, but only on Windows, Linux, iOS and Android</td>
+    <td>-</td>
+  </tr>
+  <tr>
+    <th colspan="4">Cross-Platform Account Systems</th>
+  </tr>
+  <tr>
+    <th>Epic Games</th>
+    <td>Yes</td>
+    <td>Yes</td>
+    <td>Yes</td>
+  </tr>
+  <tr>
+    <th>Bring your own first-party account system</th>
+    <td>Yes</td>
+    <td>Yes</td>
+    <td>-</td>
+  </tr>
+  <tr>
+    <th colspan="4">Cross-Platform Friends</th>
+  </tr>
+  <tr>
+    <th>
+      Cross-Platform Friends List
+      <br />
+      <span style={{ fontWeight: "normal" }}>
+        (Can you invite any EOS user to your friends list?)
+      </span>
+    </th>
+    <td colspan="2">
+      Yes, you can send, accept and reject friend invites to any EOS user, as
+      well as delete friends from the friends list.
+    </td>
+    <td>-</td>
+  </tr>
+  <tr>
+    <th>
+      Friend Caching
+      <br />
+      <span style={{ fontWeight: "normal" }}>
+        (Will friends from previous platforms show up on new platforms?)
+      </span>
+    </th>
+    <td colspan="2">
+      Yes, friends from the local platform are cached and displayed on any other
+      platforms the user also plays the game on.
+    </td>
+    <td>-</td>
+  </tr>
+  <tr>
+    <th>
+      Friend Aggregation
+      <br />
+      <span style={{ fontWeight: "normal" }}>
+        (What platforms will friends be displayed from?)
+      </span>
+    </th>
+    <td colspan="2">Epic Games and multiple local platforms.</td>
+    <td>Epic Games and a single local platform.</td>
+  </tr>
+  <tr>
+    <th>
+      Friend Unification
+      <br />
+      <span style={{ fontWeight: "normal" }}>
+        (Will a friend only appear once?)
+      </span>
+    </th>
+    <td colspan="2">
+      Yes, if a friend is present on multiple platforms they will only appear in
+      the friends list once.
+    </td>
+    <td>No, duplicates can be present.</td>
+  </tr>
+  <tr>
+    <th>
+      Friend Invites
+      <br />
+      <span style={{ fontWeight: "normal" }}>(Can I invite friends?)</span>
+    </th>
+    <td colspan="2">Yes, to sessions and parties.</td>
+    <td>Yes, to sessions.</td>
+  </tr>
+  <tr>
+    <th>Recent Players</th>
+    <td colspan="2">
+      Yes, and other players seen on multiplayer servers are automatically
+      tracked.
+    </td>
+    <td>-</td>
+  </tr>
+  <tr>
+    <th>Blocked Players</th>
+    <td colspan="2">Yes</td>
+    <td>-</td>
+  </tr>
+  <tr>
+    <th>
+      Friend Aliases
+      <br />
+      <span style={{ fontWeight: "normal" }}>
+        (Can you locally override the display name of a friend?)
+      </span>
+    </th>
+    <td colspan="2">Yes</td>
+    <td>-</td>
+  </tr>
+  <tr>
+    <th colspan="4">Networking</th>
+  </tr>
+  <tr>
+    <th>Dedicated Servers</th>
+    <td colspan="3">
+      Players can directly connect to dedicated servers over the Internet.
+    </td>
+  </tr>
+  <tr>
+    <th>Peer-to-Peer</th>
+    <td colspan="3">
+      Players can connect to listen servers hosted by other players, without
+      forwarding ports on their router.
+    </td>
+  </tr>
+  <tr>
+    <th>Beacons</th>
+    <td colspan="2">
+      You can communicate with game servers using beacons without performing a
+      full connection to the game server (joining the map).
+    </td>
+    <td>-</td>
+  </tr>
+  <tr>
+    <th>Anti-Cheat</th>
+    <td colspan="2">
+      Anti-Cheat support is fully integrated and handled for you.
+    </td>
+    <td>-</td>
+  </tr>
+  <tr>
+    <th>Automatic Encryption</th>
+    <td colspan="2">
+      Connections to both dedicated and listen servers are automatically
+      encrypted for you.
+    </td>
+    <td>Only for listen servers where the connection is over Peer-to-Peer.</td>
+  </tr>
+  <tr>
+    <th>Network Authentication</th>
+    <td colspan="2">
+      Connecting players are authenticated to ensure that they are who they say
+      they are.
+    </td>
+    <td>No, anyone can connect to game servers.</td>
+  </tr>
+  <tr>
+    <th>Sanctions</th>
+    <td colspan="2">
+      When players connect to a game server, the server will check the EOS
+      Sanctions list to see if the player has any <code>BAN</code> sanctions
+      against them. If they do, they won't be permitted to connect to the
+      server.
+    </td>
+    <td>-</td>
+  </tr>
+  <tr>
+    <th colspan="4">Functionality</th>
+  </tr>
+  <tr>
+    <th>Identity</th>
+    <td>Yes</td>
+    <td>Yes</td>
+    <td>Yes</td>
+  </tr>
+  <tr>
+    <th>Avatars</th>
+    <td>Yes</td>
+    <td>Yes</td>
+    <td>-</td>
+  </tr>
+  <tr>
+    <th>Friends</th>
+    <td colspan={3}>
+      Yes, but refer to "Cross-Platform Friends" section above for differences
+      between Redpoint and Epic EOS plugins.
+    </td>
+  </tr>
+  <tr>
+    <th>Cross-Platform Invites</th>
+    <td>Yes</td>
+    <td>Yes</td>
+    <td>Yes</td>
+  </tr>
+  <tr>
+    <th>User Info</th>
+    <td>Yes</td>
+    <td>Yes</td>
+    <td>Yes</td>
+  </tr>
+  <tr>
+    <th>Presence</th>
+    <td>Yes</td>
+    <td>Yes</td>
+    <td>Yes</td>
+  </tr>
+  <tr>
+    <th>Sessions</th>
+    <td>Yes</td>
+    <td>Yes</td>
+    <td>Limited; does not register players with backend.</td>
+  </tr>
+  <tr>
+    <th>Parties</th>
+    <td>Yes</td>
+    <td>Yes</td>
+    <td>-</td>
+  </tr>
+  <tr>
+    <th>Lobbies</th>
+    <td colspan={2}>Yes, via lobbies interface.</td>
+    <td>Yes, via sessions interface.</td>
+  </tr>
+  <tr>
+    <th>
+      User&nbsp;Cloud
+      <br />
+      <span style={{ fontWeight: "normal" }}>
+        (Player&nbsp;Data&nbsp;Storage)
+      </span>
+    </th>
+    <td>Yes</td>
+    <td>Yes</td>
+    <td>Yes</td>
+  </tr>
+  <tr>
+    <th>
+      Title&nbsp;File
+      <br />
+      <span style={{ fontWeight: "normal" }}>(Title&nbsp;Storage)</span>
+    </th>
+    <td>Yes</td>
+    <td>Yes</td>
+    <td>Yes</td>
+  </tr>
+  <tr>
+    <th>Metrics</th>
+    <td>Yes</td>
+    <td>Yes</td>
+    <td>Yes</td>
+  </tr>
+  <tr>
+    <th>External UI</th>
+    <td>Yes</td>
+    <td>Yes</td>
+    <td>-</td>
+  </tr>
+  <tr>
+    <th>Achievements</th>
+    <td>Yes</td>
+    <td>Yes</td>
+    <td>Yes</td>
+  </tr>
+  <tr>
+    <th>Leaderboards</th>
+    <td>Yes</td>
+    <td>Yes</td>
+    <td>Yes</td>
+  </tr>
+  <tr>
+    <th>Stats</th>
+    <td>Yes</td>
+    <td>Yes</td>
+    <td>Yes</td>
+  </tr>
+  <tr>
+    <th>Anti-Cheat</th>
+    <td>Yes</td>
+    <td>Yes</td>
+    <td>-</td>
+  </tr>
+  <tr>
+    <th>Voice Chat</th>
+    <td>Yes</td>
+    <td>Yes</td>
+    <td>Limited; does not conform to standard online APIs.</td>
+  </tr>
+  <tr>
+    <th>
+      E-commerce
+      <br />
+      <span style={{ fontWeight: "normal" }}>
+        (Store, Purchase, Entitlements)
+      </span>
+    </th>
+    <td colSpan={2}>Yes, Epic Games Store, Steam and Google Play</td>
+    <td>Yes, Epic Games Store only</td>
+  </tr>
+  <tr>
+    <th>Mods</th>
+    <td>-</td>
+    <td>-</td>
+    <td>-</td>
+  </tr>
+</table>
+
+Nintendo Switch is a trademark of Nintendo. "PlayStation" is a registered trademark or trademark of Sony Interactive Entertainment Inc.

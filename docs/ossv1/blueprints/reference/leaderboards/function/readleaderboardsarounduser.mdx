@@ -1,0 +1,65 @@
+---
+id: readleaderboardsarounduser
+title: Read Leaderboards Around User
+description: The ReadLeaderboardsAroundUser function of the Leaderboards subsystem.
+---
+
+import TypeRenderer from '@site/src/TypeRenderer';
+import FunctionRenderer from '@site/src/FunctionRenderer';
+
+This is an asynchronous latent blueprint node.
+
+The C++ documentation for this function is available on [the Unreal Engine documentation website](https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Plugins/OnlineSubsystem/Interfaces/IOnlineLeaderboards/).
+
+## Example
+
+<FunctionRenderer subsystemName="Leaderboards" func={{"Identifier":"ReadLeaderboardsAroundUser","Supported":false,"Async":true,"AsyncPins":["OnCallFailed","OnLeaderboardReadComplete"],"Pure":false,"Parameters":[{"Position":0,"Identifier":"Player","Type":{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl"}},{"Position":1,"Identifier":"Range","Type":{"Type":"Wrapped","Identifier":"int64"}},{"Position":2,"Identifier":"ReadObject","Type":{"Type":"Wrapped","Identifier":"UOnlineLeaderboardRead*","Out":true}},{"Position":3,"Identifier":"bWasSuccessful","Type":{"Type":"Simple","Identifier":"bool","Out":true}}],"ReturnType":null}} />
+
+## Inputs
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Input Name</th>
+      <th>Input Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td>Player</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl"}} /></td>
+    </tr>
+    <tr>
+      <td>Range</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"int64"}} /></td>
+    </tr>
+  </tbody>
+</table>
+
+
+## Outputs
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Output Name</th>
+      <th>Output Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td>Read Object</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"UOnlineLeaderboardRead*","Out":true}} /></td>
+    </tr>
+    <tr>
+      <td>Was Successful</td>
+      <td><TypeRenderer typeInfo={{"Type":"Simple","Identifier":"bool","Out":true}} /></td>
+    </tr>
+  </tbody>
+</table>
+
+

@@ -1,0 +1,520 @@
+---
+title: User attributes
+description: The list of attributes available on FOnlineUser, FOnlineFriend and FUserOnlineAccount objects.
+---
+
+When you are dealing with users in the online subsystem, they will be represented by `FOnlineUser`, `FOnlineFriend` and `FUserOnlineAccount` objects.
+
+`FUserOnlineAccount` is used to represent locally logged in users, while `FOnlineUser` and `FOnlineFriend` are used to represent remote users such as other players in a game or players on a user's friends list.
+
+## Authentication Attributes (FUserOnlineAccount only)
+
+The following attributes are accessible through `GetAuthAttribute`. For fields prefixed with a platform name such as `steam.`, these fields will not exist unless that platform was used for sign in.
+
+<table style={{fontSize: '80%'}}>
+    <thead>
+        <tr>
+            <th>Attribute Name</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td valign="top">
+                authenticatedWith
+            </td>
+            <td valign="top">
+                Contains the name of the platform the user was authenticated with. This can currently be one of:
+                <ul>
+                    <li><code>steam</code></li>
+                    <li><code>discord</code></li>
+                    <li><code>gog</code></li>
+                    <li><code>itchIo</code></li>
+                    <li><code>meta</code></li>
+                    <li><code>google</code></li>
+                    <li><code>apple</code></li>
+                    <li><code>xbl</code></li>
+                    <li><code>nsa</code></li>
+                    <li><code>psn</code></li>
+                    <li><code>epic</code></li>
+                    <li><code>deviceId</code></li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td valign="top">
+                idToken
+            </td>
+<td valign="top" className="no-p-padding">
+
+The EOS Connect ID Token for the user account, as [documented on the Epic Online Services website](https://dev.epicgames.com/docs/services/en-US/GameServices/Connect/index.html#userverificationusinganidtoken). This token can be used to verify the user's identity with external custom services you operate.
+
+This token is also available by calling the `IOnlineIdentity->GetAuthToken()` and `FUserOnlineAccount->GetAccessToken()` functions.
+
+</td>
+        </tr>
+        <tr>
+            <td valign="top">
+                crossPlatform.canLink
+            </td>
+            <td valign="top">
+                Returns "true" if the local account can be linked with a cross-platform account. This requires that you have a cross-platform account provider configured, do not require the use of cross-platform accounts, and the current user has not signed in with their cross-platform account yet.
+            </td>
+        </tr>
+        <tr>
+            <td valign="top">
+                steam.id
+            </td>
+            <td valign="top">
+                The ID of the Steam account that was used for signing in.
+            </td>
+        </tr>
+        <tr>
+            <td valign="top">
+                steam.sessionTicket
+            </td>
+            <td valign="top">
+                The session ticket that was used for signing in, in hexadecimal format.
+            </td>
+        </tr>
+        <tr>
+            <td valign="top">
+                steam.sessionTicket.base64
+            </td>
+            <td valign="top">
+                The session ticket that was used for signing in, encoded in base-64.
+            </td>
+        </tr>
+        <tr>
+            <td valign="top">
+                steam.encryptedAppTicket
+            </td>
+            <td valign="top">
+                The encrypted app ticket if it could be obtained, in hexadecimal format.
+            </td>
+        </tr>
+        <tr>
+            <td valign="top">
+                steam.encryptedAppTicket.base64
+            </td>
+            <td valign="top">
+                The encrypted app ticket if it could be obtained, encoded in base-64.
+            </td>
+        </tr>
+        <tr>
+            <td valign="top">
+                discord.accessToken
+            </td>
+            <td valign="top">
+                The OAuth access token that was used for Discord sign in.
+            </td>
+        </tr>
+        <tr>
+            <td valign="top">
+                gog.id
+            </td>
+            <td valign="top">
+                The ID of the GOG Galaxy account that was used for signing in.
+            </td>
+        </tr>
+        <tr>
+            <td valign="top">
+                gog.encryptedAppTicket
+            </td>
+            <td valign="top">
+                The GOG encrypted app ticket (in hexadecimal format) that was used for signing in.
+            </td>
+        </tr>
+        <tr>
+            <td valign="top">
+                itchIo.apiKey
+            </td>
+            <td valign="top">
+                The itch.io API key that was used for signing in.
+            </td>
+        </tr>
+        <tr>
+            <td valign="top">
+                meta.userId
+            </td>
+            <td valign="top">
+                The Meta user ID that was used for signing in.
+            </td>
+        </tr>
+        <tr>
+            <td valign="top">
+                meta.proofNonce
+            </td>
+            <td valign="top">
+                The Meta proof nonce that was sent to the EOS backend as part of sign in.
+            </td>
+        </tr>
+        <tr>
+            <td valign="top">
+                google.givenName
+            </td>
+            <td valign="top">
+                The given name of the Google account that was used for signing in.
+            </td>
+        </tr>
+        <tr>
+            <td valign="top">
+                google.idToken
+            </td>
+            <td valign="top">
+                The Google ID token that was used for signing in.
+            </td>
+        </tr>
+        <tr>
+            <td valign="top">
+                apple.idToken
+            </td>
+            <td valign="top">
+                The Apple ID token that was used for signing in.
+            </td>
+        </tr>
+        <tr>
+            <td valign="top">
+                epic.accessToken
+            </td>
+            <td valign="top">
+                The OAuth access token that was used during Epic Games sign in.
+            </td>
+        </tr>
+        <tr>
+            <td valign="top">
+                epic.idToken
+            </td>
+<td valign="top" className="no-p-padding">
+
+The ID token for the Epic Games account, as [documented on the Epic Online Services website](https://dev.epicgames.com/docs/services/en-US/EpicAccountServices/AuthInterface/index.html#userverificationusinganidtoken). This token differs from `idToken` in that it's the ID token for the Epic Games account, not the underlying EOS account. You should use `idToken` for external authorisation unless your game requires Epic Games accounts on all platforms.
+
+</td>
+        </tr>
+        <tr>
+            <td valign="top">
+                epic.accountId
+            </td>
+            <td valign="top">
+                The ID of the Epic Games account the user is signed into.
+            </td>
+        </tr>
+        <tr>
+            <td valign="top">
+                epic.app
+            </td>
+            <td valign="top">
+                Name of the app related to the client ID involved with the OAuth token.
+            </td>
+        </tr>
+        <tr>
+            <td valign="top">
+                epic.authTokenType
+            </td>
+            <td valign="top">
+                Type of OAuth token, either <code>client</code>, <code>user</code> or <code>unknown</code>.
+            </td>
+        </tr>
+        <tr>
+            <td valign="top">
+                epic.clientId
+            </td>
+            <td valign="top">
+                The OAuth client ID that requested the OAuth token.
+            </td>
+        </tr>
+        <tr>
+            <td valign="top">
+                epic.expiresAt
+            </td>
+            <td valign="top">
+                Absolute time in UTC before the access token expires, in ISO 8601 format.
+            </td>
+        </tr>
+        <tr>
+            <td valign="top">
+                epic.refreshToken
+            </td>
+            <td valign="top">
+                The OAuth refresh token that was obtained during Epic Games sign in.
+            </td>
+        </tr>
+        <tr>
+            <td valign="top">
+                epic.refreshExpiresAt
+            </td>
+            <td valign="top">
+                Absolute time in UTC before the refresh token expires, in ISO 8601 format.
+            </td>
+        </tr>
+        <tr>
+            <td valign="top">
+                epic.authenticatedWith
+            </td>
+            <td valign="top">
+                When <code>authenticatedWith</code> is equal to <code>epic</code>, this tells you the mechanism that was used to authenticate the Epic Games account. It can be <code>interactive</code>, <code>persistent</code>, <code>exchangeCode</code>, <code>devTool</code>, <code>automatedTesting</code> or one of the native platform names such as <code>steam</code> or <code>discord</code>.<br />
+                <br />
+                See <code>authenticatedWith</code> for details on what this might contain when you authenticate via a native platform.
+            </td>
+        </tr>
+        <tr>
+            <td valign="top">
+                friendCode
+            </td>
+<td valign="top" className="no-p-padding">
+
+A friend code that is generated upon login and can be used by other players to discover the local player's user ID through [`IOnlineUser::QueryUserIdMapping`](/ossv1/user/displayname.mdx#query-a-user-by-their-friend-code) or [`IPresenceSystem::FindByFriendCode`](/systems/presence.md#resolve-a-friend-code-into-a-user-id).
+
+</td>
+        </tr>
+    </tbody>
+</table>
+
+## User Attributes (all EOS accounts)
+
+These attributes are accessible through `GetUserAttribute`.
+
+<table style={{fontSize: '80%'}}>
+    <thead>
+        <tr>
+            <th>Attribute Name</th>
+            <th>Availability</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td valign="top">
+                id
+            </td>
+            <td valign="top">
+                All EOS accounts
+            </td>
+            <td valign="top">
+                The user ID as a string value.
+            </td>
+        </tr>
+        <tr>
+            <td valign="top">
+                ready
+            </td>
+            <td valign="top">
+                All EOS accounts
+            </td>
+            <td valign="top">
+                "true" if all of the EOS information has finished loading for this user account. "false" if it has not. Some API calls immediately return <code>FOnlineUser</code> objects, so this attribute helps you determine if the asynchronous EOS API calls have finished loading data for this user account.
+            </td>
+        </tr>
+        <tr>
+            <td valign="top">
+                productUserId
+            </td>
+            <td valign="top">
+                All EOS accounts
+            </td>
+            <td valign="top">
+                The EOS product user ID of the user.
+            </td>
+        </tr>
+        <tr>
+            <td valign="top">
+                displayName, prefDisplayName
+            </td>
+            <td valign="top">
+                All EOS accounts
+            </td>
+            <td valign="top">
+                The user's display name.
+            </td>
+        </tr>
+        <tr>
+            <td valign="top">
+                externalAccountTypes
+            </td>
+            <td valign="top">
+                All EOS accounts
+            </td>
+            <td valign="top">
+                A comma-separated list of external accounts that are associated with this EOS account. Each value in the comma-separated list can be used in the attributes below to access information about the external account.
+            </td>
+        </tr>
+        <tr>
+            <td valign="top">
+                externalAccount.<code>platform</code>.id
+            </td>
+            <td valign="top">
+                All EOS accounts
+            </td>
+            <td valign="top">
+                The account ID on the specified external platform.
+            </td>
+        </tr>
+        <tr>
+            <td valign="top">
+                externalAccount.<code>platform</code>.displayName
+            </td>
+            <td valign="top">
+                All EOS accounts
+            </td>
+            <td valign="top">
+                The display name of the account on the specified external platform.
+            </td>
+        </tr>
+        <tr>
+            <td valign="top">
+                externalAccount.<code>platform</code>.lastLoginTime.unixTimestampUtc
+            </td>
+            <td valign="top">
+                All EOS accounts
+            </td>
+            <td valign="top">
+                The last time the user signed into the account on the specified external platform, as a UNIX timestamp in UTC.
+            </td>
+        </tr>
+        <tr>
+            <td valign="top">
+                externalAccount.epic.country
+            </td>
+            <td valign="top">
+                All EOS accounts that have <code>epic</code> in the <code>externalAccountTypes</code> attribute
+            </td>
+            <td valign="top">
+                The country of the user. This may not be available for all accounts.
+            </td>
+        </tr>
+        <tr>
+            <td valign="top">
+                externalAccount.epic.nickname
+            </td>
+            <td valign="top">
+                All EOS accounts that have <code>epic</code> in the <code>externalAccountTypes</code> attribute
+            </td>
+            <td valign="top">
+                The nickname of the user. This may not be available for all accounts.
+            </td>
+        </tr>
+        <tr>
+            <td valign="top">
+                externalAccount.epic.preferredLanguage
+            </td>
+            <td valign="top">
+                All EOS accounts that have <code>epic</code> in the <code>externalAccountTypes</code> attribute
+            </td>
+            <td valign="top">
+                The preferred language of the user. This may not be available for all accounts.
+            </td>
+        </tr>
+        <tr>
+            <td valign="top">
+                eosSynthetic.primaryFriend.subsystemName (previously SubsystemName)
+            </td>
+            <td valign="top">
+                Friend accounts obtained from the IOnlineFriends interface
+            </td>
+            <td valign="top">
+                The name of the subsystem that owns the user ID used to identify this user. This will be a subsystem like "Steam" if the friend does not have an EOS account, and "EOS" if the friend is identified by an EOS user ID.
+            </td>
+        </tr>
+        <tr>
+            <td valign="top">
+                eosSynthetic.preferredFriend.subsystemName
+            </td>
+            <td valign="top">
+                Friend accounts obtained from the IOnlineFriends interface
+            </td>
+            <td valign="top">
+                The name of the subsystem that is providing the friend's real name and display name fields. This may be different from the primary friend account.
+            </td>
+        </tr>
+        <tr>
+            <td valign="top">
+                eosSynthetic.subsystemNames
+            </td>
+            <td valign="top">
+                Friend accounts obtained from the IOnlineFriends interface
+            </td>
+            <td valign="top">
+                A comma-delimited list of subsystem names who from which the friend account was unified. This can be a value like "RedpointEOS,Steam,Discord".
+            </td>
+        </tr>
+        <tr>
+            <td valign="top">
+                eosSynthetic.friend.<code>subsystemName</code>.id
+            </td>
+            <td valign="top">
+                Friend accounts obtained from the IOnlineFriends interface
+            </td>
+            <td valign="top">
+                The user ID of the friend account from subsystem <code>subsystemName</code> that was wrapped by this unified friend account.
+            </td>
+        </tr>
+        <tr>
+            <td valign="top">
+                eosSynthetic.friend.<code>subsystemName</code>.realName
+            </td>
+            <td valign="top">
+                Friend accounts obtained from the IOnlineFriends interface
+            </td>
+            <td valign="top">
+                The real name of the friend account from subsystem <code>subsystemName</code> that was wrapped by this unified friend account.
+            </td>
+        </tr>
+        <tr>
+            <td valign="top">
+                eosSynthetic.friend.<code>subsystemName</code>.displayName
+            </td>
+            <td valign="top">
+                Friend accounts obtained from the IOnlineFriends interface
+            </td>
+            <td valign="top">
+                The display name of the friend account from subsystem <code>subsystemName</code> that was wrapped by this unified friend account.
+            </td>
+        </tr>
+        <tr>
+            <td valign="top">
+                eosSynthetic.friend.<code>subsystemName</code>.attr.<code>attr</code>
+            </td>
+            <td valign="top">
+                Friend accounts obtained from the IOnlineFriends interface
+            </td>
+            <td valign="top">
+                The user attribute <code>attr</code> of the friend account from subsystem <code>subsystemName</code> that was wrapped by this unified friend account.
+            </td>
+        </tr>
+        <tr>
+            <td valign="top">
+                deletable
+            </td>
+            <td valign="top">
+                Friend accounts obtained from the IOnlineFriends interface
+            </td>
+<td valign="top" className="no-p-padding">
+
+Either "true" or "false". If "true", this friend can be removed with a call to `DeleteFriend`. See [Deleting a friend from the friends list](/ossv1/friends/deleting.mdx) for more information.
+
+</td>
+        </tr>
+        <tr>
+            <td valign="top">
+                epicAccountId <em>(deprecated)</em>
+            </td>
+            <td valign="top">
+                All EOS accounts
+            </td>
+            <td valign="top">
+                Use <code>externalAccount.epic.id</code> instead.
+            </td>
+        </tr>
+        <tr>
+            <td valign="top">
+                country <em>(deprecated)</em>
+            </td>
+            <td valign="top">
+                All EOS accounts
+            </td>
+            <td valign="top">
+                Use <code>externalAccount.epic.country</code> instead.
+            </td>
+        </tr>
+    </tbody>
+</table>

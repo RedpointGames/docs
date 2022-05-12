@@ -1,0 +1,195 @@
+---
+title: Block and unblock other players
+description: How to modify the blocked players list
+---
+
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+import Blueprint from "@site/src/Blueprint";
+
+EOS Online Framework provides the "blocked players" functionality of the friends interface. You can modify the blocked players list by calling `BlockPlayer` and `UnblockPlayer`.
+
+Refer to [Read the blocked players list](blocked_players.mdx) for more information on how the blocked players list works.
+
+## Blocking another player
+
+<Tabs lazy groupId="code-format" defaultValue="c++" values={[ { label: 'C++', value: 'c++' }, { label: 'Blueprints', value: 'blueprints' } ]}>
+<TabItem value="c++">
+
+To block another player, first get the online friends and identity interfaces:
+
+```cpp
+#include "OnlineSubsystem.h"
+#include "OnlineSubsystemUtils.h"
+#include "Interfaces/OnlineFriendsInterface.h"
+#include "Interfaces/OnlineIdentityInterface.h"
+
+// ...
+
+IOnlineSubsystem *Subsystem = Online::GetSubsystem(this->GetWorld());
+IOnlineFriendsPtr Friends = Subsystem->GetFriendsInterface();
+IOnlineIdentityPtr Identity = Subsystem->GetIdentityInterface();
+```
+
+Then, call `BlockPlayer`:
+
+```cpp
+// You need to store the handle so you can deregister the event listener
+// in the callback.
+this->BlockPlayerCompleteHandle = Friends->AddOnBlockedPlayerCompleteDelegate_Handle(
+    0 /* LocalUserNum */,
+    FOnBlockedPlayerCompleteDelegate::CreateUObject(
+        this,
+        &UMyClass::OnBlockPlayerComplete));
+
+if (!Friends->BlockPlayer(
+        0 /* LocalUserNum */,
+        TargetUserId /* User ID to block */)
+{
+    // Call failed to start
+}
+
+// ...
+
+void UMyClass::OnBlockPlayerComplete(
+    int32 LocalUserNum,
+    bool bWasSuccessful,
+    const FUniqueNetId &UniqueID,
+    const FString &ListName,
+    const FString &ErrorStr)
+{
+    IOnlineSubsystem *Subsystem = Online::GetSubsystem(this->GetWorld());
+    IOnlineFriendsPtr Friends = Subsystem->GetFriendsInterface();
+
+    // NOTE: If you're blocking multiple players in parallel, you'll need to
+    // capture the original TargetUserId for the BlockPlayer call as a user parameter
+    // to this callback, and then compare the TargetUserId the event is for with the
+    // TargetUserId you called BlockPlayer for. You'll also need to store the delegate
+    // handle (DeleteFriendCompleteHandle) per local user and per target player
+    // you are blocking.
+
+    Friends->ClearOnBlockedPlayerCompleteDelegate_Handle(0, this->BlockPlayerCompleteHandle);
+
+    // Check bWasSuccessful; if it's true, the player was blocked.
+}
+```
+
+</TabItem>
+<TabItem value="blueprints">
+
+To block another player, use the "Block Player" blueprint node:
+
+<Blueprint height="380px" blueprint={`
+Begin Object Class=/Script/BlueprintGraph.K2Node_GetSubsystem Name="K2Node_GetSubsystem_0"
+   CustomClass=Class'"/Script/OnlineSubsystemBlueprints.OnlineFriendsSubsystem"'
+   NodePosX=-128
+   NodePosY=784
+   NodeGuid=B47B1EA9493AA8D8B72D63AEF2B702D0
+   CustomProperties Pin (PinId=4E41054B485EF1D008DA5B8E49759371,PinName="ReturnValue",Direction="EGPD_Output",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/OnlineSubsystemBlueprints.OnlineFriendsSubsystem"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_AsyncAction_3 79908CD3436A4602F7AB21B01B64F409,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_AsyncAction Name="K2Node_AsyncAction_3"
+   ProxyFactoryFunctionName="BlockPlayer"
+   ProxyFactoryClass=Class'"/Script/OnlineSubsystemBlueprints.OnlineFriendsSubsystemBlockPlayer"'
+   ProxyClass=Class'"/Script/OnlineSubsystemBlueprints.OnlineFriendsSubsystemBlockPlayer"'
+   NodePosX=144
+   NodePosY=768
+   NodeGuid=E0236E2B4033CF65E80D3B8173E5B6CC
+   CustomProperties Pin (PinId=69CA53614CBCA3F5102546A6C0388553,PinName="execute",PinToolTip="\\nExec",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=273253F1421E6C4C005628884D49832B,PinName="then",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=2B41C83C4F5192D7972E43B8C43E1FD0,PinName="OnCallFailed",PinFriendlyName="On Call Failed",PinToolTip="On Call Failed",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=5A1CD78843528E62C48FD68B8FAE1936,PinName="OnBlockedPlayerComplete",PinFriendlyName="On Blocked Player Complete",PinToolTip="On Blocked Player Complete",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=EFAAD3204DA754C6CFB7BE9181C3DA16,PinName="bWasSuccessful",PinToolTip="Was Successful",Direction="EGPD_Output",PinType.PinCategory="bool",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=4E21088D4BCDD7BCC9B674A826A9F3C9,PinName="UniqueId",PinToolTip="Unique Id",Direction="EGPD_Output",PinType.PinCategory="struct",PinType.PinSubCategory="",PinType.PinSubCategoryObject=ScriptStruct'"/Script/Engine.UniqueNetIdRepl"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=40CC69C64D227983A4E9F4AEFB58B4CA,PinName="ListName",PinToolTip="List Name",Direction="EGPD_Output",PinType.PinCategory="string",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=0C2EE0A94DDC32A9A93A3F8BEEC09C36,PinName="ErrorStr",PinToolTip="Error Str",Direction="EGPD_Output",PinType.PinCategory="string",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=79908CD3436A4602F7AB21B01B64F409,PinName="Subsystem",PinToolTip="Subsystem\\nOnline Friends Subsystem Object Reference",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/OnlineSubsystemBlueprints.OnlineFriendsSubsystem"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_GetSubsystem_0 4E41054B485EF1D008DA5B8E49759371,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=4E3DBD1248C60C02D0AE3FBD152673F3,PinName="LocalUserNum",PinToolTip="Local User Num\\nInteger",PinType.PinCategory="int",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,DefaultValue="0",AutogeneratedDefaultValue="0",PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=235B41D24C299D4D9B3A89B0CFB3476A,PinName="PlayerId",PinToolTip="Player Id\\nUnique Net Id Repl Structure",PinType.PinCategory="struct",PinType.PinSubCategory="",PinType.PinSubCategoryObject=ScriptStruct'"/Script/Engine.UniqueNetIdRepl"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+`} />
+</TabItem>
+</Tabs>
+
+## Unblocking a previously blocked player
+
+<Tabs lazy groupId="code-format" defaultValue="c++" values={[ { label: 'C++', value: 'c++' }, { label: 'Blueprints', value: 'blueprints' } ]}>
+<TabItem value="c++">
+
+To unblock a player, call `UnblockPlayer` with the same parameters you called `BlockPlayer`:
+
+```cpp
+// You need to store the handle so you can deregister the event listener
+// in the callback.
+this->UnblockPlayerCompleteHandle = Friends->AddOnUnblockedPlayerCompleteDelegate_Handle(
+    0 /* LocalUserNum */,
+    FOnUnblockedPlayerCompleteDelegate::CreateUObject(
+        this,
+        &UMyClass::OnUnblockPlayerComplete));
+
+if (!Friends->UnblockPlayer(
+        0 /* LocalUserNum */,
+        TargetUserId /* User ID to block */)
+{
+    // Call failed to start
+}
+
+// ...
+
+void UMyClass::OnUnblockPlayerComplete(
+    int32 LocalUserNum,
+    bool bWasSuccessful,
+    const FUniqueNetId &UniqueID,
+    const FString &ListName,
+    const FString &ErrorStr)
+{
+    IOnlineSubsystem *Subsystem = Online::GetSubsystem(this->GetWorld());
+    IOnlineFriendsPtr Friends = Subsystem->GetFriendsInterface();
+
+    // NOTE: If you're unblocking multiple players in parallel, you'll need to
+    // capture the original TargetUserId for the UnblockPlayer call as a user parameter
+    // to this callback, and then compare the TargetUserId the event is for with the
+    // TargetUserId you called UnblockPlayer for. You'll also need to store the delegate
+    // handle (DeleteFriendCompleteHandle) per local user and per target player
+    // you are unblocking.
+
+    Friends->ClearOnUnblockedPlayerCompleteDelegate_Handle(0, this->BlockPlayerCompleteHandle);
+
+    // Check bWasSuccessful; if it's true, the player was unblocked.
+}
+```
+
+</TabItem>
+<TabItem value="blueprints">
+
+To unblock another player, use the "Unblock Player" blueprint node:
+
+<Blueprint height="380px" blueprint={`
+Begin Object Class=/Script/BlueprintGraph.K2Node_GetSubsystem Name="K2Node_GetSubsystem_0"
+   CustomClass=Class'"/Script/OnlineSubsystemBlueprints.OnlineFriendsSubsystem"'
+   NodePosX=-128
+   NodePosY=851
+   NodeGuid=B47B1EA9493AA8D8B72D63AEF2B702D0
+   CustomProperties Pin (PinId=4E41054B485EF1D008DA5B8E49759371,PinName="ReturnValue",Direction="EGPD_Output",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/OnlineSubsystemBlueprints.OnlineFriendsSubsystem"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_AsyncAction_4 02DE6AFC4B8A49F929027AB9C42BB8B7,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_AsyncAction Name="K2Node_AsyncAction_4"
+   ProxyFactoryFunctionName="UnblockPlayer"
+   ProxyFactoryClass=Class'"/Script/OnlineSubsystemBlueprints.OnlineFriendsSubsystemUnblockPlayer"'
+   ProxyClass=Class'"/Script/OnlineSubsystemBlueprints.OnlineFriendsSubsystemUnblockPlayer"'
+   NodePosX=128
+   NodePosY=832
+   NodeGuid=21F30FB74D82799C8368CB8F861B5157
+   CustomProperties Pin (PinId=064FB46E47E81B98F0E4569A0665AB4B,PinName="execute",PinToolTip="\\nExec",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=429CD61A430BF4E77C83E1A94A1DB168,PinName="then",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=DF6FA0054E796A893DCCEBA2731B2863,PinName="OnCallFailed",PinFriendlyName="On Call Failed",PinToolTip="On Call Failed",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=85F0ED554EC99E802F8C22BE652A5147,PinName="OnUnblockedPlayerComplete",PinFriendlyName="On Unblocked Player Complete",PinToolTip="On Unblocked Player Complete",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=BFD65D99426D295021ED88950A977A64,PinName="bWasSuccessful",PinToolTip="Was Successful",Direction="EGPD_Output",PinType.PinCategory="bool",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=F4CDA4B94438DB2141DC30945A468445,PinName="UniqueId",PinToolTip="Unique Id",Direction="EGPD_Output",PinType.PinCategory="struct",PinType.PinSubCategory="",PinType.PinSubCategoryObject=ScriptStruct'"/Script/Engine.UniqueNetIdRepl"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=2FC6F3484593BA4159B2128A99E0CD0C,PinName="ListName",PinToolTip="List Name",Direction="EGPD_Output",PinType.PinCategory="string",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=43773EA34FC2A1A835BB90AE973E2DB8,PinName="ErrorStr",PinToolTip="Error Str",Direction="EGPD_Output",PinType.PinCategory="string",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=02DE6AFC4B8A49F929027AB9C42BB8B7,PinName="Subsystem",PinToolTip="Subsystem\\nOnline Friends Subsystem Object Reference",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/OnlineSubsystemBlueprints.OnlineFriendsSubsystem"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_GetSubsystem_0 4E41054B485EF1D008DA5B8E49759371,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=8873137C4F31F1AE07443CB456573B06,PinName="LocalUserNum",PinToolTip="Local User Num\\nInteger",PinType.PinCategory="int",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,DefaultValue="0",AutogeneratedDefaultValue="0",PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=BCB860934208D3FE1FE8D8BC3711BE6F,PinName="PlayerId",PinToolTip="Player Id\\nUnique Net Id Repl Structure",PinType.PinCategory="struct",PinType.PinSubCategory="",PinType.PinSubCategoryObject=ScriptStruct'"/Script/Engine.UniqueNetIdRepl"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+`} />
+</TabItem>
+</Tabs>

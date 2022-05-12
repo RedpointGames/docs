@@ -1,0 +1,69 @@
+---
+id: getlobbymetadatavalue
+title: Get Lobby Metadata Value
+description: The GetLobbyMetadataValue function of the Lobby subsystem.
+---
+
+import TypeRenderer from '@site/src/TypeRenderer';
+import FunctionRenderer from '@site/src/FunctionRenderer';
+
+This is a normal blueprint node.
+
+The C++ documentation for this function is available in [the Online Interfaces repository](https://src.redpoint.games/redpointgames/online-interfaces).
+
+## Example
+
+<FunctionRenderer subsystemName="Lobby" func={{"Identifier":"GetLobbyMetadataValue","Supported":false,"Async":false,"AsyncPins":[],"Pure":false,"Parameters":[{"Position":0,"Identifier":"UserId","Type":{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl","Out":false}},{"Position":1,"Identifier":"LobbyId","Type":{"Type":"Wrapped","Identifier":"ULobbyId*","Out":false}},{"Position":2,"Identifier":"MetadataKey","Type":{"Type":"Simple","Identifier":"FString","Out":false}},{"Position":3,"Identifier":"OutMetadataValue","Type":{"Type":"Wrapped","Identifier":"FVariantDataBP","Out":true}}],"ReturnType":{"Type":"Simple","Identifier":"bool"}}} />
+
+## Inputs
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Input Name</th>
+      <th>Input Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td>User Id</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl","Out":false}} /></td>
+    </tr>
+    <tr>
+      <td>Lobby Id</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"ULobbyId*","Out":false}} /></td>
+    </tr>
+    <tr>
+      <td>Metadata Key</td>
+      <td><TypeRenderer typeInfo={{"Type":"Simple","Identifier":"FString","Out":false}} /></td>
+    </tr>
+  </tbody>
+</table>
+
+
+## Outputs
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Output Name</th>
+      <th>Output Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td>Return  Value</td>
+      <td><TypeRenderer typeInfo={{"Type":"Simple","Identifier":"bool"}} /></td>
+    </tr>
+    <tr>
+      <td>Metadata Value</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"FVariantDataBP","Out":true}} /></td>
+    </tr>
+  </tbody>
+</table>
+
+

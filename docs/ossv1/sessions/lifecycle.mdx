@@ -1,0 +1,46 @@
+---
+title: Lifecycle of game sessions
+description: Understand how game sessions change state over the lifetime of a multiplayer game.
+---
+
+import Mermaid from '@site/src/Mermaid';
+
+It is important to understand the lifecycle of sessions, so you know when to use different session related calls. Note that the recommended flow has you start a listen or dedicated server *before* creating a session.
+
+## Session lifecycle on host
+
+The diagram below shows the lifecycle of a session from the host's perspective.
+
+<Mermaid chart={`
+graph TD
+    Begin --> |"Start a listen or dedicated server"|GameListening
+    GameListening[Game is now listening on a port] --> |"Call CreateSession"|SessionCreated
+    SessionCreated[Game is now hosting a session] --> |"A player connects to the<br/>server e.g. OnPostLogin"|PlayerConnects
+    PlayerConnects[Game has a new player] --> |"Call RegisterPlayer"|PlayerRegistered
+    PlayerRegistered[Player has been registered] --> WaitingForPlayers
+    SessionCreated --> |"A player disconnects from the<br/>server e.g. OnLogout"|PlayerDisconnects
+    PlayerDisconnects[Game has lost a player] --> |"Call UnregisterPlayer"|PlayerUnregistered
+    PlayerUnregistered[Player has been unregistered] --> WaitingForPlayers
+    WaitingForPlayers[Wait for players or start the session] --> |"Call StartSession"|SessionStarted
+    WaitingForPlayers[Wait for players or start the session] --> |"Wait for more players"|SessionCreated
+    SessionStarted[Session is now started, and no longer joinable unless JoinInProgress was set] --> |"Call EndSession"|SessionCreated
+    SessionStarted --> |"Call DestroySession"|SessionDestroyed
+    SessionDestroyed[Game no longer has a session] --> |"Stop the listen or dedicated server"|GameStandalone
+    GameStandalone[Game has returned to e.g. the main menu]
+`} 
+/>
+
+## Session lifecycle on client
+
+The diagram below shows the lifecycle of a session from the client's perspective.
+
+<Mermaid chart={`
+graph TD
+    Begin --> |"Call FindSessions"|SearchResults
+    SearchResults[At least one session found in search results] --> |"Call JoinSession"|SessionJoined
+    SessionJoined[Game has joined session, but not server yet] --> |"Use GetResolvedConnectString and Browse to the server URL"|GameJoined
+    GameJoined[Game is now connected to server] --> |"Browse to the main menu map or be kicked by the server"|GameLeft
+    GameLeft[Game is no longer connected to server] --> |"Call DestroySession"|SessionDestroyed
+    SessionDestroyed[Client can now join another session]
+`} 
+/>

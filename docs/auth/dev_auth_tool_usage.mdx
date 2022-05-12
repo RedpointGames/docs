@@ -1,0 +1,86 @@
+---
+title: Using the Developer Authentication Tool
+sidebar_label: Authenticating while developing your game
+description: How to use the Developer Authentication Tool with the EOS Online Framework plugin.
+---
+
+import useBaseUrl from "@docusaurus/useBaseUrl";
+
+The EOS SDK provides a Developer Authentication Tool, which you can run on your local machine to make the authentication process automatic while inside the editor. This reduces the amount of time it takes for you to authenticate when playing in the editor, and allows you to have different play-in-editor instances logged into different Epic accounts.
+
+The plugin will automatically detect if the Developer Authentication Tool is running on your machine, and use it for authentication instead of the normal login flow.
+
+:::caution
+You must associate your EOS client with an Epic Games application in the Developer Portal in order for developer authentication to work. If you haven't done this, you'll see a `Client is not associated with an application` warning in the Output Log window and authentication will fail.
+
+In addition, the first time you sign a user into your game using the Developer Authentication Tool, you'll get a prompt in your browser to approve scope access (for friends list and presence). This is normal and only happens once.
+
+For more information, see [Prerequisites for Epic Games](/auth/xplat/epic.mdx#prerequisites).
+:::
+
+## Authorizing your accounts for the first time
+
+Before you can use an Epic Games account in the Developer Authentication Tool, it must meet the following requirements:
+
+- If your application has not yet been approved via Brand Review, then you must add the accounts you want to test with to your organisation in the Developer Portal.
+- If your application has been approved via Brand Review, any Epic Games account can be used.
+
+## Launch the Developer Authentication Tool
+
+You can launch the Developer Authentication Tool from the EOS dropdown in the editor:
+
+<p>
+  <img
+    alt="The new authentication options in the EOS dropdown"
+    src={useBaseUrl("img/launch_dev_tool.png")}
+  />
+</p>
+
+Click on "Start Developer Authentication Tool". If it is already running on your machine, this option will be grayed out.
+
+### Set the default port
+
+When prompted, set the port to `6300`. This is the default port the plugin is configured to use.
+
+### Adding accounts to the Developer Authentication Tool
+
+When you add credentials to the tool, you'll be prompted to set a credential name. It's important that you set the credential name to the correct value so that the plugin can select the right credential when the game starts.
+
+Each credential **must be unique**. Do not use the same Epic Games account for more than one context.
+
+For game instances that are launched with play-in-editor, the credential name matches the play-in-editor context name. Each play-in-editor instance (depending on how many you tell Unreal to start), gets a name in the following format:
+
+- `Context_1`
+- `Context_2`
+- `Context_3`
+- and so on, so forth up to the number of instances you choose to launch
+
+If the plugin fails to find a credential with the appropriate `Context_N` name, it will fallback to using the default credential (`Default`, or the `DevAuthToolCredentialName` setting if you've set it).
+
+## Login before play-in-editor
+
+When you are testing multiplayer gameplay maps, you will often need the player in each play-in-editor instance to already be logged into an Epic Games account. This will ensure that online subsystem calls will succeed, and that the player's nickname etc. is appropriately visible in game.
+
+To automatically log in each play-in-editor instance before the map starts, turn on "Login before play-in-editor":
+
+<p>
+  <img
+    alt="The new authentication options in the EOS dropdown"
+    src={useBaseUrl("img/launch_dev_tool.png")}
+  />
+</p>
+
+## Advanced configuration
+
+There are some advanced settings for the Developer Authentication Tool you can configure through Project Settings.
+
+### Changing the default Developer Authentication Tool address
+
+By default the plugin connects to the Developer Authentication Tool on `localhost:6300`. However, if you want to run a shared instance of the Developer Authentication Tool, or you want to connect to it from mobile or console devices, you can override the connection URL in Project Settings or in `DefaultEngine.ini` like so:
+
+```
+[EpicOnlineServices]
+DevAuthToolAddress=10.1.1.2:6311
+```
+
+By changing the address to the address of another computer, you can even run the Developer Authentication Tool once for your whole team, and have each developer connect to the same running instance of the tool.

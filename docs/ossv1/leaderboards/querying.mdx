@@ -1,0 +1,451 @@
+---
+title: Retrieving leaderboards
+description: Fetch global and friend leaderboards.
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import Blueprint from '@site/src/Blueprint';
+
+You can fetch global and user leaderboards using the leaderboards interface. Please note that Epic Online Services does not support globally ranking arbitrary lists of users (such as friends).
+
+:::info
+It can take up to 24 hours for a global leaderboard to start ingesting stats after you create it in the Epic Online Services developer portal. You won't see leaderboard results for global leaderboards until they've started ingesting stats.
+:::
+
+## Querying global leaderboards (by ranked range)
+
+<Tabs lazy groupId="code-format" defaultValue="c++" values={[ { label: 'C++', value: 'c++' }, { label: 'Blueprints', value: 'blueprints' } ]}>
+<TabItem value="c++">
+
+To query a range of entries from a global leaderboard, get the leaderboard interface and create the `FOnlineLeaderboardRead` object:
+
+```cpp
+#include "OnlineSubsystem.h"
+#include "OnlineSubsystemUtils.h"
+#include "Interfaces/OnlineLeaderboardInterface.h"
+
+// ...
+
+IOnlineSubsystem *Subsystem = Online::GetSubsystem(WorldContextObject->GetWorld());
+IOnlineIdentityPtr Identity = Subsystem->GetIdentityInterface();
+IOnlineLeaderboardsPtr LeaderboardsInterface = Subsystem->GetLeaderboardsInterface();
+
+// Create the read object, which will contain the results when the operation completes.
+// The LeaderboardId should match the leaderboard name in the developer portal.
+FOnlineLeaderboardReadRef ReadRef = MakeShared<FOnlineLeaderboardRead, ESPMode::ThreadSafe>();
+ReadRef->LeaderboardName = FName(LeaderboardId);
+```
+
+Register the event handler to handle the result. It's recommended that you pass the read object to the handler when registering it, as the callback parameters do not include it. `QueryLeaderboardsDelegateHandle` is declared as an `FDelegateHandle`.
+
+```cpp
+this->QueryLeaderboardsDelegateHandle = LeaderboardsInterface->AddOnLeaderboardReadCompleteDelegate_Handle(
+    FOnLeaderboardReadComplete::FDelegate::CreateUObject(
+        this,
+        &UMyClass::HandleLeaderboardResult,
+        ReadRef));
+```
+
+Then call `ReadLeaderboardsAroundRank`.
+
+:::caution
+You can't have multiple `ReadLeaderboardsAroundRank` operations running at the same time. If you try to call `ReadLeaderboardsAroundRank` while there is still another call running, you'll receive an error.
+
+This is a limitation of the EOS SDK, which doesn't support concurrent global leaderboard queries.
+:::
+
+```cpp
+if (!LeaderboardsInterface->ReadLeaderboardsAroundRank(
+    0,      // The rank to target.
+    100,    // The inclusive range around the rank.
+    ReadRef))
+{
+    // The call failed.
+
+    // Remove the event handler.
+    LeaderboardsInterface->ClearOnLeaderboardReadCompleteDelegate_Handle(this->QueryLeaderboardsDelegateHandle);
+    this->QueryLeaderboardsDelegateHandle.Reset();
+}
+```
+
+When your callback fires, you'll want to handle any errors (check `bWasSuccessful`), and then deregister the event handler:
+
+```cpp
+void UMyClass::HandleLeaderboardResult(
+    const bool bWasSuccessful,
+    FOnlineLeaderboardReadRef LeaderboardRef)
+{
+    // Remove the event handler.
+    IOnlineSubsystem *Subsystem = Online::GetSubsystem(WorldContextObject->GetWorld());
+    IOnlineLeaderboardsPtr LeaderboardsInterface = Subsystem->GetLeaderboardsInterface();
+    LeaderboardsInterface->ClearOnLeaderboardReadCompleteDelegate_Handle(this->QueryLeaderboardsDelegateHandle);
+    this->QueryLeaderboardsDelegateHandle.Reset();
+
+    if (!bWasSuccessful)
+    {
+        // Operation was not successful.
+        return;
+    }
+
+    for (auto Row : LeaderboardRef->Rows)
+    {
+        // Row.PlayerId         -> The player ID.
+        // Row.PlayerNickname   -> The player's nickname.
+        // Row.Rank             -> The rank in the global leaderboards.
+
+        // Since this is a global leaderboard, the stat that the leaderboard
+        // is tracking is available in "Score":
+        int32 Score;
+        Row.Columns[TEXT("Score")].GetValue(Score);
+    }
+}
+```
+
+
+
+</TabItem>
+<TabItem value="blueprints">
+
+To query a range of entries from a global leaderboard, construct a "Online Leaderboard Read" object and save it as a variable, then call "Read LeaderBoards Around Rank" using the previously saved variable:
+
+:::caution
+You can't have multiple "Read Leaderboards Around Rank" operations running at the same time. If you try to call "Read Leaderboards Around Rank" while there is still another call running, you'll receive an error.
+
+This is a limitation of the EOS SDK, which doesn't support concurrent global leaderboard queries.
+:::
+<Blueprint height="450px" blueprint={`
+Begin Object Class=/Script/BlueprintGraph.K2Node_GenericCreateObject Name="K2Node_GenericCreateObject_1"
+   NodePosX=704
+   NodePosY=256
+   NodeGuid=5E5ACEC64E0A4F3B3D1E9EBF5C40676B
+   CustomProperties Pin (PinId=BAD237FA4207B1DA97CC91A79F76E665,PinName="execute",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_Event_0 205C07A64334C2914308F6B2FA15D69C,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=795C52AB45BA80CA47D04295AA0B641D,PinName="then",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_CallFunction_0 2CB484544F47CFCF7C5027B53BCC9224,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=7A298FE94CD522A0652049B3F0639F35,PinName="Class",PinToolTip="Object Class Reference Class\\nThe object class you want to construct",PinType.PinCategory="class",PinType.PinSubCategory="",PinType.PinSubCategoryObject="/Script/CoreUObject.Class'/Script/CoreUObject.Object'",PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,DefaultObject="/Script/OnlineSubsystemBlueprints.OnlineLeaderboardRead",PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=72B18678429734AE7B1059850B957323,PinName="ReturnValue",PinToolTip="Online Leaderboard Read Object Reference Return Value\\nThe constructed object",Direction="EGPD_Output",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject="/Script/CoreUObject.Class'/Script/OnlineSubsystemBlueprints.OnlineLeaderboardRead'",PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_CallFunction_0 CD7607E94686F68C2D5BF68C7EC6170B,K2Node_AsyncAction_0 77600481431A3C42D943D9B22187EA0F,K2Node_Knot_0 9B90D531466296755A4AA88DE7CFB114,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=88A6F38B4143FC8D03826DB17F8970A1,PinName="self",PinFriendlyName="Outer",PinToolTip="Object Reference Outer\\nOwner of the constructed object",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject="/Script/CoreUObject.Class'/Script/CoreUObject.Object'",PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="K2Node_CallFunction_0"
+   FunctionReference=(MemberParent="/Script/CoreUObject.Class'/Script/OnlineSubsystemBlueprints.OnlineLeaderboardRead'",MemberName="SetLeaderboardName")
+   NodePosX=1056
+   NodePosY=240
+   NodeGuid=086DF0DD4E82CA9FFF9A6DB71FAD7776
+   CustomProperties Pin (PinId=2CB484544F47CFCF7C5027B53BCC9224,PinName="execute",PinToolTip="\\nExec",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_GenericCreateObject_1 795C52AB45BA80CA47D04295AA0B641D,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=A35002434EE0D388F3520F937C8D940E,PinName="then",PinToolTip="\\nExec",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_AsyncAction_0 3DD3A41E4104536EB13AC6884A2210AB,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=CD7607E94686F68C2D5BF68C7EC6170B,PinName="self",PinFriendlyName=NSLOCTEXT("K2Node", "Target", "Target"),PinToolTip="Target\\nOnline Leaderboard Read Object Reference",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject="/Script/CoreUObject.Class'/Script/OnlineSubsystemBlueprints.OnlineLeaderboardRead'",PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_GenericCreateObject_1 72B18678429734AE7B1059850B957323,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=2B601C9A4CCD8CA294AFDBBA6F67BA9E,PinName="LeaderboardName",PinToolTip="Leaderboard Name\\nName",PinType.PinCategory="name",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,DefaultValue="TestScore",AutogeneratedDefaultValue="None",PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_AsyncAction Name="K2Node_AsyncAction_0"
+   ProxyFactoryFunctionName="ReadLeaderboardsAroundRank"
+   ProxyFactoryClass="/Script/CoreUObject.Class'/Script/OnlineSubsystemBlueprints.OnlineLeaderboardsSubsystemReadLeaderboardsAroundRank'"
+   ProxyClass="/Script/CoreUObject.Class'/Script/OnlineSubsystemBlueprints.OnlineLeaderboardsSubsystemReadLeaderboardsAroundRank'"
+   NodePosX=1392
+   NodePosY=256
+   NodeGuid=84BF95B445312568BEFE468BF6F75804
+   CustomProperties Pin (PinId=3DD3A41E4104536EB13AC6884A2210AB,PinName="execute",PinToolTip="\\nExec",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_CallFunction_0 A35002434EE0D388F3520F937C8D940E,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=AE1AC1284B29647DAF53FDA0D08953E8,PinName="then",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=DAC63F0A4032DF4C06F9CF9DB896EF8D,PinName="OnCallFailed",PinFriendlyName="On Call Failed",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_CallFunction_15 6DFCE66A48C4A11EBF98A5A1C341DC7D,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=97CF5923491AB42B987F6694A584D27F,PinName="OnLeaderboardReadComplete",PinFriendlyName="On Leaderboard Read Complete",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_IfThenElse_1 310C441247A8B220A3C639A5C600F4A9,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=2FE2A9864B283399E7994C8209C5711E,PinName="bWasSuccessful",PinToolTip="Was Successful\\nBoolean",Direction="EGPD_Output",PinType.PinCategory="bool",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_IfThenElse_1 AE1681A84DE6A0B435E116B03CE7DC24,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=9497B79C4204C527B8585DADF7819D13,PinName="Subsystem",PinToolTip="Subsystem\\nOnline Leaderboards Subsystem Object Reference",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/OnlineSubsystemBlueprints.OnlineLeaderboardsSubsystem"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_GetSubsystem_0 57D8DA5C4689683C47EBF69180FFCF0B,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=791177EC4BCAC6F4141E989289F5A30A,PinName="Rank",PinToolTip="Rank\\nInteger",PinType.PinCategory="int",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,DefaultValue="0",AutogeneratedDefaultValue="0",PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=90AE202241E8F2785DB6DC9B87E19882,PinName="Range",PinToolTip="Range\\nInteger64",PinType.PinCategory="int64",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,DefaultValue="100",AutogeneratedDefaultValue="0",PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=77600481431A3C42D943D9B22187EA0F,PinName="ReadObject",PinToolTip="Read Object\\nOnline Leaderboard Read Object Reference",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject="/Script/CoreUObject.Class'/Script/OnlineSubsystemBlueprints.OnlineLeaderboardRead'",PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_GenericCreateObject_1 72B18678429734AE7B1059850B957323,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_GetSubsystem Name="K2Node_GetSubsystem_0"
+   CustomClass=Class'"/Script/OnlineSubsystemBlueprints.OnlineLeaderboardsSubsystem"'
+   NodePosX=1072
+   NodePosY=96
+   NodeGuid=F8C7ACF54442D59FD6FAE7B9ED7E944A
+   CustomProperties Pin (PinId=57D8DA5C4689683C47EBF69180FFCF0B,PinName="ReturnValue",Direction="EGPD_Output",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/OnlineSubsystemBlueprints.OnlineLeaderboardsSubsystem"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_AsyncAction_0 9497B79C4204C527B8585DADF7819D13,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+`} />
+
+After reading the leaderboard, you can get the rows of your saved "Leaderboard Search" variable and iterate through them, using the "As Int" pin from the "Map Find" blueprint node to retrieve the score value:
+
+<Blueprint height="450px" blueprint={`
+Begin Object Class=/Script/BlueprintGraph.K2Node_VariableGet Name="K2Node_VariableGet_0"
+   VariableReference=(MemberName="LeaderboardSearch",MemberGuid=E93DEDDB4AADBA8D7D70E590832F10B0,bSelfContext=True)
+   NodePosX=1056
+   NodePosY=928
+   NodeGuid=ED3A4EFE49027C339CE5B69E6191A9E4
+   CustomProperties Pin (PinId=37C2AE1C4BA89E120860029C608F6BA2,PinName="LeaderboardSearch",Direction="EGPD_Output",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/OnlineSubsystemBlueprints.OnlineLeaderboardRead"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_CallFunction_0 BD7FDA5842BA5632111F8585DC735F6B,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=7F261E4E400EB9FD4EFB0AAFE53E5C02,PinName="self",PinFriendlyName=NSLOCTEXT("K2Node", "Target", "Target"),PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=BlueprintGeneratedClass'"/Game/ExampleOSS/Common/Multiplayer/ExamplePlayerController.ExamplePlayerController_C"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=True,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="K2Node_CallFunction_0"
+   bIsPureFunc=True
+   bIsConstFunc=True
+   FunctionReference=(MemberParent=Class'"/Script/OnlineSubsystemBlueprints.OnlineLeaderboardRead"',MemberName="GetRows")
+   NodePosX=1072
+   NodePosY=864
+   NodeGuid=0D634601451722FD1E3C9F9144219D92
+   CustomProperties Pin (PinId=BD7FDA5842BA5632111F8585DC735F6B,PinName="self",PinFriendlyName=NSLOCTEXT("K2Node", "Target", "Target"),PinToolTip="Target\\nOnline Leaderboard Read Object Reference",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/OnlineSubsystemBlueprints.OnlineLeaderboardRead"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_VariableGet_0 37C2AE1C4BA89E120860029C608F6BA2,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=27EF05B4475195C32CED0CBC08BD06CD,PinName="ReturnValue",PinToolTip="Return Value\\nArray of Online Stats Row BP Structures\\n\\nGet Rows",Direction="EGPD_Output",PinType.PinCategory="struct",PinType.PinSubCategory="",PinType.PinSubCategoryObject=ScriptStruct'"/Script/OnlineSubsystemBlueprints.OnlineStatsRowBP"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=Array,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_MacroInstance_2 96B4CA4C4CF2AC0E933FDDBAA03FDD18,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_BreakStruct Name="K2Node_BreakStruct_0"
+   bMadeAfterOverridePinRemoval=True
+   ShowPinForProperties(0)=(PropertyName="PlayerNickname",PropertyFriendlyName="Player Nickname",PropertyTooltip=NSLOCTEXT("", "95180CE14BBE7676A14CCF9B232F4088", "Player Nickname"),CategoryName="Online|Leaderboard",bShowPin=True,bCanToggleVisibility=True)
+   ShowPinForProperties(1)=(PropertyName="PlayerId",PropertyFriendlyName="Player Id",PropertyTooltip=NSLOCTEXT("", "ECF9B59B4BAEB8B2F6CA729392F08896", "Player Id"),CategoryName="Online|Leaderboard",bShowPin=True,bCanToggleVisibility=True)
+   ShowPinForProperties(2)=(PropertyName="Rank",PropertyFriendlyName="Rank",PropertyTooltip=NSLOCTEXT("", "21ECA1C242419372B752C8AF6FA2FECC", "Rank"),CategoryName="Online|Leaderboard",bShowPin=True,bCanToggleVisibility=True)
+   ShowPinForProperties(3)=(PropertyName="Columns",PropertyFriendlyName="Columns",PropertyTooltip=NSLOCTEXT("", "4337590C479A0045AF4943A2290DCA8E", "Columns"),CategoryName="Online|Leaderboard",bShowPin=True,bCanToggleVisibility=True)
+   StructType=ScriptStruct'"/Script/OnlineSubsystemBlueprints.OnlineStatsRowBP"'
+   NodePosX=1456
+   NodePosY=864
+   NodeGuid=DDC30438468E53E6DA3BFA85BC83B48F
+   CustomProperties Pin (PinId=4D07DE5A43C0E796A425238F5F11E019,PinName="OnlineStatsRowBP",PinType.PinCategory="struct",PinType.PinSubCategory="",PinType.PinSubCategoryObject=ScriptStruct'"/Script/OnlineSubsystemBlueprints.OnlineStatsRowBP"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=True,PinType.bIsConst=True,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_MacroInstance_2 130D892D4F7A02CBBB6F969178C389F6,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=E9C7437849D524D619C598B55EAC8DF3,PinName="PlayerNickname",PinFriendlyName=NSLOCTEXT("", "EEE10F194EE702AF8C36788F56D49C28", "Player Nickname"),PinToolTip="Player Nickname\\nString\\n\\nPlayer Nickname",Direction="EGPD_Output",PinType.PinCategory="string",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=725B3CDA46A4EF1B999969A48A04148E,PinName="PlayerId",PinFriendlyName=NSLOCTEXT("", "020BE3084A90FD70E59609B96E7A4911", "Player Id"),PinToolTip="Player Id\\nUnique Net Id Repl Structure\\n\\nPlayer Id",Direction="EGPD_Output",PinType.PinCategory="struct",PinType.PinSubCategory="",PinType.PinSubCategoryObject=ScriptStruct'"/Script/Engine.UniqueNetIdRepl"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=DA911BD14ED04F8B3D30FB94899EFDAF,PinName="Rank",PinFriendlyName=NSLOCTEXT("", "EEEEC7124BECDA77B5B30A92698769F4", "Rank"),PinToolTip="Rank\\nInteger\\n\\nRank",Direction="EGPD_Output",PinType.PinCategory="int",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=3A467D5C4F1F8018B5DBFAB69E88DC1C,PinName="Columns",PinFriendlyName=NSLOCTEXT("", "92ACA9C14F834C78D28BD49597ACFEAB", "Columns"),PinToolTip="Columns\\nMap of Names to Variant Data BP Structures\\n\\nColumns",Direction="EGPD_Output",PinType.PinCategory="name",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(TerminalCategory="struct",TerminalSubCategoryObject=ScriptStruct'"/Script/OnlineSubsystemBlueprints.VariantDataBP"'),PinType.ContainerType=Map,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_CallFunction_5 57ADF2A54B0D13D6A7065690EFBB227F,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="K2Node_CallFunction_5"
+   bIsPureFunc=True
+   FunctionReference=(MemberParent=Class'"/Script/Engine.BlueprintMapLibrary"',MemberName="Map_Find")
+   NodePosX=1744
+   NodePosY=928
+   NodeGuid=423FBFCF4ED5565C3D5454886403D034
+   CustomProperties Pin (PinId=4438B4534B4F89B7F08DD2990DCAEDD7,PinName="self",PinFriendlyName=NSLOCTEXT("K2Node", "Target", "Target"),PinToolTip="Target\\nBlueprint Map Library Object Reference",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/Engine.BlueprintMapLibrary"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,DefaultObject="/Script/Engine.Default__BlueprintMapLibrary",PersistentGuid=00000000000000000000000000000000,bHidden=True,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=57ADF2A54B0D13D6A7065690EFBB227F,PinName="TargetMap",PinToolTip="Target Map\\nMap of Names to Variant Data BP Structures\\n\\nThe map to perform the lookup on",PinType.PinCategory="name",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(TerminalCategory="struct",TerminalSubCategoryObject=ScriptStruct'"/Script/OnlineSubsystemBlueprints.VariantDataBP"'),PinType.ContainerType=Map,PinType.bIsReference=True,PinType.bIsConst=True,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_BreakStruct_0 3A467D5C4F1F8018B5DBFAB69E88DC1C,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=True,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=3070248943255EFF957367BDF8511D52,PinName="Key",PinToolTip="Key\\nName (by ref)\\n\\nThe key that will be used to look the value up",PinType.PinCategory="name",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=True,PinType.bIsConst=True,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,DefaultValue="Score",PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=9D485932424387A90CB1EAA967928DCC,PinName="Value",PinToolTip="Value\\nVariant Data BP Structure\\n\\nThe value associated with the key, default constructed if key was not found",Direction="EGPD_Output",PinType.PinCategory="struct",PinType.PinSubCategory="",PinType.PinSubCategoryObject=ScriptStruct'"/Script/OnlineSubsystemBlueprints.VariantDataBP"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,SubPins=(K2Node_CallFunction_5 CD503B384C577A7C715B1DB617038DD4,K2Node_CallFunction_5 FB44AE4149D70E67778ACDA9234266C2,K2Node_CallFunction_5 09974BAC4BE10E304CD280A70C65D3A8,K2Node_CallFunction_5 2B8E1EAD425BC1616916818EBEA1D992,K2Node_CallFunction_5 DC271D91464945165BC00184A1AA9460,K2Node_CallFunction_5 8475B96E430447EC27655382FCE56D14,),PersistentGuid=00000000000000000000000000000000,bHidden=True,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=CD503B384C577A7C715B1DB617038DD4,PinName="Value_Type",PinFriendlyName=NSLOCTEXT("", "26EB76ED4C64682C551C4DB8A0CC94AD", "Type"),PinToolTip="Type\\nEOnlineKeyValuePairDataType_ Enum",Direction="EGPD_Output",PinType.PinCategory="byte",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Enum'"/Script/OnlineSubsystemBlueprints.EOnlineKeyValuePairDataType_"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,ParentPin=K2Node_CallFunction_5 9D485932424387A90CB1EAA967928DCC,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=FB44AE4149D70E67778ACDA9234266C2,PinName="Value_AsBool",PinFriendlyName=NSLOCTEXT("", "D6078F38419E5F5201B9E8B2634761BA", "As Bool"),PinToolTip="As Bool\\nBoolean",Direction="EGPD_Output",PinType.PinCategory="bool",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,ParentPin=K2Node_CallFunction_5 9D485932424387A90CB1EAA967928DCC,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=09974BAC4BE10E304CD280A70C65D3A8,PinName="Value_AsInt",PinFriendlyName=NSLOCTEXT("", "5DE1E1224DDAA512945970AFFA7EFF3E", "As Int"),PinToolTip="As Int\\nInteger",Direction="EGPD_Output",PinType.PinCategory="int",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,ParentPin=K2Node_CallFunction_5 9D485932424387A90CB1EAA967928DCC,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=2B8E1EAD425BC1616916818EBEA1D992,PinName="Value_AsFloat",PinFriendlyName=NSLOCTEXT("", "CB05308C440FD95396E67487C2374721", "As Float"),PinToolTip="As Float\\nFloat",Direction="EGPD_Output",PinType.PinCategory="float",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,ParentPin=K2Node_CallFunction_5 9D485932424387A90CB1EAA967928DCC,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=DC271D91464945165BC00184A1AA9460,PinName="Value_AsInt64",PinFriendlyName=NSLOCTEXT("", "E2CB995C48E5AC711464C5848CD7A5AA", "As Int 64"),PinToolTip="As Int 64\\nInteger64",Direction="EGPD_Output",PinType.PinCategory="int64",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,ParentPin=K2Node_CallFunction_5 9D485932424387A90CB1EAA967928DCC,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=8475B96E430447EC27655382FCE56D14,PinName="Value_AsString",PinFriendlyName=NSLOCTEXT("", "93F14A11465B8F6E1395C1970FE0D20A", "As String"),PinToolTip="As String\\nString",Direction="EGPD_Output",PinType.PinCategory="string",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,ParentPin=K2Node_CallFunction_5 9D485932424387A90CB1EAA967928DCC,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=4E2C809F4712C3A330F595A033430B5E,PinName="ReturnValue",PinToolTip="Return Value\\nBoolean\\n\\nTrue if an item was found (False indicates nothing in the map uses the provided key)",Direction="EGPD_Output",PinType.PinCategory="bool",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,DefaultValue="false",AutogeneratedDefaultValue="false",PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_MacroInstance Name="K2Node_MacroInstance_2"
+   MacroGraphReference=(MacroGraph=EdGraph'"/Engine/EditorBlueprintResources/StandardMacros.StandardMacros:ForEachLoop"',GraphBlueprint=Blueprint'"/Engine/EditorBlueprintResources/StandardMacros.StandardMacros"',GraphGuid=99DBFD5540A796041F72A5A9DA655026)
+   ResolvedWildcardType=(PinCategory="struct",PinSubCategoryObject=ScriptStruct'"/Script/OnlineSubsystemBlueprints.OnlineStatsRowBP"',ContainerType=Array)
+   NodePosX=1264
+   NodePosY=836
+   NodeGuid=1676918449BF8363CE22C2B720B17620
+   CustomProperties Pin (PinId=E908E2864A490189DF75149E05437463,PinName="Exec",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=96B4CA4C4CF2AC0E933FDDBAA03FDD18,PinName="Array",PinType.PinCategory="struct",PinType.PinSubCategory="",PinType.PinSubCategoryObject=ScriptStruct'"/Script/OnlineSubsystemBlueprints.OnlineStatsRowBP"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=Array,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_CallFunction_0 27EF05B4475195C32CED0CBC08BD06CD,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=92397F4E42CC7710C9C0C7B2D3FE8FE5,PinName="LoopBody",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=130D892D4F7A02CBBB6F969178C389F6,PinName="Array Element",Direction="EGPD_Output",PinType.PinCategory="struct",PinType.PinSubCategory="",PinType.PinSubCategoryObject=ScriptStruct'"/Script/OnlineSubsystemBlueprints.OnlineStatsRowBP"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_BreakStruct_0 4D07DE5A43C0E796A425238F5F11E019,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=A94010D7484C409EBE7949B45DE44992,PinName="Array Index",Direction="EGPD_Output",PinType.PinCategory="int",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=8149CFBB47CE6332D21727BF51C4546B,PinName="Completed",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+`} />
+</TabItem>
+</Tabs>
+
+## Querying friend leaderboards
+
+<Tabs lazy groupId="code-format" defaultValue="c++" values={[ { label: 'C++', value: 'c++' }, { label: 'Blueprints', value: 'blueprints' } ]}>
+<TabItem value="c++">
+
+Similar to querying global leaderboards, get the leaderboards interface and then create the `FOnlineLeaderboardRead`. However, when querying user leaderboards, you need to specify stat names instead of a leaderboard ID.
+
+```cpp
+FOnlineLeaderboardReadRef ReadRef = MakeShared<FOnlineLeaderboardRead, ESPMode::ThreadSafe>();
+ReadRef->ColumnMetadata.Add(FColumnMetaData(FName(TEXT("MyStatName")), EOnlineKeyValuePairDataType::Int32));
+ReadRef->SortedColumn = FName(TEXT("TestScore"));
+```
+
+Then call `ReadLeaderboardsForFriends`:
+
+```cpp
+if (!LeaderboardsInterface->ReadLeaderboardsForFriends(0 /* LocalUserNum */, ReadRef))
+{
+    // Call failed; remove the event handler.
+}
+```
+
+When you iterate through the rows in your callback, use the stat name for the column instead of "Score":
+
+```cpp
+for (auto Row : LeaderboardRef->Rows)
+{
+    // Row.PlayerId         -> The player ID.
+    // Row.PlayerNickname   -> The player's nickname.
+    // Row.Rank             -> The rank relative to other friends.
+
+    // Since this is a user leaderboard, use the stat name as the column name:
+    int32 Score;
+    Row.Columns[TEXT("MyStatName")].GetValue(Score);
+}
+```
+
+</TabItem>
+<TabItem value="blueprints">
+
+Similar to querying global leaderboards, construct a "Online Leaderboard Read" object, call "Set Columns" for the stat you want to rank friends on, and then call "Read Leaderboards For Friends" using the previously saved variable:
+
+<Blueprint height="400px" blueprint={`
+Begin Object Class=/Script/BlueprintGraph.K2Node_MakeArray Name="K2Node_MakeArray_1" ExportPath="/Script/BlueprintGraph.K2Node_MakeArray'/Game/BlueprintOnlineAPI.BlueprintOnlineAPI:Leaderboards.K2Node_MakeArray_1'"
+   NodePosX=1088
+   NodePosY=1392
+   NodeGuid=8531CBA94ABC963D33F727B4A872670D
+   CustomProperties Pin (PinId=1B075BD541F15D46428E8FB62D24C1FC,PinName="Array",Direction="EGPD_Output",PinType.PinCategory="struct",PinType.PinSubCategory="",PinType.PinSubCategoryObject="/Script/CoreUObject.ScriptStruct'/Script/OnlineSubsystemBlueprints.ColumnMetaDataBP'",PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=Array,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_CallFunction_8 F1DD481B4FFB501F259F609EC0922A6F,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=1E6BE31B460303333C9D38B5AEF694A5,PinName="[0]",PinType.PinCategory="struct",PinType.PinSubCategory="",PinType.PinSubCategoryObject="/Script/CoreUObject.ScriptStruct'/Script/OnlineSubsystemBlueprints.ColumnMetaDataBP'",PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_MakeStruct_1 B7FAC90C49D51B0A1C5197A5BD354A9D,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_MakeStruct Name="K2Node_MakeStruct_1" ExportPath="/Script/BlueprintGraph.K2Node_MakeStruct'/Game/BlueprintOnlineAPI.BlueprintOnlineAPI:Leaderboards.K2Node_MakeStruct_1'"
+   bMadeAfterOverridePinRemoval=True
+   ShowPinForProperties(0)=(PropertyName="ColumnName",PropertyFriendlyName="Column Name",CategoryName="Online|Leaderboard",bShowPin=True,bCanToggleVisibility=True)
+   ShowPinForProperties(1)=(PropertyName="DataType",PropertyFriendlyName="Data Type",CategoryName="Online|Leaderboard",bShowPin=True,bCanToggleVisibility=True)
+   StructType="/Script/CoreUObject.ScriptStruct'/Script/OnlineSubsystemBlueprints.ColumnMetaDataBP'"
+   NodePosX=656
+   NodePosY=1376
+   NodeGuid=D9054C4B4BD1781E3C1BC295ECBCADA2
+   CustomProperties Pin (PinId=B7FAC90C49D51B0A1C5197A5BD354A9D,PinName="ColumnMetaDataBP",Direction="EGPD_Output",PinType.PinCategory="struct",PinType.PinSubCategory="",PinType.PinSubCategoryObject="/Script/CoreUObject.ScriptStruct'/Script/OnlineSubsystemBlueprints.ColumnMetaDataBP'",PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_MakeArray_1 1E6BE31B460303333C9D38B5AEF694A5,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=D9DD99CC43B5181B709011B339344340,PinName="ColumnName",PinFriendlyName="Column Name",PinToolTip="Column Name\\nName",PinType.PinCategory="name",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,DefaultValue="None",AutogeneratedDefaultValue="None",LinkedTo=(K2Node_CallFunction_2 B8F885AE4B668645C6E4DC831621EDB2,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=8176471045443F31FEF397807E99CCC9,PinName="DataType",PinFriendlyName="Data Type",PinToolTip="Data Type\\nEOnlineKeyValuePairDataType_ Enum",PinType.PinCategory="byte",PinType.PinSubCategory="",PinType.PinSubCategoryObject="/Script/CoreUObject.Enum'/Script/OnlineSubsystemBlueprints.EOnlineKeyValuePairDataType_'",PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,DefaultValue="Int32",AutogeneratedDefaultValue="Empty",PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="K2Node_CallFunction_2" ExportPath="/Script/BlueprintGraph.K2Node_CallFunction'/Game/BlueprintOnlineAPI.BlueprintOnlineAPI:Leaderboards.K2Node_CallFunction_2'"
+   bIsPureFunc=True
+   FunctionReference=(MemberParent="/Script/CoreUObject.Class'/Script/Engine.KismetSystemLibrary'",MemberName="MakeLiteralName")
+   NodePosX=352
+   NodePosY=1424
+   NodeGuid=3A24867546E903198DD17BBEF935A0E8
+   CustomProperties Pin (PinId=D64EAC0B40E948E2CD4D44BF46CD877D,PinName="self",PinFriendlyName=NSLOCTEXT("K2Node", "Target", "Target"),PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject="/Script/CoreUObject.Class'/Script/Engine.KismetSystemLibrary'",PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,DefaultObject="/Script/Engine.Default__KismetSystemLibrary",PersistentGuid=00000000000000000000000000000000,bHidden=True,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=AA06224D465B2B33B37E59A5BA3B13AE,PinName="Value",PinType.PinCategory="name",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,DefaultValue="TestScore",AutogeneratedDefaultValue="None",PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=B8F885AE4B668645C6E4DC831621EDB2,PinName="ReturnValue",Direction="EGPD_Output",PinType.PinCategory="name",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,DefaultValue="None",AutogeneratedDefaultValue="None",LinkedTo=(K2Node_MakeStruct_1 D9DD99CC43B5181B709011B339344340,K2Node_CallFunction_5 3070248943255EFF957367BDF8511D52,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_GenericCreateObject Name="K2Node_GenericCreateObject_0" ExportPath="/Script/BlueprintGraph.K2Node_GenericCreateObject'/Game/BlueprintOnlineAPI.BlueprintOnlineAPI:Leaderboards.K2Node_GenericCreateObject_0'"
+   NodePosX=896
+   NodePosY=1504
+   NodeGuid=718400F643042BED47A0CDBB7BA9A952
+   CustomProperties Pin (PinId=BAD237FA4207B1DA97CC91A79F76E665,PinName="execute",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_Event_1 069873984D4CBA21C7D053801E609402,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=795C52AB45BA80CA47D04295AA0B641D,PinName="then",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_CallFunction_8 3C5255D34F87291F5EC9EB9BC68DCC9B,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=7A298FE94CD522A0652049B3F0639F35,PinName="Class",PinToolTip="Object Class Reference Class\\nThe object class you want to construct",PinType.PinCategory="class",PinType.PinSubCategory="",PinType.PinSubCategoryObject="/Script/CoreUObject.Class'/Script/CoreUObject.Object'",PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,DefaultObject="/Script/OnlineSubsystemBlueprints.OnlineLeaderboardRead",PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=72B18678429734AE7B1059850B957323,PinName="ReturnValue",PinToolTip="Online Leaderboard Read Object Reference Return Value\\nThe constructed object",Direction="EGPD_Output",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject="/Script/CoreUObject.Class'/Script/OnlineSubsystemBlueprints.OnlineLeaderboardRead'",PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_CallFunction_8 679EEAFC4C61DF66C30DCDB7C37B9EDB,K2Node_AsyncAction_1 292CBAE24944D5F08E030C80196BAE17,K2Node_CallFunction_3 A892A1E540816FE7720A43A512F788C2,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=88A6F38B4143FC8D03826DB17F8970A1,PinName="self",PinFriendlyName="Outer",PinToolTip="Object Reference Outer\\nOwner of the constructed object",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject="/Script/CoreUObject.Class'/Script/CoreUObject.Object'",PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="K2Node_CallFunction_8" ExportPath="/Script/BlueprintGraph.K2Node_CallFunction'/Game/BlueprintOnlineAPI.BlueprintOnlineAPI:Leaderboards.K2Node_CallFunction_8'"
+   FunctionReference=(MemberParent="/Script/CoreUObject.Class'/Script/OnlineSubsystemBlueprints.OnlineLeaderboardRead'",MemberName="SetColumns")
+   NodePosX=1248
+   NodePosY=1488
+   NodeGuid=47784C0F4DA72724E572A29D589C1C4C
+   CustomProperties Pin (PinId=3C5255D34F87291F5EC9EB9BC68DCC9B,PinName="execute",PinToolTip="\\nExec",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_GenericCreateObject_0 795C52AB45BA80CA47D04295AA0B641D,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=4F4021E947A93267760544ABBDF7366E,PinName="then",PinToolTip="\\nExec",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_AsyncAction_1 170028A94335E1EF16488B9E16D564BA,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=679EEAFC4C61DF66C30DCDB7C37B9EDB,PinName="self",PinFriendlyName=NSLOCTEXT("K2Node", "Target", "Target"),PinToolTip="Target\\nOnline Leaderboard Read Object Reference",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject="/Script/CoreUObject.Class'/Script/OnlineSubsystemBlueprints.OnlineLeaderboardRead'",PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_GenericCreateObject_0 72B18678429734AE7B1059850B957323,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=F1DD481B4FFB501F259F609EC0922A6F,PinName="InColumns",PinToolTip="In Columns\\nArray of Column Meta Data BP Structures",PinType.PinCategory="struct",PinType.PinSubCategory="",PinType.PinSubCategoryObject="/Script/CoreUObject.ScriptStruct'/Script/OnlineSubsystemBlueprints.ColumnMetaDataBP'",PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=Array,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_MakeArray_1 1B075BD541F15D46428E8FB62D24C1FC,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_AsyncAction Name="K2Node_AsyncAction_1" ExportPath="/Script/BlueprintGraph.K2Node_AsyncAction'/Game/BlueprintOnlineAPI.BlueprintOnlineAPI:Leaderboards.K2Node_AsyncAction_1'"
+   ProxyFactoryFunctionName="ReadLeaderboardsForFriends"
+   ProxyFactoryClass="/Script/CoreUObject.Class'/Script/OnlineSubsystemBlueprints.OnlineLeaderboardsSubsystemReadLeaderboardsForFriends'"
+   ProxyClass="/Script/CoreUObject.Class'/Script/OnlineSubsystemBlueprints.OnlineLeaderboardsSubsystemReadLeaderboardsForFriends'"
+   NodePosX=1536
+   NodePosY=1504
+   NodeGuid=A8D9285744CE63CF9FBF02B4ADEA9ABA
+   CustomProperties Pin (PinId=170028A94335E1EF16488B9E16D564BA,PinName="execute",PinToolTip="\\nExec",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_CallFunction_8 4F4021E947A93267760544ABBDF7366E,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=88270D1B4445DDE76068628FB6A8D6A4,PinName="then",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=2258A1464F3876769491CF84F7873175,PinName="OnCallFailed",PinFriendlyName="On Call Failed",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_CallFunction_1 6DFCE66A48C4A11EBF98A5A1C341DC7D,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=4F1F73A0439D24F537F585BE24B977C6,PinName="OnLeaderboardReadComplete",PinFriendlyName="On Leaderboard Read Complete",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_IfThenElse_0 310C441247A8B220A3C639A5C600F4A9,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=B44178CE4CBCDD04457B358AA164F38A,PinName="bWasSuccessful",PinToolTip="Was Successful\\nBoolean",Direction="EGPD_Output",PinType.PinCategory="bool",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_IfThenElse_0 AE1681A84DE6A0B435E116B03CE7DC24,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=03FCB4744CB259864D15CB8BBE57D8E1,PinName="Subsystem",PinToolTip="Subsystem\\nOnline Leaderboards Subsystem Object Reference",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject="/Script/CoreUObject.Class'/Script/OnlineSubsystemBlueprints.OnlineLeaderboardsSubsystem'",PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_GetSubsystem_1 0CB631D945329AA7DAE702A8682D3BC6,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=9284E0CC40EE2B98EC128497797A09FB,PinName="LocalUserNum",PinToolTip="Local User Num\\nInteger",PinType.PinCategory="int",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,DefaultValue="0",AutogeneratedDefaultValue="0",PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=292CBAE24944D5F08E030C80196BAE17,PinName="ReadObject",PinToolTip="Read Object\\nOnline Leaderboard Read Object Reference",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject="/Script/CoreUObject.Class'/Script/OnlineSubsystemBlueprints.OnlineLeaderboardRead'",PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_GenericCreateObject_0 72B18678429734AE7B1059850B957323,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_GetSubsystem Name="K2Node_GetSubsystem_1" ExportPath="/Script/BlueprintGraph.K2Node_GetSubsystem'/Game/BlueprintOnlineAPI.BlueprintOnlineAPI:Leaderboards.K2Node_GetSubsystem_1'"
+   CustomClass="/Script/CoreUObject.Class'/Script/OnlineSubsystemBlueprints.OnlineLeaderboardsSubsystem'"
+   NodePosX=1264
+   NodePosY=1360
+   NodeGuid=AC1843A0428BEDE28B68109C69F0EE7C
+   CustomProperties Pin (PinId=0CB631D945329AA7DAE702A8682D3BC6,PinName="ReturnValue",Direction="EGPD_Output",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject="/Script/CoreUObject.Class'/Script/OnlineSubsystemBlueprints.OnlineLeaderboardsSubsystem'",PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_AsyncAction_1 03FCB4744CB259864D15CB8BBE57D8E1,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+`} />
+
+Refer to [Querying global leaderboards (by ranked range)](#querying-global-leaderboards-by-ranked-range) to see how to retrieve the score values and ranks from the friend leaderboards.
+
+</TabItem>
+</Tabs>
+
+
+## Querying leaderboards for arbitrary users
+
+<Tabs lazy groupId="code-format" defaultValue="c++" values={[ { label: 'C++', value: 'c++' }, { label: 'Blueprints', value: 'blueprints' } ]}>
+<TabItem value="c++">
+
+You can also query a leaderboard from an arbitrary set of users over any stats you have defined. This functions similar to reading friend leaderboards, except that you can use any user IDs that you like.
+
+These queries are set up and handled the same as querying friend leaderboards; the only difference is that you call `ReadLeaderboards` instead:
+
+```cpp
+TArray<TSharedRef<const FUniqueNetId>> Players;
+Players.Add(/* user ID */);
+// ... add more player IDs.
+
+if (!LeaderboardsInterface->ReadLeaderboards(0 /* LocalUserNum */, ReadRef))
+{
+    // Call failed; remove the event handler.
+}
+```
+
+
+
+</TabItem>
+<TabItem value="blueprints">
+
+You can also query a leaderboard from an arbitrary set of users over any stats you have defined. This functions similar to reading friend leaderboards, except that you can use any user IDs that you like.
+
+These queries are set up and handled the same as querying friend leaderboards; the only difference is that you call "Read Leaderboards" instead:
+
+<Blueprint height="400px" blueprint={`
+Begin Object Class=/Script/BlueprintGraph.K2Node_GetSubsystem Name="K2Node_GetSubsystem_6"
+   CustomClass=Class'"/Script/OnlineSubsystemBlueprints.OnlineLeaderboardsSubsystem"'
+   NodePosX=672
+   NodePosY=-224
+   NodeGuid=9FB782C743DBB398911F3BB6CC409EB3
+   CustomProperties Pin (PinId=3BA048E345C63B246CB12295855A88F2,PinName="ReturnValue",Direction="EGPD_Output",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/OnlineSubsystemBlueprints.OnlineLeaderboardsSubsystem"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_AsyncAction_11 31079279462D271B3CB28CA69CD535B3,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_GenericCreateObject Name="K2Node_GenericCreateObject_0"
+   NodePosX=384
+   NodePosY=-112
+   NodeGuid=538ADCF3405B8A354AAA5691EFF44655
+   CustomProperties Pin (PinId=D3ABFAEE41514C5B57A65DBB377C2501,PinName="execute",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=19847CA14EBCC19CD6F991B9F224D538,PinName="then",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_VariableSet_0 8579ED3E4973AED1BADA82B695C0D92D,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=1055B72348A19267B36447928A0B0016,PinName="Class",PinToolTip="Object Class Reference Class\\nThe object class you want to construct",PinType.PinCategory="Class",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/CoreUObject.Object"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,DefaultObject="/Script/OnlineSubsystemBlueprints.OnlineLeaderboardRead",PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=722069314E728A49B2C378A93B10CD7B,PinName="ReturnValue",PinToolTip="Online Leaderboard Read Object Reference Return Value\\nThe constructed object",Direction="EGPD_Output",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/OnlineSubsystemBlueprints.OnlineLeaderboardRead"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_VariableSet_0 5C64C8464AF96708E4ABB69BEBC4D399,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=3777E7A7487288102D1C9C94829CA857,PinName="Outer",PinToolTip="Object Reference Outer\\nOwner of the constructed object",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/CoreUObject.Object"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_VariableSet Name="K2Node_VariableSet_0"
+   VariableReference=(MemberName="LeaderboardSearch",MemberGuid=4E5DD4DF41F1509709ED0AA2B5CA61CC,bSelfContext=True)
+   NodePosX=640
+   NodePosY=-96
+   NodeGuid=6BFD873748516517A1E81784C506EE26
+   CustomProperties Pin (PinId=8579ED3E4973AED1BADA82B695C0D92D,PinName="execute",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_GenericCreateObject_0 19847CA14EBCC19CD6F991B9F224D538,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=EEAD78D54A8461F91CFEBC9DA214F9D7,PinName="then",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_AsyncAction_11 1717BBB44AC075225EA97DAB2526CDB9,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=5C64C8464AF96708E4ABB69BEBC4D399,PinName="LeaderboardSearch",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/OnlineSubsystemBlueprints.OnlineLeaderboardRead"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_GenericCreateObject_0 722069314E728A49B2C378A93B10CD7B,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=54C62BF24F35F111E2E5479B05DA7434,PinName="self",PinFriendlyName=NSLOCTEXT("K2Node", "Target", "Target"),PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=BlueprintGeneratedClass'"/Game/ExampleOSS/Common/Multiplayer/MultiplayerGameMode.MultiplayerGameMode_C"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=True,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=06C47FF24B60D45C4878CEABCABB2A62,PinName="Output_Get",PinToolTip="Retrieves the value of the variable, can use instead of a separate Get node",Direction="EGPD_Output",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/OnlineSubsystemBlueprints.OnlineLeaderboardRead"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_CallFunction_7 8930EBCB43161DCD58D83AA42389CB5C,K2Node_CallFunction_8 4CAEF6764E27CDDDB0ED5FA2963DDD3A,K2Node_AsyncAction_11 348B2F524E6E3E29568883B1D59C933D,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_AsyncAction Name="K2Node_AsyncAction_11"
+   ProxyFactoryFunctionName="ReadLeaderboards"
+   ProxyFactoryClass=Class'"/Script/OnlineSubsystemBlueprints.OnlineLeaderboardsSubsystemReadLeaderboards"'
+   ProxyClass=Class'"/Script/OnlineSubsystemBlueprints.OnlineLeaderboardsSubsystemReadLeaderboards"'
+   NodePosX=896
+   NodePosY=-112
+   NodeGuid=DF4D8D1242A08398958F948844E41BF5
+   CustomProperties Pin (PinId=1717BBB44AC075225EA97DAB2526CDB9,PinName="execute",PinToolTip="\\nExec",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_VariableSet_0 EEAD78D54A8461F91CFEBC9DA214F9D7,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=3A0021D64E648B3B472C7BAD04FAA543,PinName="then",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=EF2808314740A8C2049D32866B40768C,PinName="OnCallFailed",PinFriendlyName="On Call Failed",PinToolTip="On Call Failed",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=9D6BFB1C48C08A6A51F609A93C91D3D6,PinName="OnLeaderboardReadComplete",PinFriendlyName="On Leaderboard Read Complete",PinToolTip="On Leaderboard Read Complete",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=1EBD9FD74787E648A13F8F8A38216C91,PinName="bWasSuccessful",PinToolTip="Was Successful",Direction="EGPD_Output",PinType.PinCategory="bool",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=31079279462D271B3CB28CA69CD535B3,PinName="Subsystem",PinToolTip="Subsystem\\nOnline Leaderboards Subsystem Object Reference",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/OnlineSubsystemBlueprints.OnlineLeaderboardsSubsystem"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_GetSubsystem_6 3BA048E345C63B246CB12295855A88F2,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=D78D08614CC42ED65F39988C24CA2D88,PinName="Players",PinToolTip="Players\\nArray of Unique Net Id Repl Structures",PinType.PinCategory="struct",PinType.PinSubCategory="",PinType.PinSubCategoryObject=ScriptStruct'"/Script/Engine.UniqueNetIdRepl"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=Array,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=348B2F524E6E3E29568883B1D59C933D,PinName="ReadObject",PinToolTip="Read Object\\nOnline Leaderboard Read Object Reference",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/OnlineSubsystemBlueprints.OnlineLeaderboardRead"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_VariableSet_0 06C47FF24B60D45C4878CEABCABB2A62,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+`} />
+</TabItem>
+</Tabs>
+
+
+## Unsupported methods
+
+<Tabs lazy groupId="code-format" defaultValue="c++" values={[ { label: 'C++', value: 'c++' }, { label: 'Blueprints', value: 'blueprints' } ]}>
+<TabItem value="c++">
+
+The plugin does not support the `ReadLeaderboardsAroundUser` call, because this functionality is not available in the EOS SDK itself. If you call `ReadLeaderboardsAroundUser`, it will return results equivalent to calling `ReadLeaderboards` with just the single player specified (and a range of `0`).
+
+</TabItem>
+<TabItem value="blueprints">
+
+The plugin does not support the "Read Leaderboards Around User" function, because this functionality is not available in the EOS SDK itself. If you call "Read Leaderboards Around User", it will return results equivalent to calling "Read Leaderboards" with just the single player specified (and a range of `0`).
+
+</TabItem>
+</Tabs>

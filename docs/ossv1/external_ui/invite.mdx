@@ -1,0 +1,83 @@
+---
+title: Showing the invite overlay
+description: How to show the "invite a friend" overlay
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import Blueprint from '@site/src/Blueprint';
+
+You can use the external UI interface to show the "invite a friend" overlay. On Steam, this opens the overlay with a list of friends and the "invite" button shown next to them. The user can then send invites to any number of friends on their friends list to the current session.
+
+For this to work, the EOS session must have presence enabled (`bUsesPresence` turned on), and the "Project Settings" must have "Presence Advertises" set to "Session".
+
+## Configuring the external UI for the local platform on PC
+
+On mobile and console platforms, this is already done for you. However on PC, you'll need to tell Unreal Engine which store your build is for, so that the external UI calls get routed correctly.
+
+If you're shipping on Steam, you should set the following entry in `DefaultEngine.ini`:
+
+```ini
+[OnlineSubsystem]
+NativePlatformService=Steam
+```
+
+:::caution
+If you don't have a `NativePlatformService` set, you won't be able to use any external UI calls except for [showing the friends list](/ossv1/external_ui/friends.mdx), and even then only when the user is signed into an Epic Games account.
+:::
+
+## Showing the invite overlay
+
+<Tabs lazy groupId="code-format" defaultValue="c++" values={[ { label: 'C++', value: 'c++' }, { label: 'Blueprints', value: 'blueprints' } ]}>
+<TabItem value="c++">
+
+To show the invite overlay, first get the external UI interface:
+
+```cpp
+#include "OnlineSubsystem.h"
+#include "OnlineSubsystemUtils.h"
+#include "Interfaces/OnlineExternalUIInterface.h"
+
+// ...
+
+IOnlineSubsystem* Subsystem = Online::GetSubsystem(this->GetWorld());
+IOnlineExternalUIPtr ExternalUI = Subsystem->GetExternalUIInterface();
+```
+
+Then, open the invite UI for the local user and the given session:
+
+```cpp
+ExternalUI->ShowFriendsUI(
+   0 /* The controller index of the local user */,
+   FName(TEXT("GameSession")) /* The name of the session to invite friends to */);
+```
+
+</TabItem>
+<TabItem value="blueprints">
+
+To show the invite overlay, call Show Invite UI on the external UI subsystem:
+
+<Blueprint height="260px" blueprint={`
+Begin Object Class=/Script/BlueprintGraph.K2Node_GetSubsystem Name="K2Node_GetSubsystem_0"
+   CustomClass=Class'"/Script/OnlineSubsystemBlueprints.OnlineExternalUISubsystem"'
+   NodePosX=-16
+   NodePosY=272
+   NodeGuid=61DDAAEC456E954783E497A436DA9DF9
+   CustomProperties Pin (PinId=E1AF54184338715E7DEDCF94D60B2FB2,PinName="ReturnValue",Direction="EGPD_Output",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/OnlineSubsystemBlueprints.OnlineExternalUISubsystem"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_CallFunction_0 CBA0B68544EAD46F5F7EBBB593216848,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="K2Node_CallFunction_0"
+   FunctionReference=(MemberParent=Class'"/Script/OnlineSubsystemBlueprints.OnlineExternalUISubsystem"',MemberName="ShowInviteUI")
+   NodePosX=272
+   NodePosY=240
+   NodeGuid=5533E47A41BAA0DB20D19CAA2E3D7619
+   CustomProperties Pin (PinId=6803185D4B2120DDFCA2FAACB439D8B1,PinName="execute",PinToolTip="\\nExec",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_Event_3 3DA806194CFBC01A835BDB88D040AAFF,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=E6E9F52542BEB0CAD09A50803F1B438F,PinName="then",PinToolTip="\\nExec",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_CallFunction_1 EE1E4C084C70E10479F11AAFD96FE85B,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=CBA0B68544EAD46F5F7EBBB593216848,PinName="self",PinFriendlyName=NSLOCTEXT("K2Node", "Target", "Target"),PinToolTip="Target\\nOnline External UISubsystem Object Reference",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/OnlineSubsystemBlueprints.OnlineExternalUISubsystem"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_GetSubsystem_0 E1AF54184338715E7DEDCF94D60B2FB2,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=68752E154B1291D45D6B86B99B50B9A7,PinName="LocalUserNum",PinToolTip="Local User Num\\nInteger",PinType.PinCategory="int",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,DefaultValue="0",AutogeneratedDefaultValue="0",PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=B4953BB14EC6D7A20E3A908D6CA39C5B,PinName="SessionName",PinToolTip="Session Name\\nName",PinType.PinCategory="name",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,DefaultValue="GameSession",AutogeneratedDefaultValue="None",PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=D7BFC9654DECAF3BF743B19922CE6015,PinName="ReturnValue",PinToolTip="Return Value\\nBoolean\\n\\nShow Invite UI",Direction="EGPD_Output",PinType.PinCategory="bool",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,DefaultValue="false",AutogeneratedDefaultValue="false",PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+`} />
+
+</TabItem>
+</Tabs>

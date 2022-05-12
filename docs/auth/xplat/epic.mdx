@@ -1,0 +1,54 @@
+---
+title: Cross-platform accounts with Epic Games
+sidebar_label: Epic Games
+description: How to use Epic Games as a cross-platform account provider.
+---
+
+import useBaseUrl from "@docusaurus/useBaseUrl";
+
+This account provider is shown as `EpicGames` in the cross-platform account provider setting in Project Settings.
+
+If you want to allow players to sign in with their Epic Games account across platforms, you can choose Epic Games as your cross-platform account provider.
+
+## Prerequisites
+
+It is important to note the following:
+
+- You will need to have configured an application under your product -> "Epic Account Services" in the Epic Games Developer Portal.
+- This application must have "Brand Settings", "Permissions" and "Linked Clients" all showing as "Configured" in the overview screen.
+- For permissions, you need to enable the "Online Presence", "Friends" and "Country" permissions.
+- For clients, you **must** ensure that it is linked with the client credentials you set up for the game client role. If your application isn't associated with the credentials that the game client uses, you won't be able to sign in properly.
+
+Using Epic Games as a cross-platform account provider also [enables the use of the Epic Games Overlay](#testing-the-epic-games-overlay).
+
+:::caution
+You will only be able to use Epic Games sign in internally until your application goes through Brand Review. You should apply for Brand Review weeks ahead of your game's release.
+:::
+
+## Testing the Epic Games overlay
+
+:::warning
+The overlay only works in the editor's "Standalone Game" mode if the plugin is built against EOS SDK 1.15.4 or later.
+
+Also note that even when the game is launched from the editor in "Standalone Game" mode, you will not be able to initiate e-commerce purchases. To use the e-commerce APIs, you must package your game and launch the packaged version.
+:::
+
+EOS Online Framework supports using the Epic Games Overlay within standalone games launched from within the editor. This also works in with the Developer Authentication Tool, so you can test all of the behaviour like joining sessions and parties from the overlay, without having to build packaged games.
+
+<p>
+  <img
+    alt="Two standalone games launched from the editor, with the overlay visible"
+    src={useBaseUrl("img/standalone_overlay.png")}
+  />
+</p>
+
+To use the Epic Games Overlay in your testing:
+
+- Ensure you have the Developer Authentication Tool running, with enough contexts for the number of standalone games you will launch (and ensure they are signed into different Epic Games accounts).
+- Ensure your game has Epic Games set as the cross-platform account provider.
+- From the Play dropdown in the editor, set the number of players (which will be the number of standalone games launched).
+- From the Play dropdown in the editor, select Standalone Game as the mode.
+
+## Turning off persistent authentication for Epic Games
+
+If you don't want to remember user logins across launches of your game, you can turn off persistent login in Project Settings under "Cross Platform Account Provider: Epic Games". This only applies to Epic Games accounts, and doesn't impact any kind of implicit login to Epic Games that might be done using the store or platform account.

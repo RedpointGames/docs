@@ -1,0 +1,37 @@
+---
+id: onloginchanged
+title: On Login Changed
+description: The OnLoginChanged event of the Identity subsystem.
+---
+
+import TypeRenderer from '@site/src/TypeRenderer';
+import EventRenderer from '@site/src/EventRenderer';
+
+This is a bindable event.
+
+The C++ documentation for this event is available on [the Unreal Engine documentation website](https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Plugins/OnlineSubsystem/Interfaces/IOnlineIdentity/).
+
+## Example
+
+<EventRenderer subsystemName="Identity" event={{"Identifier":"OnLoginChanged","Parameters":[{"Position":0,"Identifier":"LocalUserNum","Type":{"Type":"Simple","Identifier":"int32"}}]}} />
+
+## Outputs
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Output Name</th>
+      <th>Output Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td>LocalUserNum</td>
+      <td><TypeRenderer typeInfo={{"Type":"Simple","Identifier":"int32"}} /></td>
+    </tr>
+  </tbody>
+</table>
+
+

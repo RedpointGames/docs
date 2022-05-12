@@ -1,0 +1,50 @@
+---
+title: Know when the game client is offline
+description: How to register for notifications to keep track of when the game client is offline
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import Blueprint from '@site/src/Blueprint'
+
+Loss of Internet connectivity is detected when the EOS SDK reports that the local user is disconnected from the Epic Online Services backend. Once Internet connectivity is lost, the plugin will periodically try to reconnect to the backend. Once it succeeds, the plugin reports that Internet connectivity is restored.
+
+To listen for changes in Internet connectivity, use the `OnConnectionStatusChanged` event:
+
+## Register for connection status notifications
+
+<Tabs lazy groupId="code-format" defaultValue="c++" values={[ { label: 'C++', value: 'c++' }, { label: 'Blueprints', value: 'blueprints' } ]}>
+<TabItem value="c++">
+
+```cpp
+void UMyClass::HandleConnectionStatusChanged(
+    const FString &ServiceName,
+    EOnlineServerConnectionStatus::Type LastConnectionState,
+    EOnlineServerConnectionStatus::Type ConnectionState)
+{
+    // Do something with ConnectionState
+    // The value will always be either Connected or NotConnected
+}
+
+void UMyClass::ExecuteRegisterConnectionStatusChanged()
+{
+    // Get the online subsystem.
+    auto OSS = Online::GetSubsystem(this->GetWorld());
+    if (OSS == nullptr)
+    {
+        // Online subsystem is not available.
+        return;
+    }
+
+	// Register the HandleConnectionStatusChanged delegate
+    OSS->AddOnConnectionStatusChangedDelegate_Handle(FOnConnectionStatusChanged::FDelegate::CreateUObject(
+        this,
+        &UMyClass::HandleConnectionStatusChanged));
+}
+```
+
+</TabItem>
+<TabItem value="blueprints">
+Blueprint support for this function is not currently implemented.
+</TabItem>
+</Tabs>

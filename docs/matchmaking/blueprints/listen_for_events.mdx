@@ -1,0 +1,49 @@
+---
+title: Handling progress and completion
+description: How to handle the progress and completion events for the matchmaker.
+---
+
+import Blueprint from "@site/src/Blueprint";
+
+import bpProgress from "./bp/progress.bp";
+import bpError from "./bp/error.bp";
+import bpCancellation from "./bp/cancellation.bp";
+import bpCompletion from "./bp/completion.bp";
+
+While matchmaking is underway, you'll want to show progress information to players so they know how long is left until matchmaking completes.
+
+## Listening for progress
+
+The `Matchmaker` actor has an `OnProgress` event. This contains important information about the state of matchmaking, including:
+
+| Field                        | Description                                                                                                                                                                                                                                                                                                               |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Step Name                    | This is the internal name of the step. Suitable for logs, but shouldn't be shown to users. You can [view the list of step names on this page](../algorithm_flow.mdx).                                                                                                                                                     |
+| Current Status               | The high-level status of matchmaking.                                                                                                                                                                                                                                                                                     |
+| Current Detail               | More detailed status information about how matchmaking is progressing. This will change frequently.                                                                                                                                                                                                                       |
+| Current Progress             | The percentage value of how "filled" the match currently is.                                                                                                                                                                                                                                                              |
+| Estimated Time of Completion | The estimated time that matchmaking will complete. This is a conservative value based on the configured matchmaking timeouts, and is almost always longer than it takes for the actual match to complete. Since it can jump around a bit, you might want to smooth values as they change so it's not so jarring to users. |
+
+<Blueprint height="300px" blueprint={bpProgress} />
+
+## Listening for errors
+
+The `Matchmaker` actor has an `OnError` event. This only fires if there is an unrecoverable error in matchmaking and is usually limited to things like configuration errors.
+
+<Blueprint height="180px" blueprint={bpError} />
+
+## Listening for cancellation
+
+The `Matchmaker` actor has an `OnCancelled` event. This will fire if any player in the party "unreadies" themselves while matchmaking is ongoing.
+
+Depending on matchmaking progress, it's sometimes too late for an "unready" signal take effect, and the match will proceed. This is usually in the late phases of matchmaking, such as when the listen server is starting and clients are connecting to the server.
+
+<Blueprint height="150px" blueprint={bpCancellation} />
+
+## Listening for completion
+
+Because the `Matchmaker` actor will live in your main menu map, and the game will travel to a different map for the game, the `Matchmaker` actor won't be around when the matchmaking process is actually complete, because the game will be on a different map at that point.
+
+Instead, there's an `On Complete` event on the `Matchmaker Subsystem`. You should bind to this event in your game instance if you need to know when matchmaking completes. Alternatively, you can just let the game travel to the multiplayer map, since that will tear down any user interface you're presenting to the user about matchmaking anyway.
+
+<Blueprint height="250px" blueprint={bpCompletion} />

@@ -1,0 +1,81 @@
+---
+id: setparticipanthardmute
+title: Set Participant Hard Mute
+description: The SetParticipantHardMute function of the VoiceAdmin subsystem.
+---
+
+import TypeRenderer from '@site/src/TypeRenderer';
+import FunctionRenderer from '@site/src/FunctionRenderer';
+
+This is an asynchronous latent blueprint node.
+
+The C++ documentation for this function is available in [the Online Interfaces repository](https://src.redpoint.games/redpointgames/online-interfaces).
+
+## Example
+
+<FunctionRenderer subsystemName="VoiceAdmin" func={{"Identifier":"SetParticipantHardMute","Supported":false,"Async":true,"AsyncPins":["OnCallFailed","OnVoiceAdminSetParticipantHardMuteComplete"],"Pure":false,"Parameters":[{"Position":0,"Identifier":"LocalUserId","Type":{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl","Out":false}},{"Position":1,"Identifier":"ChannelName","Type":{"Type":"Simple","Identifier":"FString","Out":false}},{"Position":2,"Identifier":"TargetUserId","Type":{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl","Out":false}},{"Position":3,"Identifier":"bMuted","Type":{"Type":"Simple","Identifier":"bool"}},{"Position":4,"Identifier":"Result","Type":{"Type":"Wrapped","Identifier":"FOnlineErrorInfo","Out":true}},{"Position":5,"Identifier":"LocalUserId","Type":{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl","Out":true}},{"Position":6,"Identifier":"TargetUserId","Type":{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl","Out":true}},{"Position":7,"Identifier":"bIsNowMuted","Type":{"Type":"Simple","Identifier":"bool","Out":true}}],"ReturnType":null}} />
+
+## Inputs
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Input Name</th>
+      <th>Input Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td>Local User Id</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl","Out":false}} /></td>
+    </tr>
+    <tr>
+      <td>Channel Name</td>
+      <td><TypeRenderer typeInfo={{"Type":"Simple","Identifier":"FString","Out":false}} /></td>
+    </tr>
+    <tr>
+      <td>Target User Id</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl","Out":false}} /></td>
+    </tr>
+    <tr>
+      <td>Muted</td>
+      <td><TypeRenderer typeInfo={{"Type":"Simple","Identifier":"bool"}} /></td>
+    </tr>
+  </tbody>
+</table>
+
+
+## Outputs
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Output Name</th>
+      <th>Output Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td>Result</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"FOnlineErrorInfo","Out":true}} /></td>
+    </tr>
+    <tr>
+      <td>Local User Id</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl","Out":true}} /></td>
+    </tr>
+    <tr>
+      <td>Target User Id</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl","Out":true}} /></td>
+    </tr>
+    <tr>
+      <td>Is Now Muted</td>
+      <td><TypeRenderer typeInfo={{"Type":"Simple","Identifier":"bool","Out":true}} /></td>
+    </tr>
+  </tbody>
+</table>
+
+

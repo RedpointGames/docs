@@ -1,0 +1,42 @@
+---
+id: usercloud
+title: User Cloud
+description: The UserCloud subsystem.
+---
+
+import CoverageBadge from "@site/src/CoverageBadge";
+
+Redpoint EOS Online Framework provides blueprint nodes for <CoverageBadge coverage={90} /> of this interface.
+
+The C++ documentation for this interface is available on [the Unreal Engine documentation website](https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Plugins/OnlineSubsystem/Interfaces/IOnlineUserCloud/).
+
+## Events
+
+- [On Enumerate User Files Complete](./event/onenumerateuserfilescomplete.mdx)
+- [On Read User File Complete](./event/onreaduserfilecomplete.mdx)
+- [On Write User File Progress](./event/onwriteuserfileprogress.mdx)
+- [On Write User File Complete](./event/onwriteuserfilecomplete.mdx)
+- [On Write User File Canceled](./event/onwriteuserfilecanceled.mdx)
+- [On Delete User File Complete](./event/ondeleteuserfilecomplete.mdx)
+
+## Functions
+
+- [Get File Contents](./function/getfilecontents.mdx)
+- [Clear Files](./function/clearfiles.mdx)
+- [Clear File](./function/clearfile.mdx)
+- [Enumerate User Files](./function/enumerateuserfiles.mdx)
+- [Get User File List](./function/getuserfilelist.mdx)
+- [Read User File](./function/readuserfile.mdx)
+- [Write User File](./function/writeuserfile.mdx)
+- [Cancel Write User File](./function/cancelwriteuserfile.mdx)
+- [Delete User File](./function/deleteuserfile.mdx)
+- [Request Usage Info](./function/requestusageinfo.mdx)
+- [Dump Cloud State](./function/dumpcloudstate.mdx)
+- [Dump Cloud File State](./function/dumpcloudfilestate.mdx)
+
+## Unsupported Events
+
+Redpoint EOS Online Framework does not currently provide blueprint nodes for the following events.
+
+- OnRequestUsageInfoComplete
+- OnUserCloudAnalyticsEvent

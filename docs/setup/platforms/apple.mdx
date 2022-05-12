@@ -1,0 +1,62 @@
+---
+title: Platform setup for Apple iOS
+sidebar_label: Apple iOS
+description: How to set up your game for Apple iOS.
+---
+
+To publish your game on Apple iOS, you'll need to enable "Sign in with Apple" authentication, use a source-based version of the plugin and a source-based version of Unreal Engine, compile it with SIWA support, and then configure your application for Apple authentication.
+
+## Switch to using source code
+
+If you have not done so already, [switch to using a source-based version](../index.mdx#source-code-access) of the plugin by following the instructions on the Welcome page.
+
+## Compile the engine with "Sign in with Apple" support
+
+Unreal Engine does not enable "Sign in with Apple" support by default, and it must be enabled when the engine's `OnlineSubsystemApple` module is compiled. Therefore, you must build the engine from source after enabling this option.
+
+Locate the `Engine/Config/BaseEngine.ini` file for the source-based version of Unreal Engine you are using, and at the end of this file, add:
+
+```ini
+[/Script/IOSRuntimeSettings.IOSRuntimeSettings]
+bEnableSignInWithAppleSupport=True
+```
+
+## Set up your application in the Apple Developer portal
+
+It is assumed that you already have an identifier set up for your application in the Apple Developer portal, as this is a prerequisite for iOS development.
+
+1. Locate your App ID on the [Certificates, Identifiers & Profiles](https://developer.apple.com/account/resources/identifiers/list) page.
+2. Note the "Identifier" for your App; you will need this for the Epic Games Developer portal in a moment.
+3. Click on the App ID you want to set up.
+4. Scroll down to "Sign In with Apple" and click the checkbox next to it.
+5. Click "Save" in the top right.
+
+## Set up Apple authentication in the Epic Games Dev Portal
+
+1. Open the [Epic Games Dev Portal](https://dev.epicgames.com/).
+2. Navigate to your product.
+3. Click "Product Settings".
+4. Under the "Identity Providers" tab, click "Add Identity Provider".
+5. Select "Apple" as the identity provider.
+6. Set the "Description" to any value you like.
+7. Set the "Client ID" to your iOS app identifier that you noted down from the previous steps.
+8. Click "Save & Exit".
+9. Under the "Environments" tab, click "Identity Providers" next to the Live sandbox.
+10. For Apple, select the new credential you just made.
+
+## Enable the Apple online subsystem in your game
+
+In your `IOSEngine.ini` file, you need to add the following settings:
+
+```ini
+[OnlineSubsystemApple]
+bEnabled=True
+```
+
+## Use Apple authentication at runtime
+
+The default authentication graph will automatically use Apple authentication if the game is launched on iOS.
+
+## Testing Apple authentication
+
+To test Apple authentication, launch your game on an iOS device and sign in.

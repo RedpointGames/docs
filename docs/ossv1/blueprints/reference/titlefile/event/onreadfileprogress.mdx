@@ -1,0 +1,41 @@
+---
+id: onreadfileprogress
+title: On Read File Progress
+description: The OnReadFileProgress event of the TitleFile subsystem.
+---
+
+import TypeRenderer from '@site/src/TypeRenderer';
+import EventRenderer from '@site/src/EventRenderer';
+
+This is a bindable event.
+
+The C++ documentation for this event is available on [the Unreal Engine documentation website](https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Plugins/OnlineSubsystem/Interfaces/IOnlineTitleFile/).
+
+## Example
+
+<EventRenderer subsystemName="TitleFile" event={{"Identifier":"OnReadFileProgress","Parameters":[{"Position":0,"Identifier":"FileName","Type":{"Type":"Simple","Identifier":"FString","Out":false}},{"Position":1,"Identifier":"NumBytes","Type":{"Type":"Wrapped","Identifier":"int64"}}]}} />
+
+## Outputs
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Output Name</th>
+      <th>Output Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td>FileName</td>
+      <td><TypeRenderer typeInfo={{"Type":"Simple","Identifier":"FString","Out":false}} /></td>
+    </tr>
+    <tr>
+      <td>NumBytes</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"int64"}} /></td>
+    </tr>
+  </tbody>
+</table>
+
+

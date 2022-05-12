@@ -1,0 +1,65 @@
+---
+id: getcachedachievement
+title: Get Cached Achievement
+description: The GetCachedAchievement function of the Achievements subsystem.
+---
+
+import TypeRenderer from '@site/src/TypeRenderer';
+import FunctionRenderer from '@site/src/FunctionRenderer';
+
+This is a normal blueprint node.
+
+The C++ documentation for this function is available on [the Unreal Engine documentation website](https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Plugins/OnlineSubsystem/Interfaces/IOnlineAchievements/).
+
+## Example
+
+<FunctionRenderer subsystemName="Achievements" func={{"Identifier":"GetCachedAchievement","Supported":false,"Async":false,"AsyncPins":[],"Pure":false,"Parameters":[{"Position":0,"Identifier":"PlayerId","Type":{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl","Out":false}},{"Position":1,"Identifier":"AchievementId","Type":{"Type":"Simple","Identifier":"FString","Out":false}},{"Position":2,"Identifier":"OutAchievement","Type":{"Type":"Wrapped","Identifier":"FOnlineAchievementBP&","Out":true}}],"ReturnType":{"Type":"Wrapped","Identifier":"EOnlineCachedResult_"}}} />
+
+## Inputs
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Input Name</th>
+      <th>Input Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td>Player Id</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl","Out":false}} /></td>
+    </tr>
+    <tr>
+      <td>Achievement Id</td>
+      <td><TypeRenderer typeInfo={{"Type":"Simple","Identifier":"FString","Out":false}} /></td>
+    </tr>
+  </tbody>
+</table>
+
+
+## Outputs
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Output Name</th>
+      <th>Output Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td>Return  Value</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"EOnlineCachedResult_"}} /></td>
+    </tr>
+    <tr>
+      <td>Achievement</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"FOnlineAchievementBP&","Out":true}} /></td>
+    </tr>
+  </tbody>
+</table>
+
+

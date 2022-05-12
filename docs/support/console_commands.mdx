@@ -1,0 +1,43 @@
+---
+title: Using console commands
+description: Console commands you can use with the plugin for advanced debugging.
+---
+
+The plugin includes some additional console commands that you can use when testing your game. These are useful for testing how your game behaves to events that typically take a long time to fire, or are otherwise rare or difficult to test.
+
+## Simulating an Anti-Cheat kick
+
+You can test how you game responds to an Anti-Cheat kick in the editor by running:
+
+```
+ONLINE ANTICHEAT SIMULATEKICK
+```
+
+## Simulating a credential expiry
+
+If you're writing your own authentication provider, you will want to ensure that your game refreshes credentials properly when the EOS SDK requests them. You can simulate the expiry event firing by running:
+
+```
+Redpoint Identity SimulateExpiry 0
+```
+
+`0` is the local user number / controller index; it's typically `0` because most platforms only support one local player, but it could be a higher number on console platforms if you're supporting split-screen play.
+
+## Simulating an unexpected logout
+
+You can simulate the EOS SDK reporting an unexpected logout to ensure your game behaves correctly when the window for refreshing credentials is missed. This is required when your game is being deployed to devices that might suspend or background the game without warning.
+
+```
+Redpoint Identity SimulateSDKLogout 0
+```
+
+`0` is the local user number / controller index; it's typically `0` because most platforms only support one local player, but it could be a higher number on console platforms if you're supporting split-screen play.
+
+## Log the state of internal systems
+
+You can use the following commands to log the current state of internal plugin systems to the console:
+
+```
+Redpoint Presence Dump
+Redpoint Rooms Dump
+```

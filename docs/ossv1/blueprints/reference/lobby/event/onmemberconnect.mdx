@@ -1,0 +1,45 @@
+---
+id: onmemberconnect
+title: On Member Connect
+description: The OnMemberConnect event of the Lobby subsystem.
+---
+
+import TypeRenderer from '@site/src/TypeRenderer';
+import EventRenderer from '@site/src/EventRenderer';
+
+This is a bindable event.
+
+The C++ documentation for this event is available in [the Online Interfaces repository](https://src.redpoint.games/redpointgames/online-interfaces).
+
+## Example
+
+<EventRenderer subsystemName="Lobby" event={{"Identifier":"OnMemberConnect","Parameters":[{"Position":0,"Identifier":"UserId","Type":{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl","Out":false}},{"Position":1,"Identifier":"LobbyId","Type":{"Type":"Wrapped","Identifier":"ULobbyId*","Out":false}},{"Position":2,"Identifier":"MemberId","Type":{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl","Out":false}}]}} />
+
+## Outputs
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Output Name</th>
+      <th>Output Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td>UserId</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl","Out":false}} /></td>
+    </tr>
+    <tr>
+      <td>LobbyId</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"ULobbyId*","Out":false}} /></td>
+    </tr>
+    <tr>
+      <td>MemberId</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl","Out":false}} /></td>
+    </tr>
+  </tbody>
+</table>
+
+

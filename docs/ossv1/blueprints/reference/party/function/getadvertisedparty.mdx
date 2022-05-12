@@ -1,0 +1,65 @@
+---
+id: getadvertisedparty
+title: Get Advertised Party
+description: The GetAdvertisedParty function of the Party subsystem.
+---
+
+import TypeRenderer from '@site/src/TypeRenderer';
+import FunctionRenderer from '@site/src/FunctionRenderer';
+
+This is a normal blueprint node.
+
+The C++ documentation for this function is available on [the Unreal Engine documentation website](https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Plugins/OnlineSubsystem/Interfaces/IOnlineParty/).
+
+## Example
+
+<FunctionRenderer subsystemName="Party" func={{"Identifier":"GetAdvertisedParty","Supported":false,"Async":false,"AsyncPins":[],"Pure":true,"Parameters":[{"Position":0,"Identifier":"LocalUserId","Type":{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl","Out":false}},{"Position":1,"Identifier":"UserId","Type":{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl","Out":false}},{"Position":2,"Identifier":"PartyTypeId","Type":{"Type":"Wrapped","Identifier":"int64","Out":false}}],"ReturnType":{"Type":"Wrapped","Identifier":"UOnlinePartyJoinInfo*"}}} />
+
+## Inputs
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Input Name</th>
+      <th>Input Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td>Local User Id</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl","Out":false}} /></td>
+    </tr>
+    <tr>
+      <td>User Id</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl","Out":false}} /></td>
+    </tr>
+    <tr>
+      <td>Party Type Id</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"int64","Out":false}} /></td>
+    </tr>
+  </tbody>
+</table>
+
+
+## Outputs
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Output Name</th>
+      <th>Output Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td>Return  Value</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"UOnlinePartyJoinInfo*"}} /></td>
+    </tr>
+  </tbody>
+</table>
+
+

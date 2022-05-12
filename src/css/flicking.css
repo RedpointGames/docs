@@ -1,0 +1,101 @@
+.flicking-viewport {
+  margin-left: auto;
+  margin-right: auto;
+  transition: height 0.5s;
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+.flicking-camera {
+  display: flex;
+  flex-direction: row;
+  height: 100%;
+  position: relative;
+  width: 100%;
+  will-change: transform;
+  z-index: 1;
+}
+
+.flicking-camera > * {
+  flex-shrink: 0;
+}
+
+.flicking-item {
+  align-items: flex-end;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: flex-start;
+  position: relative;
+}
+
+div.row > .flicking-item {
+  width: 100%;
+  margin-top: 1em;
+  margin-bottom: 1em;
+  margin-left: 0.5em;
+  margin-right: 0.5em;
+}
+
+div.d-lg-block .flicking-item > a > div > h5 {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.carousel {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+  align-items: stretch;
+  align-content: normal;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  margin: 0;
+  margin-bottom: 1em;
+  margin-top: 1em;
+}
+
+.carousel > .carousel-arrow-left,
+.carousel > .carousel-arrow-right {
+  display: block;
+  flex-grow: 0;
+  flex-shrink: 1;
+  flex-basis: auto;
+  align-self: auto;
+  width: auto;
+}
+
+.carousel > .carousel-arrow-left {
+  margin-right: 1em;
+}
+
+.carousel > .carousel-arrow-right {
+  margin-left: 1em;
+}
+
+.carousel > .carousel-arrow-left > a,
+.carousel > .carousel-arrow-right > a {
+  display: flex;
+  height: 100%;
+  justify-content: center;
+  align-items: center;
+}
+
+.carousel > .carousel-arrow-left > a > svg,
+.carousel > .carousel-arrow-right > a > svg {
+  display: block;
+}
+
+.carousel > .carousel-content {
+  display: block;
+  flex-grow: 0;
+  flex-shrink: 1;
+  flex-basis: auto;
+  align-self: auto;
+  width: auto;
+  min-width: 0;
+}

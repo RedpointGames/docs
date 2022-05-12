@@ -1,0 +1,93 @@
+---
+title: Finding a lobby
+description: How to find available lobbies to join.
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import Blueprint from '@site/src/Blueprint';
+
+import bpFind from './bp/find.bp';
+
+Before you can [join a lobby](ossv1/lobbies/joining.mdx), you either need to run a search to find a lobby, or [parse a lobby ID from a string](ossv1/lobbies/data.mdx#parsing-a-string-as-a-lobby-id).
+
+:::caution
+Searching for lobbies invalidates previous searches. That is, you can _not_ do things in the following order:
+
+- Search for lobbies and get the ID of lobby A from the results
+- Run another search for lobbies that doesn't have lobby A in the results
+- Join lobby A
+
+If you want to join a lobby from a search, you must join the lobby before starting another search.
+:::
+
+## Finding a lobby
+
+<Tabs lazy groupId="code-format" defaultValue="c++" values={[ { label: 'C++', value: 'c++' }, { label: 'Blueprints', value: 'blueprints' } ]}>
+<TabItem value="c++">
+
+First, get the online lobby interface:
+
+```cpp
+#include "OnlineSubsystem.h"
+#include "OnlineSubsystemUtils.h"
+// If your project can't find this header, make sure you have installed the headers from here:
+// https://src.redpoint.games/redpointgames/online-interfaces/
+#include "OnlineLobbyInterface.h"
+
+// ...
+
+IOnlineSubsystem* Subsystem = Online::GetSubsystem(this->GetWorld());
+TSharedPtr<IOnlineLobby, ESPMode::ThreadSafe> Lobby = Online::GetLobbyInterface(Subsystem);
+```
+
+Next, create the lobby settings you wish to search for:
+
+```cpp
+TSharedRef<FOnlineLobbySearchQuery> Search = MakeShared<FOnlineLobbySearchQuery>();
+
+// To search by settings, add a LobbySetting and SettingValue to search for:
+Search->Filters.Add(
+    FOnlineLobbySearchQueryFilter(
+    FString(TEXT("LobbySetting")),
+    FString(TEXT("SettingValue")),
+    EOnlineLobbySearchQueryFilterComparator::Equal));
+```
+
+Then call `FindSession` with your session settings:
+
+```cpp
+if (!Lobby->Search(
+    *LocalUserId.Get(),
+    *Search,
+    FOnLobbySearchComplete::CreateLambda([](const FOnlineError &Error,
+    const FUniqueNetId &UserId,
+    const TArray<TSharedRef<const FOnlineLobbyId>> &Lobbies)
+    {
+        if (Error.WasSuccessful())
+        {
+            // The search was successful, access the results
+            // via the "Lobbies" parameter.
+        }
+        else
+        {
+            // The search failed, refer to the "Error" parameter
+            // for more detail on the error.
+        }
+    }
+)))
+```
+
+</TabItem>
+<TabItem value="blueprints">
+
+Using your desired filters, call "Search":
+
+<Blueprint height="1000px" blueprint={bpFind} />
+</TabItem>
+</Tabs>
+
+Once you have the lobby ID from the search results, you can either:
+
+- [Join the lobby](ossv1/lobbies/joining.mdx#joining-a-lobby)
+- [Join the lobby as a party](ossv1/lobbies/joining.mdx#joining-a-lobby-as-party)

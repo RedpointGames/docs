@@ -1,0 +1,140 @@
+---
+title: Reconnecting to a session
+description: How to allow players to reconnect to a game or match after their Internet gets disrupted or their game client crashes.
+---
+
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+import Blueprint from "@site/src/Blueprint";
+
+You can permit players to reconnect to a session they were in after their connection gets disrupted by using the `FindFriendSession` function. This is often used to allow players to rejoin a game after their Internet drops or their game client crashes.
+
+Note that the game server **must not** have unregistered them as a player in order for this technique to work. Refer to [Unregister players](ossv1/sessions/creating.mdx#unregister-players) for more detail on the requirements to support reconnections.
+
+## Checking if a session is available to reconnect to
+
+You will most likely want to perform this check at the main menu of your game, and at the menu that a user is sent back to after a disconnection, so that you can offer them the option of reconnecting to the game.
+
+<Tabs lazy groupId="code-format" defaultValue="c++" values={[ { label: 'C++', value: 'c++' }, { label: 'Blueprints', value: 'blueprints' } ]}>
+<TabItem value="c++">
+
+First, get the online session interface:
+
+```cpp
+#include "OnlineSubsystem.h"
+#include "OnlineSubsystemUtils.h"
+#include "Interfaces/OnlineSessionInterface.h"
+
+// ...
+
+IOnlineSubsystem* Subsystem = Online::GetSubsystem(this->GetWorld());
+IOnlineSessionPtr Session = Subsystem->GetSessionInterface();
+```
+
+Register the event handler so you know when you receive the search results. `FindFriendSessionDelegateHandle` is declared as an `FDelegateHandle`.
+
+```cpp
+this->FindFriendSessionDelegateHandle =
+    Session->AddOnFindFriendSessionCompleteDelegate_Handle(
+        0 /* LocalUserNum */,
+        FOnFindFriendSessionComplete::FDelegate::CreateUObject(
+            this,
+            &UMyClass::HandleFindFriendSessionComplete));
+```
+
+Call `FindFriendSession`, using the current user ID as the "friend ID" parameter:
+
+```cpp
+if (!Session->FindFriendSession(0 /* LocalUserNum */, *UserId))
+{
+    // Call didn't start, return error.
+    Session->ClearOnFindFriendSessionCompleteDelegate_Handle(0 /* LocalUserNum */, this->FindFriendSessionDelegateHandle);
+}
+```
+
+When your callback fires, you can handle whether or not a session is available:
+
+```cpp
+void UMyClass::HandleFindFriendSessionComplete(
+    int32 LocalUserNum,
+    bool bWasSuccessful,
+    const TArray<FOnlineSessionSearchResult> &Results)
+{
+    // NOTE: bWasSuccessful is only true if the call succeeded *AND* a session was found.
+    // It's normal for it to be false when the call succeeds if the user doesn't have
+    // a session to reconnect to. You should not treat a false value as an indication to
+    // retry the request.
+
+    if (bWasSuccessful && Results.Num() > 0)
+    {
+        // The user has a session they can reconnect to. You can handle the (at most one)
+        // search result from the Results array the same way that search results
+        // are handled in "Finding a session".
+
+        Session->ClearOnFindFriendSessionCompleteDelegate_Handle(this->FindFriendSessionDelegateHandle);
+        this->FindFriendSessionDelegateHandle.Reset();
+        return;
+    }
+
+    // Otherwise, the user does not have a session to reconnect to.
+    Session->ClearOnFindFriendSessionCompleteDelegate_Handle(this->FindFriendSessionDelegateHandle);
+    this->FindFriendSessionDelegateHandle.Reset();
+}
+```
+
+</TabItem>
+<TabItem value="blueprints">
+
+Call "Find Friend Session", using the current user ID as the "friend ID" parameter:
+
+<Blueprint height="425px" blueprint={`
+Begin Object Class=/Script/BlueprintGraph.K2Node_GetSubsystem Name="K2Node_GetSubsystem_0"
+   CustomClass=Class'"/Script/OnlineSubsystemBlueprints.OnlineSessionSubsystem"'
+   NodePosX=-192
+   NodePosY=32
+   NodeGuid=047FFDC044C703E118377F98DD23441A
+   CustomProperties Pin (PinId=1EFB186740F9F4EE4BEA08B63227CFE2,PinName="ReturnValue",Direction="EGPD_Output",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/OnlineSubsystemBlueprints.OnlineSessionSubsystem"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_AsyncAction_1 657A90A44A68BF35141982B8183BC406,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_AsyncAction Name="K2Node_AsyncAction_1"
+   ProxyFactoryFunctionName="FindFriendSession"
+   ProxyFactoryClass=Class'"/Script/OnlineSubsystemBlueprints.OnlineSessionSubsystemFindFriendSession"'
+   ProxyClass=Class'"/Script/OnlineSubsystemBlueprints.OnlineSessionSubsystemFindFriendSession"'
+   NodePosX=-48
+   NodePosY=-16
+   NodeGuid=146A9F124CFBC7B2FE8195BECEE01631
+   CustomProperties Pin (PinId=6E613235483EDA97B18D3688616F4B60,PinName="execute",PinToolTip="\\nExec",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=E239F97046ABCE298C39C08DB39329F7,PinName="then",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=2E515F8C4E4489F7F67A68A47D44848B,PinName="OnCallFailed",PinFriendlyName="On Call Failed",PinToolTip="On Call Failed",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=565BF1D2427DBAB0798A7C9CD7CBFBFA,PinName="OnFindFriendSessionComplete",PinFriendlyName="On Find Friend Session Complete",PinToolTip="On Find Friend Session Complete",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=A1E9B4C747AE65651975A6A52051B23E,PinName="bWasSuccessful",PinToolTip="Was Successful",Direction="EGPD_Output",PinType.PinCategory="bool",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=B0D708B441CE0978D13C57B52B5D3A27,PinName="FriendSearchResult",PinToolTip="Friend Search Result",Direction="EGPD_Output",PinType.PinCategory="struct",PinType.PinSubCategory="",PinType.PinSubCategoryObject=ScriptStruct'"/Script/OnlineSubsystemBlueprints.OnlineSessionSearchResultBP"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=Array,PinType.bIsReference=True,PinType.bIsConst=True,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_GetArrayItem_1 FD1AA5CB4BEEE65FEA4D388997364878,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=657A90A44A68BF35141982B8183BC406,PinName="Subsystem",PinToolTip="Subsystem\\nOnline Session Subsystem Object Reference",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/OnlineSubsystemBlueprints.OnlineSessionSubsystem"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_GetSubsystem_0 1EFB186740F9F4EE4BEA08B63227CFE2,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=E2A7F836441CA296A9B974BB915128FB,PinName="LocalUserNum",PinToolTip="Local User Num\\nInteger",PinType.PinCategory="int",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,DefaultValue="0",AutogeneratedDefaultValue="0",PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=30F686514D1560C312EF8988BEE0A547,PinName="Friend",PinToolTip="Friend\\nUnique Net Id Repl Structure",PinType.PinCategory="struct",PinType.PinSubCategory="",PinType.PinSubCategoryObject=ScriptStruct'"/Script/Engine.UniqueNetIdRepl"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_GetArrayItem Name="K2Node_GetArrayItem_1"
+   bReturnByRefDesired=False
+   NodePosX=320
+   NodePosY=128
+   NodeGuid=30F9851E479E1EDCA047728758A41DA2
+   CustomProperties Pin (PinId=FD1AA5CB4BEEE65FEA4D388997364878,PinName="Array",PinType.PinCategory="struct",PinType.PinSubCategory="",PinType.PinSubCategoryObject=ScriptStruct'"/Script/OnlineSubsystemBlueprints.OnlineSessionSearchResultBP"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=Array,PinType.bIsReference=False,PinType.bIsConst=True,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_AsyncAction_1 B0D708B441CE0978D13C57B52B5D3A27,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=6E8492924129FE728E6639AC81629A30,PinName="Dimension 1",PinType.PinCategory="int",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,DefaultValue="0",AutogeneratedDefaultValue="0",PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=132DAFB9405A42E3ACB1B8A39E210196,PinName="Output",Direction="EGPD_Output",PinType.PinCategory="struct",PinType.PinSubCategory="",PinType.PinSubCategoryObject=ScriptStruct'"/Script/OnlineSubsystemBlueprints.OnlineSessionSearchResultBP"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_BreakStruct_0 88D930344140EC01B160488D7E283D6E,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_BreakStruct Name="K2Node_BreakStruct_0"
+   bMadeAfterOverridePinRemoval=True
+   ShowPinForProperties(0)=(PropertyName="Session",PropertyFriendlyName="Session",PropertyTooltip="All advertised session information",CategoryName="Online",bShowPin=True,bCanToggleVisibility=True)
+   ShowPinForProperties(1)=(PropertyName="PingInMs",PropertyFriendlyName="Ping in Ms",PropertyTooltip="Ping to the search result, MAX_QUERY_PING is unreachable",CategoryName="Online",bShowPin=True,bCanToggleVisibility=True)
+   StructType=ScriptStruct'"/Script/OnlineSubsystemBlueprints.OnlineSessionSearchResultBP"'
+   NodePosX=192
+   NodePosY=192
+   NodeGuid=B832258D45863717446DD6839A6B04B5
+   CustomProperties Pin (PinId=88D930344140EC01B160488D7E283D6E,PinName="OnlineSessionSearchResultBP",PinType.PinCategory="struct",PinType.PinSubCategory="",PinType.PinSubCategoryObject=ScriptStruct'"/Script/OnlineSubsystemBlueprints.OnlineSessionSearchResultBP"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=True,PinType.bIsConst=True,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_GetArrayItem_1 132DAFB9405A42E3ACB1B8A39E210196,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=4601874340B879EA009F74A6F383675B,PinName="Session",PinFriendlyName="Session",PinToolTip="Session\\nOnline Session BP Structure\\n\\nAll advertised session information",Direction="EGPD_Output",PinType.PinCategory="struct",PinType.PinSubCategory="",PinType.PinSubCategoryObject=ScriptStruct'"/Script/OnlineSubsystemBlueprints.OnlineSessionBP"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=88AFD282488B6B44E6A6E783B52DAF1C,PinName="PingInMs",PinFriendlyName="Ping in Ms",PinToolTip="Ping In Ms\\nInteger\\n\\nPing to the search result, MAX_QUERY_PING is unreachable",Direction="EGPD_Output",PinType.PinCategory="int",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+`} />
+</TabItem>
+</Tabs>
+
+Refer to [Connecting to a game server](/setup/networking/server_travel.mdx) on how to use the search result to reconnect to the game server.

@@ -1,0 +1,42 @@
+---
+title: Cross-platform invites overview
+sidebar_label: Cross-platform invites
+description: Describes how the cross-platform invite system works.
+---
+
+EOS Online Framework provides a cross-platform invite system that goes beyond the functionality that the EOS SDK provides. It leverages our own platform-specific integrations to send and accept invites on the local platforms (such as Steam), and perform the work to convert a local platform invite into an EOS session or party join.
+
+## Prerequisites
+
+In order for the cross-platform invite system to work, there are some important things to note:
+
+- Most platforms can advertise either a session or party via presence, but not both. For platforms that can only advertise one of these, the "Presence Advertises" setting in Project Settings must be set to what you want to advertise on those platforms.
+- You must have completed the "Platform Setup" page in it's entirety for the platforms you're publishing on. Some platforms require additional setup beyond just authentication in order for this feature to work.
+
+## Creating a session with cross-platform invites and presence
+
+To have cross-platform invites work with sessions, you'll need to:
+
+- Ensure that "Presence Advertises" is to set "Session" in Project Settings.
+- Ensure that "Should Advertise" is enabled when the session is created.
+- Ensure that "Uses Presence" is enabled when the session is created.
+
+Once this is done, the plugin will automatically advertise it on the local platform.
+
+## Creating a party with cross-platform invites and presence
+
+To have cross-platform invites work with parties, you'll need to:
+
+- Ensure that "Presence Advertises" is to set "Party" in Project Settings.
+- Ensure that "Join Request Action" is set to "Auto Approve" when the party is created.
+- Ensure that "Presence Permissions" is set to "Anyone" when the party is created.
+- Ensure that "Invite Permissions" is set to "Anyone" when the party is created.
+- Ensure that "Is Accepting Members" is enabled when the party is created.
+- Ensure that the party type is the primary party type (in blueprints this is available through the "Get Primary Party Type" node).
+
+Once this is done, the plugin will automatically advertise it on the local platform.
+
+## Further reading
+
+- [Creating a session](/ossv1/sessions/creating.mdx)
+- [Creating a party](/ossv1/parties/creating.mdx)

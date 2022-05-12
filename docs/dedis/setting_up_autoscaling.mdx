@@ -1,0 +1,235 @@
+---
+title: Setting up autoscaling
+description: Turn on the Agones autoscaler so it creates more dedicated game servers as needed.
+---
+
+Now that your packaged game server has been successfully deployed and tested on the cluster, you can set up a fleet of game server containers on Agones and configure Agones to autoscale them based on demand.
+
+## Opening the firewall on the Kubernetes control node
+
+To date, we've created all of the Agones/Kubernetes resources by using the SSH terminal on the Kubernetes control node.
+
+For obvious reasons, this doesn't work long term, especially when you're [deploying your game servers from a build server](/dedis/automating_deployments.mdx). Instead, we'll open the Kubernetes API port on the control node so that we can access it from our local machine and build servers.
+
+### Identifying your IP address
+
+You'll need to know your IP address to allow your computer direct access to the Kubernetes API. You can [use Google to find your IP address](https://www.google.com/search?q=what's+my+ip).
+
+### Open the firewall permit connections from your local machine
+
+On the Kubernetes control node, run the following command, replacing `1.1.1.1` with the IP address Google gave you in the last step. Replace `eth1` with the public interface name as identified in [Securing your network](/dedis/securing_your_network.mdx#determine-your-network-interfaces).
+
+```bash
+ufw allow in on eth1 from 1.1.1.1 proto tcp to any port 6443
+```
+
+### Copy the kubeconfig file from the control node
+
+:::caution
+The `k3s.yaml` file grants full administrative permissions to your Kubernetes cluster. If you're a company with multiple employees, you might want to issue certificates for each employee and utilize RBAC to lock down permissions. However, issuing user certificates is outside the scope of this guide.
+:::
+
+On the Kubernetes control node, print the contents of the `k3s.yaml` file so you can copy it's contents to a file on your local machine:
+
+```bash
+cat /etc/rancher/k3s/k3s.yaml
+```
+
+You'll get a file that looks like this:
+
+```yaml
+apiVersion: v1
+clusters:
+- cluster:
+    certificate-authority-data: ...
+    server: https://127.0.0.1:6443
+  name: default
+contexts:
+- context:
+    cluster: default
+    user: default
+  name: default
+current-context: default
+kind: Config
+preferences: {}
+users:
+- name: default
+  user:
+    client-certificate-data: ...
+    client-key-data: ...
+```
+
+You'll need to change `https://127.0.0.1:6443` to the public IP address of the control node. For example, if the public IP was `1.1.1.1`, you would change it to:
+
+```yaml
+clusters:
+- cluster:
+    certificate-authority-data: ...
+    server: https://1.1.1.1:6443
+  name: default
+```
+
+Then to utilize this file, you have a few options:
+
+- If you don't need to connect to any other Kubernetes cluster, you can just save this file as `~/.kube/config` (`%userprofile%\.kube\config` on Windows).
+- If you already have a Kubernetes configuration file, you can rename the `default` values to something more identifying (like `west-europe-01`) and then merge the cluster, context and user values into your existing Kubernetes file.
+- Or for all of the commands below, you can pass `--kubeconfig=path/to/file` as an additional parameter right after `kubectl`.
+
+### Test your connection to the Kubernetes control node
+
+Make sure you can successfully see the Kubernetes pods from your local machine by running:
+
+```
+kubectl get pods
+```
+
+You should be able to see the Agones-related pods, even if you haven't deployed any game servers.
+
+## Defining the game server fleet
+
+On your local machine, create a game server fleet using the following YAML as a template:
+
+```yaml
+apiVersion: "agones.dev/v1"
+kind: Fleet
+metadata:
+  # Change this as appropriate. If you roll out a fleet with the same name, it will
+  # upgrade the existing fleet. If you want to run multiple versions side-by-side, use
+  # a unique name for each version.
+  name: eos-dedicated-server
+spec:
+  # The number of replicas by default. This isn't super important, as we'll control
+  # this with the autoscaler in a moment anyway.
+  replicas: 2
+  template:
+    spec:
+      # Set up your game ports as appropriate.
+      ports:
+      - name: game
+        containerPort: 7777
+      - name: beacon
+        containerPort: 12345
+      template:
+        spec:
+          # Don't forget to use your GitLab pull secret.
+          imagePullSecrets:
+          - name: gitlab
+          containers:
+          - name: eos-dedicated-server
+            # Update the image to the URL you pushed your packaged game server to.
+            image: registry.gitlab.com/redpointgames/internal/eos-game-server:latest
+            resources:
+              requests:
+                # Adjust these values for your game server.
+                # 1GB of RAM
+                memory: "1Gi"
+                # 1.5 vCPU
+                cpu: "1500m"
+              limits:
+                # These should be the same settings as requests.
+                memory: "1Gi"
+                cpu: "1500m"
+```
+
+Deploy the fleet by running the following command:
+
+```
+kubectl apply -f C:\Path\To\FleetFile.yaml
+```
+
+After the fleet deploys, you should be able to see the pods with `kubectl get pods`:
+
+```
+NAME                                    READY   STATUS      RESTARTS   AGE
+eos-dedicated-server-47tpv-cgf6q        2/2     Running     0          2m
+eos-dedicated-server-47tpv-vpwpq        2/2     Running     0          2m
+```
+
+You should also be able to see them with `kubectl get gameservers`:
+
+```
+NAME                               STATE   ADDRESS     PORT   NODE             AGE
+eos-dedicated-server-47tpv-cgf6q   Ready   10.0.0.1    7181   west-europe-01   2m
+eos-dedicated-server-47tpv-vpwpq   Ready   10.0.0.2    7072   west-europe-02   2m
+```
+
+## Defining the game server fleet autoscaler
+
+With the game server fleet deployed, it's now time to deploy an autoscaler. The Agones autoscaler will automatically create new game server containers as existing ones become allocated (by the game server calling the `/allocate` endpoint).
+
+These are fairly simple to define and deploy, using the following YAML as a template:
+
+```yaml
+apiVersion: "autoscaling.agones.dev/v1"
+kind: FleetAutoscaler
+metadata:
+  name: eos-dedicated-server-autoscaler
+spec:
+  fleetName: eos-dedicated-server
+  policy:
+    type: Buffer
+    buffer:
+      # The number of game servers to keep available at all times. The autoscaler will
+      # create or remove game servers as appropriate to keep this buffer.
+      bufferSize: 2
+      # The minimum number of game servers to run at any given time.
+      minReplicas: 2
+      # The maximum number of game servers to run at any given time. You can usually set
+      # this to a significantly large value, as capacity will be limited by the number
+      # of Kubernetes machines you have. However, if you're bursting into cloud, you
+      # might want to limit this to prevent cost overruns.
+      maxReplicas: 2000
+```
+
+Deploy the fleet autoscaler by running the following command:
+
+```
+kubectl apply -f C:\Path\To\FleetAutoscalerFile.yaml
+```
+
+You can test that the autoscaler works by manually creating a `GameServerAllocation`. Typically allocations will happen when the game server calls `/allocate`, but to save us some time in spinning up a client and connecting to a server, we're just going to do this manually. Create a file with the following contents:
+
+```yaml
+apiVersion: "allocation.agones.dev/v1"
+kind: GameServerAllocation
+```
+
+Then create the `GameServerAllocation` with:
+
+```
+kubectl create -f C:\Path\To\GameServerAllocationFile.yaml
+```
+
+If you use `kubectl get gameservers`, you should see a game server container allocated:
+
+```
+NAME                               STATE       ADDRESS     PORT   NODE             AGE
+eos-dedicated-server-47tpv-cgf6q   Ready       10.0.0.1    7181   west-europe-01   12m
+eos-dedicated-server-47tpv-vpwpq   Allocated   10.0.0.2    7072   west-europe-02   12m
+```
+
+After a few moments, you should see the autoscaler spin up a new game server container to keep the buffer of ready game server containers:
+
+```
+NAME                               STATE       ADDRESS     PORT   NODE             AGE
+eos-dedicated-server-47tpv-cgf6q   Ready       10.0.0.1    7181   west-europe-01   12m
+eos-dedicated-server-47tpv-vpwpq   Allocated   10.0.0.2    7072   west-europe-02   12m
+eos-dedicated-server-47tpv-f74jg   Scheduled   10.0.0.1    7083   west-europe-01   2m
+```
+
+After a few moments, the new game server container should become `Ready`:
+
+```
+NAME                               STATE       ADDRESS     PORT   NODE             AGE
+eos-dedicated-server-47tpv-cgf6q   Ready       10.0.0.1    7181   west-europe-01   12m
+eos-dedicated-server-47tpv-vpwpq   Allocated   10.0.0.2    7072   west-europe-02   12m
+eos-dedicated-server-47tpv-f74jg   Ready       10.0.0.1    7083   west-europe-01   2m
+```
+
+If you see this behaviour, congratulations! You have successfully deployed your game server containers onto your cluster with autoscaling enabled.
+
+Before moving onto next steps, clean up the game server we manually allocated:
+
+```
+kubectl delete gameserver eos-dedicated-server-47tpv-vpwpq
+```

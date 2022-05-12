@@ -1,0 +1,227 @@
+---
+title: Securing your network
+description: Learn how to secure Kubernetes cluster nodes, and how to restrict SSH access only to authorized employees.
+---
+
+When you first lease dedicated servers from a local provider, they'll often be configured with SSH access to the public Internet. This document guides you through the process of locking down machines so they're only accessible to your team internally.
+
+:::info
+You should run through the steps after "Setting up CloudFlare Teams" for every additional dedicated server you set up.
+:::
+
+## Setting up CloudFlare Teams
+
+CloudFlare Teams is a "zero-trust" product. We use it because it allows us to move SSH access to the web browser, and secure that access using existing authentication systems (like Google Workspace or Active Directory), while turning off public facing SSH access. It works by installing a tunnel agent on each machine; CloudFlare uses this tunnel agent to forward the SSH connection from your web browser into the machine.
+
+You only need to perform the steps underneath this section ("Setting up CloudFlare Teams") once.
+
+### Creating a CloudFlare account
+
+If you don't have a CloudFlare account, you can [create a CloudFlare account](https://dash.cloudflare.com/sign-up/teams) on their website.
+
+On the free CloudFlare Teams plan, you can set up an unlimited number of machines for up to 50 users in your company or team.
+
+### Get a domain for your internal applications
+
+To access SSH in your web browser, you'll need to be able to create a subdomain in CloudFlare for each machine. To add a subdomain, you'll need to have a domain and add it to CloudFlare.
+
+You can register domain names directly inside the [CloudFlare dashboard](https://dash.cloudflare.com/) under "Registrar" -> "Register Domains".
+
+You shouldn't re-use a public facing domain (like your main company domain) for your internal application access; you should have a dedicated domain you use for your internal apps.
+
+For the rest of this tutorial, we'll using the domain `companyinternal.dev` as the domain in our examples. You should replace this with the actual domain you registered.
+
+Once you've registered a domain, you can access the CloudFlare Teams dashboard by clicking "Zero Trust" in the sidebar.
+
+### Connect your identity provider
+
+You can connect the identity provider you want to use for authentication under Settings -> Login methods -> Add new. This is where you can e.g. connect Google Workspace. The CloudFlare Teams dashboard will walk you through the information it needs for the login provider you want to use.
+
+### Set up an access group
+
+You'll most likely want the same people to have SSH access across all of your dedicated servers. You can set up an access group in CloudFlare Teams, and then assign this group to every application. When you want to update everyone's access, you only need to modify the group.
+
+1. Under "My Team" -> "Groups", click "Add a group".
+1. If you're only using CloudFlare Teams for SSH access, you might want to turn on "Set as default group". You won't need to assign this group manually to applications when you set up each application in the steps below.
+1. Set up the include and require rules to restrict access to your team members. An example set up would be:
+    - Include: "Emails ending in @company.com"
+    - Require: "Login methods - Google Workspace"
+
+## Create an application for the dedicated server
+
+For each dedicated server you have, you need to create an application in the CloudFlare Teams dashboard. This will be our "SSH" application that we use to access SSH on each dedicated server.
+
+1. Under "Access" -> "Applications", click "Add an application".
+1. Click "Select" underneath "Self-hosted".
+1. Set the "Application name" to a name that describes the specific dedicated server. For example, if this is the first dedicated server in a West Europe region, you might call it "west-europe-01". It's recommended that you also set the hostname on the dedicated server to match, and that you use this as the application subdomain as well to keep things consistent.
+1. Set the session duration to the maximum length of time you want to allow an SSH connection to be open before the user has to re-authenticate. You can lower this from 24 hours to increase security.
+1. Set the domain to the domain you registered (e.g. `companyinternal.dev`). Leave the path blank.
+1. Set the subdomain. As suggested above, it should be something like `west-europe-01`.
+    - Ignore the warning about "No DNS record found for this domain". We'll create one later.
+1. Untick "Show this app in App Launcher". There's no need for it to be visible there.
+1. Select the identity providers you want to use to authenticate SSH access with at the bottom of the page.
+1. Click "Next".
+1. Set a name for the policy; a suggestion would be "Internal Employee Access".
+1. If you set up an access group above, select this access group. Otherwise, manually add the access rules to only allow team member access.
+1. Click "Next".
+1. Underneath "Additional settings":
+    - Turn on "Enable automatic cloudflared authentication".
+    - Set "Browser rendering" to "SSH".
+
+## Set up an SSH tunnel
+
+For the application we just set up, we now need to create a tunnel configuration so that CloudFlare knows how to route it. This will also install the tunnel software on our dedicated server.
+
+1. Under "Access" -> "Tunnels", click "Create a tunnel".
+1. Set the tunnel name to match the application name; e.g. `west-europe-01`.
+1. Click "Save tunnel".
+1. For operating system, select "Debian".
+1. Copy the command shown for "If you don’t have cloudflared installed on your machine:".
+1. SSH into your dedicated server via the public Internet. Your local provider will have given you the SSH credentials for the dedicated server when they provisioned it. Usually these credentials are emailed to you. You can SSH to your machine at the command-line like so:
+
+```batch
+ssh user@host
+(enter password when prompted)
+```
+
+7. Paste the command that CloudFlare Teams gave you at Bash shell prompt on the remote server, then hit "Enter".
+1. The command will download `cloudflared`, install it and connect it to CloudFlare Teams.
+1. You should see the connector appear on CloudFlare Teams after a few seconds with a status of "Connected".
+1. Click "Next" in the CloudFlare Teams portal.
+1. Set the public hostname to the same hostname you gave the application in the previous step. That means:
+    - The subdomain should be something like `west-europe-01`.
+    - The domain should be the domain you registered, like `companyinternal.dev`.
+    - The path should be left blank.
+    - Again, ignore the warning about "No DNS record found for this domain". When you save the tunnel in a moment, it will create the DNS record we need automatically.
+1. For service, set the scheme to "SSH" and the address field to `127.0.0.1:22`.
+1. Click "Save tunnel" at the bottom of the page.
+
+You should now be able to go to e.g. `https://west-europe-01.companyinternal.dev` in your web browser. You'll get a prompt for a username followed by a password or private key. That's because we haven't set up automatic authentication, which we'll do in a moment.
+
+Using the credentials you got from your local provider, test that you can connect successfully in your web browser before proceeding.
+
+## Deploying short-lived certificates (automatic authentication)
+
+Rather than having your team members remember the username and password on every dedicated server, you can set up CloudFlare Teams to authenticate into the dedicated server automatically.
+
+1. Click "Access" -> "Service Auth".
+1. In the application dropdown, locate the SSH application you created for the dedicated server. If you don't see it, you might need to refresh the page first. Then click "Generate certificate".
+1. In the SSH connection you already have open to the dedicated server, make sure you're the `root` user. You might have to type `sudo bash` to elevate to the `root` user.
+1. Run `echo "public key copied from the page" > /etc/ssh/ca.pub`.
+1. Run `nano /etc/ssh/sshd_config`. This will bring up a text editor in the remote terminal.
+1. Use the arrow keys to find `#PubkeyAuthentication yes` and press the Delete key on your keyboard to remove the `#` character. This will uncomment the line, making it `PubkeyAuthentication yes`. If you don't see `#PubkeyAuthentication yes` in the file, add the `PubkeyAuthentication yes` line to the bottom of the file.
+1. At the bottom of the file or after the `PubkeyAuthentication yes` line, add the line `TrustedUserCAKeys /etc/ssh/ca.pub`.
+1. Press `Ctrl-O` to save the changes, then hit Enter to save the file with the existing filename.
+1. Press `Ctrl-X` to exit the editor.
+1. Run `systemctl reload sshd`. This will reload the SSH service with the new configuration.
+1. For the username of your identity provider, add a new user in the dedicated server. For example, if you were authenticating through Google Workspace and your email address was `alice@company.com`, you'd add a new user to the dedicated server with `useradd -m -s /bin/bash -G sudo alice`. Give the new account a password with `passwd alice`. The user will need to know their password to elevate with `sudo bash`. They can change their password after logging in with `passwd`.
+1. Refresh or open `https://west-europe-01.companyinternal.dev` in your browser again. Instead of being prompted for a username and password/private key, you should be automatically signed into your new e.g. `alice` account on the dedicated server.
+1. Make sure you can elevate to `root` with `sudo bash`.
+
+:::danger
+There needs to be an account on the dedicated server that matches the username of the identity provider, or you won't be automatically authenticated. If you haven't created an account that matches, you'll get the username/password prompt as before.
+:::
+
+## Locking down SSH access
+
+Now that we've got authentication and access running through CloudFlare, we're going to lock down access to the machine in two ways:
+
+- We're going to change the SSH listening address so it only listens on `127.0.0.1:22`. You won't be able to connect to SSH except via CloudFlare Teams.
+- We're going to turn off password authentication. Only CloudFlare's short-lived certificates will be used for authentication.
+
+:::danger
+This will turn off the fallback username/password prompt. Make sure you've created accounts on the dedicated server for everyone who needs access.
+:::
+
+To lock down the server:
+
+1. At a `root` prompt, run `nano /etc/ssh/sshd_config`. Type `sudo bash` if you're not elevated.
+1. Uncomment `#ListenAddress 0.0.0.0` and change it to `ListenAddress 127.0.0.1`.
+1. Use the arrow keys to scroll down and find `PasswordAuthentication yes` and change it to `PasswordAuthentication no`.
+1. Type `Ctrl-O` and then hit Enter to save the file with the current filename.
+1. Type `Ctrl-X` to exit the editor.
+1. Run `systemctl reload sshd`.
+1. On your local computer, try to connect to the dedicated server by running `ssh user@host`. This connection **should fail**, which means you've successfully turned off direct Internet access to the SSH port.
+1. Open a new tab in your web browser, and navigate to `https://west-europe-01.companyinternal.dev` again. You should be able to get an SSH prompt as before.
+
+:::danger
+If you can't get an SSH prompt at `https://west-europe-01.companyinternal.dev` after these steps, undo your changes to `sshd_config` and then run `systemctl reload sshd`.
+:::
+
+## Turning on the firewall
+
+Now that we've secured SSH access, you'll want to add firewall rules and turn on the firewall. This will ensure that connections from the Internet can only communicate with game servers, and not talk to any of the internal Kubernetes services that we only want to access from within the local network.
+
+### Determine your network interfaces
+
+Before we can proceed, you'll need to know the subnet of the local network. This will be the private network shared between all of the dedicated servers you have at the local provider. The private network needs to remain open so that Kubernetes nodes can communicate with each other.
+
+At an SSH prompt, run `ifconfig` to list all of the network interfaces. If the `ifconfig` command isn't found, run `apt update && apt install -y net-tools` and then run `ifconfig` again.
+
+You should get output like this:
+
+```
+eth0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+        inet 10.0.0.1  netmask 255.255.255.0  broadcast ...
+        ether ...  txqueuelen 1000  (Ethernet)
+        RX packets ...  bytes ... (... MB)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets ...  bytes ... (... MB)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+eth1: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+        inet 126.118.159.100  netmask 255.255.255.0  broadcast ...
+        ether ...  txqueuelen 1000  (Ethernet)
+        RX packets ...  bytes ... (... MB)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets ...  bytes ... (... MB)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+lo: flags=73<UP,LOOPBACK,RUNNING>  mtu 65536
+        inet 127.0.0.1  netmask 255.0.0.0
+        inet6 ::1  prefixlen 128  scopeid 0x10<host>
+        loop  txqueuelen 1000  (Local Loopback)
+        RX packets 2856  bytes 357338 (357.3 KB)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 2856  bytes 357338 (357.3 KB)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+```
+
+The interface names might differ slightly, but the important thing is:
+- `eth0` is the private network interface. It has an IP address like `10.x.x.x`, `192.168.x.x`, etc.
+- `eth1` is the public network interface. It has an IP address associated with the public Internet. This IP address should also be visible in any management portal that your local provider gives you.
+
+:::caution
+If you only have a single public interface, you'll need to set up UFW rules for each other node in the cluster. This is tedious, since you'll need to explicitly allow each other dedicated server's IP address, so it's highly recommended you get a private network set up by your local provider.
+:::
+
+### Adding the firewall rules
+
+Now, set up the firewall rules by running these commands at a terminal, replacing `eth0` and `eth1` with the interface names as appropriate:
+
+```bash
+ufw allow in on eth0 # allows all communication on private network
+ufw allow in on eth1 proto udp to any port 7000:8000 # allow game server communication from the Internet
+```
+
+### Ensure the firewall is deny-default
+
+Make sure that the firewall is configured to deny connections unless explicitly allowed:
+
+```bash
+ufw default deny incoming
+```
+
+### Finally, enable the firewall
+
+You can now enable the firewall with:
+
+```bash
+ufw enable
+```
+
+You'll be asked to proceed because this might interrupt SSH connections. Type `y` and hit Enter.
+
+:::danger
+If you lose SSH access through the web browser and don't have remote access, ask your local provider's support to turn off the firewall with `ufw disable`. They should be able to run this command for you as long as you haven't changed the root password on the dedicated server.
+:::

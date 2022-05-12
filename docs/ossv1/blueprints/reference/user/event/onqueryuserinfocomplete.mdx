@@ -1,0 +1,45 @@
+---
+id: onqueryuserinfocomplete
+title: On Query User Info Complete
+description: The OnQueryUserInfoComplete event of the User subsystem.
+---
+
+import TypeRenderer from '@site/src/TypeRenderer';
+import EventRenderer from '@site/src/EventRenderer';
+
+This is a bindable event.
+
+The C++ documentation for this event is available on [the Unreal Engine documentation website](https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Plugins/OnlineSubsystem/Interfaces/IOnlineUser/).
+
+## Example
+
+<EventRenderer subsystemName="User" event={{"Identifier":"OnQueryUserInfoComplete","Parameters":[{"Position":0,"Identifier":"bWasSuccessful","Type":{"Type":"Simple","Identifier":"bool"}},{"Position":1,"Identifier":"UserIds","Type":{"Type":"Array","Element":{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl"},"Out":false}},{"Position":2,"Identifier":"ErrorStr","Type":{"Type":"Simple","Identifier":"FString","Out":false}}]}} />
+
+## Outputs
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Output Name</th>
+      <th>Output Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td>bWasSuccessful</td>
+      <td><TypeRenderer typeInfo={{"Type":"Simple","Identifier":"bool"}} /></td>
+    </tr>
+    <tr>
+      <td>UserIds</td>
+      <td><TypeRenderer typeInfo={{"Type":"Array","Element":{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl"},"Out":false}} /></td>
+    </tr>
+    <tr>
+      <td>ErrorStr</td>
+      <td><TypeRenderer typeInfo={{"Type":"Simple","Identifier":"FString","Out":false}} /></td>
+    </tr>
+  </tbody>
+</table>
+
+

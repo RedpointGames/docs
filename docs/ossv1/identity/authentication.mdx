@@ -1,0 +1,197 @@
+---
+title: Logging in and out, and retrieving local user information
+description: How to authenticate users using the online identity subsystem.
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import Blueprint from '@site/src/Blueprint';
+
+import bpLogin from './bp/login.bp';
+import bpLogout from './bp/logout.bp';
+import bpLoginStatus from './bp/login_status.bp';
+import bpUserId from './bp/user_id.bp';
+import bpUserDisplayName from './bp/user_display_name.bp';
+import bpUserAccount from './bp/user_account.bp';
+import bpAllAccounts from './bp/all_accounts.bp';
+
+Once you've [configured authentication](auth/configuration.mdx) in your project, you can now log users in when your game launches.
+
+## Login a user
+
+It's recommended that you start the login process when the game launches. The login process might display interactive prompts to the user, so you'll usually want to display some sort of loading or splash screen during this process.
+
+:::caution
+You can not call AutoLogin immediately inside the `GameInstance Init` event, because the first `UWorld` is not yet ready. Since the world isn't ready, the login process can't display interactive prompts to the user.
+
+If you want to login during `Init`, add a delay (such as a `Delay` node if you are using blueprints) to make the `AutoLogin` call happen on the next frame.
+:::
+
+<Tabs lazy groupId="code-format" defaultValue="c++" values={[ { label: 'C++', value: 'c++' }, { label: 'Blueprints', value: 'blueprints' } ]}>
+<TabItem value="c++">
+
+If you are using C++ and not blueprints, you'll need to update your game's `.Build.cs` file to reference the `OnlineSubsystem` and `OnlineSubsystemUtils` modules. Add the following lines to your `.Build.cs` file:
+
+```csharp
+PublicDependencyModuleNames.AddRange(new string[]
+{
+    "OnlineSubsystem",
+    "OnlineSubsystemUtils",
+});
+```
+
+Then, get the online identity interface:
+
+```cpp
+#include "OnlineSubsystem.h"
+#include "OnlineSubsystemUtils.h"
+#include "Interfaces/OnlineIdentityInterface.h"
+
+// ...
+
+IOnlineSubsystem *Subsystem = Online::GetSubsystem(this->GetWorld());
+IOnlineIdentityPtr Identity = Subsystem->GetIdentityInterface();
+```
+
+Register the event handler so you know when login is complete. `LoginDelegateHandle` is declared as an `FDelegateHandle`.
+
+```cpp
+this->LoginDelegateHandle = Identity->AddOnLoginCompleteDelegate_Handle(
+    0,
+    FOnLoginComplete::FDelegate::CreateUObject(
+        this,
+        &UMyClass::HandleLoginComplete));
+```
+
+Then call `AutoLogin`. If you're running on a console where there might be multiple local users, you use the `LocalUserNum` parameter to log each of them in.
+
+```cpp
+if (!Identity->AutoLogin(0 /* LocalUserNum */))
+{
+    // Call didn't start, return error.
+}
+```
+
+When your callback fires, you'll want to handle any errors (check `bWasSuccessful`), and then deregister the event handler:
+
+```cpp
+void UMyClass::HandleLoginComplete(
+    int32 LocalUserNum,
+    bool bWasSuccessful,
+    const FUniqueNetId &UserId,
+    const FString &Error)
+{
+    // TODO: Check bWasSuccessful to see if the login was completed.
+
+    // Deregister the event handler.
+    IOnlineSubsystem *Subsystem = Online::GetSubsystem(this->GetWorld());
+    IOnlineIdentityPtr Identity = Subsystem->GetIdentityInterface();
+    Identity->ClearOnLoginCompleteDelegate_Handle(LocalUserNum, this->LoginDelegateHandle);
+    this->LoginDelegateHandle.Reset();
+}
+```
+
+</TabItem>
+<TabItem value="blueprints">
+
+To sign the user in, just call the "Auto Login" blueprint node on the identity subsystem:
+
+<Blueprint height="300px" blueprint={bpLogin} />
+
+</TabItem>
+</Tabs>
+
+## Logout a user
+
+Most games won't need to implement logout functionality, especially if you intend for login to be happening non-interactively via store or platform authentication (Steam, etc.)
+
+However, if you need to implement logout functionality so the user can sign in with a different account, you can use the `Logout` function on the identity interface.
+
+<Tabs lazy groupId="code-format" defaultValue="c++" values={[ { label: 'C++', value: 'c++' }, { label: 'Blueprints', value: 'blueprints' } ]}>
+<TabItem value="c++">
+
+The process for calling logout for the local user is basically the same as login, except that you call `Logout` instead of `AutoLogin`, and you register/deregister with `AddOnLogoutCompleteDelegate_Handle` and `ClearOnLogoutCompleteDelegate_Handle` instead. In addition, the callback handler should only have the `(int32 LocalUserNum, bool bWasSuccessful)` parameters.
+
+</TabItem>
+<TabItem value="blueprints">
+
+To sign the user out, call the "Logout" blueprint node on the identity subsystem:
+
+<Blueprint height="300px" blueprint={bpLogout} />
+
+</TabItem>
+</Tabs>
+
+## Detecting if a user is logged in
+
+<Tabs lazy groupId="code-format" defaultValue="c++" values={[ { label: 'C++', value: 'c++' }, { label: 'Blueprints', value: 'blueprints' } ]}>
+<TabItem value="c++">
+
+Use `GetLoginStatus` to detect if a user is logged in.
+
+</TabItem>
+<TabItem value="blueprints">
+
+Use the "Get Login Status" blueprint node to check if a local user is signed in:
+
+<Blueprint height="300px" blueprint={bpLoginStatus} />
+
+</TabItem>
+</Tabs>
+
+## Get a user's unique net ID
+
+<Tabs lazy groupId="code-format" defaultValue="c++" values={[ { label: 'C++', value: 'c++' }, { label: 'Blueprints', value: 'blueprints' } ]}>
+<TabItem value="c++">
+
+Call `GetUniquePlayerId` to get the unique ID of a local user.
+
+</TabItem>
+<TabItem value="blueprints">
+
+Use the "Get Unique Player Id" blueprint node to get the user ID of the local user. The user ID is required for most other blueprint calls, so you might want to wrap this up in a blueprint function library for re-usability.
+
+<Blueprint height="300px" blueprint={bpUserId} />
+
+</TabItem>
+</Tabs>
+
+## Get a user's display name
+
+<Tabs lazy groupId="code-format" defaultValue="c++" values={[ { label: 'C++', value: 'c++' }, { label: 'Blueprints', value: 'blueprints' } ]}>
+<TabItem value="c++">
+
+To quickly get a local user's display name, you can use `GetPlayerNickname`.
+
+</TabItem>
+<TabItem value="blueprints">
+
+To quickly get a local user's display name, you can use the "Get Player Nickname" blueprint node:
+
+<Blueprint height="300px" blueprint={bpUserDisplayName} />
+
+</TabItem>
+</Tabs>
+
+## Get a user's account information
+
+<Tabs lazy groupId="code-format" defaultValue="c++" values={[ { label: 'C++', value: 'c++' }, { label: 'Blueprints', value: 'blueprints' } ]}>
+<TabItem value="c++">
+
+To get the full account information for an authenticated user, including accessing the [user's attributes](ossv1/identity/user_attributes.mdx), use `GetUserAccount`. This requires the user's unique net ID, so call `GetUniquePlayerId` to get that value first.
+
+If you need to iterate through all of the user accounts that are logged in, you can use `GetAllUserAccounts` which returns all authenticated users.
+
+</TabItem>
+<TabItem value="blueprints">
+
+To get the full account information for an authenticated user, including accessing the [user's attributes](ossv1/identity/user_attributes.mdx), use the "Get User Account" blueprint node:
+
+<Blueprint height="300px" blueprint={bpUserAccount} />
+
+If you need to iterate through all of the locally signed in users, use the "Get All User Accounts" blueprint node. For example, you might use this on console platforms where you're supporting multiple local players.
+
+<Blueprint height="300px" blueprint={bpAllAccounts} />
+
+</TabItem>
+</Tabs>

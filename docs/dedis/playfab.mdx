@@ -1,0 +1,34 @@
+---
+title: Running dedicated servers on PlayFab
+sidebar_label: Running on PlayFab
+description: Additional information that applies when running dedicated game servers on PlayFab.
+---
+
+When you run dedicated game servers on PlayFab, there's additional set up that needs to be performed so that they can communicate with the EOS backend.
+
+:::danger
+We strongly advise against using PlayFab for hosting dedicated game servers, as you'll see costs **6-12x higher** than if you deployed your game servers from a local provider. Read [Avoiding public clouds](/dedis/avoiding_public_clouds.mdx) for more information.
+:::
+
+## Additional set up instructions for PlayFab
+
+The PlayFab execution environment lacks the latest Amazon root certificates, which are necessary for the EOS SDK to communicate with the Epic Online Services backend.
+
+First you'll need to download the certificates from [Amazon Trust Services](https://www.amazontrust.com/repository/):
+
+- [AmazonRootCA1.cer](https://www.amazontrust.com/repository/AmazonRootCA1.cer)
+- [AmazonRootCA2.cer](https://www.amazontrust.com/repository/AmazonRootCA2.cer)
+- [AmazonRootCA3.cer](https://www.amazontrust.com/repository/AmazonRootCA3.cer)
+- [AmazonRootCA4.cer](https://www.amazontrust.com/repository/AmazonRootCA4.cer)
+- [SFSRootCAG2.cer](https://www.amazontrust.com/repository/SFSRootCAG2.cer)
+
+Then create a wrapper script called `startup.cmd` to launch your game server, with the following contents:
+
+```
+certutil.exe -addstore root .\AmazonRootCA1.cer
+certutil.exe -addstore root .\AmazonRootCA2.cer
+certutil.exe -addstore root .\AmazonRootCA3.cer
+certutil.exe -addstore root .\AmazonRootCA4.cer
+certutil.exe -addstore root .\SFSRootCAG2.cer
+.\MyGameServer.exe -log
+```

@@ -1,0 +1,60 @@
+.mermaid svg {
+    width: 100% !important;
+    height: auto !important;
+}
+
+html[data-theme='dark'] .mermaid .label { 
+    fill: #ccc !important;
+    color: #ccc !important;
+}
+html[data-theme='dark'] .mermaid .label text,
+html[data-theme='dark'] .mermaid span { 
+    color: #ccc !important;
+    fill: #ccc !important;
+}
+html[data-theme='light'] .mermaid .edgeLabel,
+html[data-theme='dark'] .mermaid .edgeLabel { 
+    background-color: transparent !important;
+}
+html[data-theme='light'] .mermaid .edgeLabel rect {
+    opacity: 0.975 !important;
+    background-color: white !important;
+    fill: white !important;
+    filter: blur(2px);
+}
+html[data-theme='dark'] .mermaid .edgeLabel rect { 
+    opacity: 0.975 !important;
+    background-color: var(--ifm-background-color) !important;
+    fill: var(--ifm-background-color) !important;
+    filter: blur(2px);
+}
+html[data-theme='dark'] .mermaid .edgePath .path {
+    stroke: lightgray !important;
+}
+html[data-theme='dark'] .mermaid .edgePath marker,
+html[data-theme='dark'] .mermaid .edgePath marker path {
+    fill: lightgray !important;
+}
+html[data-theme='light'] .mermaid .node rect,
+html[data-theme='light'] .mermaid .node circle,
+html[data-theme='light'] .mermaid .node ellipse,
+html[data-theme='light'] .mermaid .node polygon,
+html[data-theme='light'] .mermaid .node path {
+    fill: #d7ecff !important;
+    stroke: #81B1DB !important;
+    rx: 5px !important;
+    ry: 5px !important;
+}
+html[data-theme='dark'] .mermaid .node rect,
+html[data-theme='dark'] .mermaid .node circle,
+html[data-theme='dark'] .mermaid .node ellipse,
+html[data-theme='dark'] .mermaid .node polygon,
+html[data-theme='dark'] .mermaid .node path {
+    fill: #262c30 !important;
+    stroke: #81B1DB !important;
+    rx: 5px !important;
+    ry: 5px !important;
+}
+.mermaid .cluster rect {
+    fill: transparent !important;
+}

@@ -1,0 +1,45 @@
+---
+id: onloginstatuschanged
+title: On Login Status Changed
+description: The OnLoginStatusChanged event of the Identity subsystem.
+---
+
+import TypeRenderer from '@site/src/TypeRenderer';
+import EventRenderer from '@site/src/EventRenderer';
+
+This is a bindable event.
+
+The C++ documentation for this event is available on [the Unreal Engine documentation website](https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Plugins/OnlineSubsystem/Interfaces/IOnlineIdentity/).
+
+## Example
+
+<EventRenderer subsystemName="Identity" event={{"Identifier":"OnLoginStatusChanged","Parameters":[{"Position":0,"Identifier":"OldStatus","Type":{"Type":"Wrapped","Identifier":"EOnlineLoginStatus"}},{"Position":1,"Identifier":"NewStatus","Type":{"Type":"Wrapped","Identifier":"EOnlineLoginStatus"}},{"Position":2,"Identifier":"NewId","Type":{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl","Out":false}}]}} />
+
+## Outputs
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Output Name</th>
+      <th>Output Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td>OldStatus</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"EOnlineLoginStatus"}} /></td>
+    </tr>
+    <tr>
+      <td>NewStatus</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"EOnlineLoginStatus"}} /></td>
+    </tr>
+    <tr>
+      <td>NewId</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl","Out":false}} /></td>
+    </tr>
+  </tbody>
+</table>
+
+

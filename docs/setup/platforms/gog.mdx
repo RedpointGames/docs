@@ -1,0 +1,50 @@
+---
+title: Authenticating with GOG Galaxy
+sidebar_label: GOG Galaxy
+description: How to enable GOG Galaxy authentication in your project.
+---
+
+To enable GOG Galaxy authentication, you need to switch to a source-based version of the plugin, and have access to the GOG Galaxy SDK.
+
+## Switch to using source code
+
+If you have not done so already, [switch to using a source-based version](../index.mdx#source-code-access) of the plugin by following the instructions on the Welcome page.
+
+## Install the prerequisites
+
+In order to use GOG Galaxy authentication, you need to install the following prerequisites:
+
+- Add the [GOG Galaxy online subsystem](https://github.com/gogcom/galaxy-ue4-oss-plugin) implementation to your Unreal Engine project.
+- Set up the GOG Galaxy online subsystem plugin by installing the [GOG Galaxy SDK](https://devportal.gog.com/galaxy/components/sdk) and [configuring the client ID and secret of the GOG plugin](https://github.com/gogcom/galaxy-ue4-oss-plugin#installing-plugin), based on the client ID and secret available in the [GOG Developer Portal](https://devportal.gog.com/panel/games)
+
+## Set up GOG authentication in the Epic Games Dev Portal
+
+1. Open the [Epic Games Dev Portal](https://dev.epicgames.com/).
+2. Navigate to your product.
+3. Click "Product Settings".
+4. Under the "Identity Providers" tab, click "Add Identity Provider".
+5. Select "GOG Galaxy" as the identity provider.
+6. Set the "Description" to any value you like.
+7. In the [GOG Developer Portal](https://devportal.gog.com/panel/games), click "SDK Credentials" next to the game you are setting authentication up for.
+8. Copy the `encrypted_ticket.private_key` value, and paste it into Epic Games Dev Portal as the "Private Key".
+9. Click "Save & Exit".
+10. Under the "Environments" tab, click "Identity Providers" next to the Live sandbox.
+11. For GOG Galaxy, select the new credential you just made.
+
+## Enable GOG authentication in your project
+
+In each `.Target.cs` file for your project (the main one and the `Editor` variant), you need to add this project definition:
+
+```csharp
+ProjectDefinitions.Add("ONLINE_SUBSYSTEM_EOS_ENABLE_GOG=1");
+```
+
+## Use GOG authentication at runtime
+
+When setting up your project to launch via the GOG Galaxy application, you need to add a specific argument to use GOG authentication.
+
+For the [launch arguments](https://docs.gog.com/bc-file-tasks/#advanced-properties) of your project, add `-ini:Engine:[EpicOnlineServices]:AuthenticationGraph=GOG`. This will instruct the game to use GOG authentication instead of the default authentication when launched via GOG Galaxy.
+
+:::caution
+The default authentication graph will never choose GOG authentication, as there is no way to programmatically detect if the game was launched via the GOG Galaxy application. You must add the argument to your project launch settings in order for authentication to work as intended.
+:::

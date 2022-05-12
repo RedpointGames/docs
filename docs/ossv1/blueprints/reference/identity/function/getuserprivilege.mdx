@@ -1,0 +1,69 @@
+---
+id: getuserprivilege
+title: Get User Privilege
+description: The GetUserPrivilege function of the Identity subsystem.
+---
+
+import TypeRenderer from '@site/src/TypeRenderer';
+import FunctionRenderer from '@site/src/FunctionRenderer';
+
+This is an asynchronous latent blueprint node.
+
+The C++ documentation for this function is available on [the Unreal Engine documentation website](https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Plugins/OnlineSubsystem/Interfaces/IOnlineIdentity/).
+
+## Example
+
+<FunctionRenderer subsystemName="Identity" func={{"Identifier":"GetUserPrivilege","Supported":false,"Async":true,"AsyncPins":["OnCallFailed","OnGetUserPrivilegeComplete"],"Pure":false,"Parameters":[{"Position":0,"Identifier":"LocalUserId","Type":{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl","Out":false}},{"Position":1,"Identifier":"Privilege","Type":{"Type":"Wrapped","Identifier":"EOnlineUserPrivilege"}},{"Position":2,"Identifier":"LocalUserId","Type":{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl","Out":true}},{"Position":3,"Identifier":"Privilege","Type":{"Type":"Wrapped","Identifier":"EOnlineUserPrivilege","Out":true}},{"Position":4,"Identifier":"PrivilegeResult","Type":{"Type":"Wrapped","Identifier":"int64","Out":true}}],"ReturnType":null}} />
+
+## Inputs
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Input Name</th>
+      <th>Input Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td>Local User Id</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl","Out":false}} /></td>
+    </tr>
+    <tr>
+      <td>Privilege</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"EOnlineUserPrivilege"}} /></td>
+    </tr>
+  </tbody>
+</table>
+
+
+## Outputs
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Output Name</th>
+      <th>Output Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td>Local User Id</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl","Out":true}} /></td>
+    </tr>
+    <tr>
+      <td>Privilege</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"EOnlineUserPrivilege","Out":true}} /></td>
+    </tr>
+    <tr>
+      <td>Privilege Result</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"int64","Out":true}} /></td>
+    </tr>
+  </tbody>
+</table>
+
+

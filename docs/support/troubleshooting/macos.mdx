@@ -1,0 +1,39 @@
+---
+title: Code signing and packaging on macOS
+description: Suggestions on how to solve code signing and packaging issues on macOS.
+---
+
+If you're having difficulty code signing or packaging your game on macOS, try the following steps.
+
+## Code sign the dynamic libraries individually
+
+After packaging your game, code sign the `.dylib` files within your package individually by running the following command. Replace the `pkg_path` and `SIGNING_ID` variables as appropriate for your game.
+
+```bash
+pkg_path=Path/To/Your.app
+SIGNING_ID=SigningIdentity
+find "${pkg_path}/Contents" -type f -name "*.dylib" -exec codesign --options runtime --timestamp --entitlements entitlements.plist --force --sign "${SIGNING_ID}" {} \;
+```
+
+## Ensure entitlements permit dynamic loading
+
+Ensure that the entitlements for your game permit dynamically loading libraries. A suggested `entitlements.plist` file is as follows:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>com.apple.security.cs.allow-jit</key>
+    <true/>
+    <key>com.apple.security.device.audio-input</key>
+    <true/>
+    <key>com.apple.security.cs.allow-dyld-environment-variables</key>
+    <true/>
+    <key>com.apple.security.cs.disable-library-validation</key>
+    <true/>
+    <key>com.apple.security.cs.disable-executable-page-protection</key>
+    <true/>
+</dict>
+</plist>
+```

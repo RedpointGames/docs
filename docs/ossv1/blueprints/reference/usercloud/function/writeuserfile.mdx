@@ -1,0 +1,81 @@
+---
+id: writeuserfile
+title: Write User File
+description: The WriteUserFile function of the UserCloud subsystem.
+---
+
+import TypeRenderer from '@site/src/TypeRenderer';
+import FunctionRenderer from '@site/src/FunctionRenderer';
+
+This is an asynchronous latent blueprint node.
+
+The C++ documentation for this function is available on [the Unreal Engine documentation website](https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Plugins/OnlineSubsystem/Interfaces/IOnlineUserCloud/).
+
+## Example
+
+<FunctionRenderer subsystemName="UserCloud" func={{"Identifier":"WriteUserFile","Supported":false,"Async":true,"AsyncPins":["OnCallFailed","OnWriteUserFileComplete","OnWriteUserFileProgress","OnWriteUserFileCanceled"],"Pure":false,"Parameters":[{"Position":0,"Identifier":"UserId","Type":{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl","Out":false}},{"Position":1,"Identifier":"FileName","Type":{"Type":"Simple","Identifier":"FString","Out":false}},{"Position":2,"Identifier":"FileContents","Type":{"Type":"Array","Element":{"Type":"Wrapped","Identifier":"int32"},"Out":true}},{"Position":3,"Identifier":"bCompressBeforeUpload","Type":{"Type":"Simple","Identifier":"bool"}},{"Position":4,"Identifier":"bWasSuccessful","Type":{"Type":"Simple","Identifier":"bool","Out":true}},{"Position":5,"Identifier":"UserId","Type":{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl","Out":true}},{"Position":6,"Identifier":"FileName","Type":{"Type":"Simple","Identifier":"FString","Out":true}},{"Position":7,"Identifier":"BytesWritten","Type":{"Type":"Simple","Identifier":"int32","Out":true}}],"ReturnType":null}} />
+
+## Inputs
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Input Name</th>
+      <th>Input Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td>User Id</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl","Out":false}} /></td>
+    </tr>
+    <tr>
+      <td>File Name</td>
+      <td><TypeRenderer typeInfo={{"Type":"Simple","Identifier":"FString","Out":false}} /></td>
+    </tr>
+    <tr>
+      <td>Compress Before Upload</td>
+      <td><TypeRenderer typeInfo={{"Type":"Simple","Identifier":"bool"}} /></td>
+    </tr>
+  </tbody>
+</table>
+
+
+## Outputs
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Output Name</th>
+      <th>Output Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td>File Contents</td>
+      <td><TypeRenderer typeInfo={{"Type":"Array","Element":{"Type":"Wrapped","Identifier":"int32"},"Out":true}} /></td>
+    </tr>
+    <tr>
+      <td>Was Successful</td>
+      <td><TypeRenderer typeInfo={{"Type":"Simple","Identifier":"bool","Out":true}} /></td>
+    </tr>
+    <tr>
+      <td>User Id</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl","Out":true}} /></td>
+    </tr>
+    <tr>
+      <td>File Name</td>
+      <td><TypeRenderer typeInfo={{"Type":"Simple","Identifier":"FString","Out":true}} /></td>
+    </tr>
+    <tr>
+      <td>Bytes Written</td>
+      <td><TypeRenderer typeInfo={{"Type":"Simple","Identifier":"int32","Out":true}} /></td>
+    </tr>
+  </tbody>
+</table>
+
+

@@ -1,0 +1,61 @@
+---
+id: getexternalidmappings
+title: Get External Id Mappings
+description: The GetExternalIdMappings function of the User subsystem.
+---
+
+import TypeRenderer from '@site/src/TypeRenderer';
+import FunctionRenderer from '@site/src/FunctionRenderer';
+
+This is a normal blueprint node.
+
+The C++ documentation for this function is available on [the Unreal Engine documentation website](https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Plugins/OnlineSubsystem/Interfaces/IOnlineUser/).
+
+## Example
+
+<FunctionRenderer subsystemName="User" func={{"Identifier":"GetExternalIdMappings","Supported":false,"Async":false,"AsyncPins":[],"Pure":false,"Parameters":[{"Position":0,"Identifier":"QueryOptions","Type":{"Type":"Wrapped","Identifier":"FExternalIdQueryOptionsBP","Out":false}},{"Position":1,"Identifier":"ExternalIds","Type":{"Type":"Array","Element":{"Type":"Simple","Identifier":"FString"},"Out":false}},{"Position":2,"Identifier":"OutIds","Type":{"Type":"Array","Element":{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl"},"Out":true}}],"ReturnType":null}} />
+
+## Inputs
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Input Name</th>
+      <th>Input Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td>Query Options</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"FExternalIdQueryOptionsBP","Out":false}} /></td>
+    </tr>
+    <tr>
+      <td>External Ids</td>
+      <td><TypeRenderer typeInfo={{"Type":"Array","Element":{"Type":"Simple","Identifier":"FString"},"Out":false}} /></td>
+    </tr>
+  </tbody>
+</table>
+
+
+## Outputs
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Output Name</th>
+      <th>Output Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td>Ids</td>
+      <td><TypeRenderer typeInfo={{"Type":"Array","Element":{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl"},"Out":true}} /></td>
+    </tr>
+  </tbody>
+</table>
+
+

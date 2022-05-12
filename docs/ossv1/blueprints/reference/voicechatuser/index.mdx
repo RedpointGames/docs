@@ -1,0 +1,74 @@
+---
+id: voicechatuser
+title: Voice Chat User
+description: The VoiceChatUser subsystem.
+---
+
+import CoverageBadge from "@site/src/CoverageBadge";
+
+Redpoint EOS Online Framework provides blueprint nodes for <CoverageBadge coverage={85} /> of this interface.
+
+The C++ documentation for this interface is available on [the Unreal Engine documentation website](https://dev.epicgames.com/documentation/en-us/unreal-engine/voice-chat-interface-in-unreal-engine).
+
+## Events
+
+This subsystem has no events.
+
+## Functions
+
+- [Set Setting](./function/setsetting.mdx)
+- [Get Setting](./function/getsetting.mdx)
+- [Set Audio Input Volume](./function/setaudioinputvolume.mdx)
+- [Set Audio Output Volume](./function/setaudiooutputvolume.mdx)
+- [Get Audio Input Volume](./function/getaudioinputvolume.mdx)
+- [Get Audio Output Volume](./function/getaudiooutputvolume.mdx)
+- [Set Audio Input Device Muted](./function/setaudioinputdevicemuted.mdx)
+- [Set Audio Output Device Muted](./function/setaudiooutputdevicemuted.mdx)
+- [Get Audio Input Device Muted](./function/getaudioinputdevicemuted.mdx)
+- [Get Audio Output Device Muted](./function/getaudiooutputdevicemuted.mdx)
+- [Get Available Input Device Infos](./function/getavailableinputdeviceinfos.mdx)
+- [Get Available Output Device Infos](./function/getavailableoutputdeviceinfos.mdx)
+- [Set Input Device Id](./function/setinputdeviceid.mdx)
+- [Set Output Device Id](./function/setoutputdeviceid.mdx)
+- [Get Input Device Info](./function/getinputdeviceinfo.mdx)
+- [Get Output Device Info](./function/getoutputdeviceinfo.mdx)
+- [Get Default Input Device Info](./function/getdefaultinputdeviceinfo.mdx)
+- [Get Default Output Device Info](./function/getdefaultoutputdeviceinfo.mdx)
+- [Login](./function/login.mdx)
+- [Logout](./function/logout.mdx)
+- [Is Logging In](./function/isloggingin.mdx)
+- [Is Logged In](./function/isloggedin.mdx)
+- [Get Logged In Player Name](./function/getloggedinplayername.mdx)
+- [Block Players](./function/blockplayers.mdx)
+- [Unblock Players](./function/unblockplayers.mdx)
+- [Join Channel](./function/joinchannel.mdx)
+- [Leave Channel](./function/leavechannel.mdx)
+- [Set 3DPosition](./function/set3dposition.mdx)
+- [Get Channels](./function/getchannels.mdx)
+- [Get Players In Channel](./function/getplayersinchannel.mdx)
+- [Get Channel Type](./function/getchanneltype.mdx)
+- [Is Player Talking](./function/isplayertalking.mdx)
+- [Set Player Muted](./function/setplayermuted.mdx)
+- [Is Player Muted](./function/isplayermuted.mdx)
+- [Set Channel Player Muted](./function/setchannelplayermuted.mdx)
+- [Is Channel Player Muted](./function/ischannelplayermuted.mdx)
+- [Set Player Volume](./function/setplayervolume.mdx)
+- [Get Player Volume](./function/getplayervolume.mdx)
+- [Transmit To All Channels](./function/transmittoallchannels.mdx)
+- [Transmit To No Channels](./function/transmittonochannels.mdx)
+- [Get Transmit Mode](./function/gettransmitmode.mdx)
+- [Insecure Get Login Token](./function/insecuregetlogintoken.mdx)
+- [Insecure Get Join Token](./function/insecuregetjointoken.mdx)
+
+## Unsupported Functions
+
+Redpoint EOS Online Framework does not currently provide blueprint nodes for the following functions.
+
+- StartRecording
+- StopRecording
+- RegisterOnVoiceChatAfterCaptureAudioReadDelegate
+- UnregisterOnVoiceChatAfterCaptureAudioReadDelegate
+- RegisterOnVoiceChatBeforeCaptureAudioSentDelegate
+- UnregisterOnVoiceChatBeforeCaptureAudioSentDelegate
+- RegisterOnVoiceChatBeforeRecvAudioRenderedDelegate
+- UnregisterOnVoiceChatBeforeRecvAudioRenderedDelegate

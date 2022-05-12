@@ -1,0 +1,46 @@
+---
+title: Responding to events
+description: A list of party events that are supported in EOS Online Framework.
+---
+
+You can respond to changes in the party using the events on `IOnlinePartySystem`. This document lists the events which are currently supported.
+
+Events relating to party members, such as `OnPartyMemberJoined` and `OnMemberAttributeChanged` are raised for all members of the party, not just the local user.
+
+## Party system events
+
+The following documents the list of events and their implementation status:
+
+| Event Name                           | Implemented?                                                                                                 |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------ |
+| OnPartyJoined                        | ✔                                                                                                            |
+| OnPartyExited                        | ✔                                                                                                            |
+| OnPartyInvitesChanged                | ✔                                                                                                            |
+| OnPartyInviteReceived                | ✔                                                                                                            |
+| OnPartyInviteRemoved                 | ✔                                                                                                            |
+| OnPartyStateChanged                  |                                                                                                              |
+| OnPartyJIP                           | No EOS SDK support                                                                                           |
+| OnPartyPromotionLockoutChanged       | No EOS SDK support                                                                                           |
+| OnPartyConfigChangedConst            |                                                                                                              |
+| OnPartyDataReceived                  | ✔                                                                                                            |
+| OnPartyMemberPromoted                | ✔                                                                                                            |
+| OnPartyMemberExited                  | ✔                                                                                                            |
+| OnPartyMemberJoined                  | ✔                                                                                                            |
+| OnPartyMemberDataReceived            | ✔                                                                                                            |
+| OnPartyInviteRequestReceived         | ✔ Fired when the party join mode is set to `Manual`. You must call `ApproveJoinRequest` in response to this. |
+| OnPartyInviteResponseReceived        | No EOS SDK support                                                                                           |
+| OnPartyGroupJoinRequestReceived      | No EOS SDK support                                                                                           |
+| OnPartyJIPRequestReceived            | No EOS SDK support                                                                                           |
+| OnQueryPartyJoinabilityGroupReceived | No EOS SDK support                                                                                           |
+| OnFillPartyJoinRequestData           | No EOS SDK support                                                                                           |
+| OnPartyAnalyticsEvent                | No EOS SDK support                                                                                           |
+| OnPartySystemStateChange             | No EOS SDK support                                                                                           |
+
+## Party member events
+
+The following documents the list of events on `FOnlinePartyMember` and their implementation status:
+
+| Event Name                      | Implemented? |
+| ------------------------------- | ------------ |
+| OnMemberConnectionStatusChanged | ✔            |
+| OnMemberAttributeChanged        | ✔            |

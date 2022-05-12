@@ -1,0 +1,162 @@
+---
+title: Joining a lobby
+description: How to join a lobby.
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import Blueprint from '@site/src/Blueprint';
+
+import bpConnectToParty from './bp/connect_to_party.bp';
+import bpConnect from './bp/connect.bp';
+import bpDisconnect from './bp/disconnect.bp';
+
+You can join a lobby in one of two ways:
+
+- You've previously [searched for lobbies](ossv1/lobbies/finding.mdx) and found a result you want to join, or
+- You've [received a lobby ID from somewhere and parsed it](ossv1/lobbies/data.mdx#parsing-a-string-as-a-lobby-id)
+
+## Joining a lobby
+
+<Tabs lazy groupId="code-format" defaultValue="c++" values={[ { label: 'C++', value: 'c++' }, { label: 'Blueprints', value: 'blueprints' } ]}>
+<TabItem value="c++">
+
+First, get the online lobby interface:
+
+```cpp
+#include "OnlineSubsystem.h"
+#include "OnlineSubsystemUtils.h"
+// If your project can't find this header, make sure you have installed the headers from here:
+// https://src.redpoint.games/redpointgames/online-interfaces/
+#include "OnlineLobbyInterface.h"
+
+IOnlineSubsystem* Subsystem = Online::GetSubsystem(this->GetWorld());
+TSharedPtr<IOnlineLobby, ESPMode::ThreadSafe> Lobby = Online::GetLobbyInterface(Subsystem);
+```
+
+Then, join the lobby:
+
+```cpp
+if (!Lobby->ConnectLobby(
+    *LocalUserId,
+    *LobbyIdFromSearch,
+    FOnLobbyCreateOrConnectComplete::CreateLambda([](
+        const FOnlineError & Error,
+        const FUniqueNetId & UserId,
+        const TSharedPtr<class FOnlineLobby> & CreatedLobby)
+    {
+        if (Error.WasSuccessful())
+        {
+            // The lobby was joined successfully.
+        }
+        else
+        {
+            // Lobby could not be joined.
+        }
+    })))
+{
+    // Call failed to start.
+}
+// ...
+```
+</TabItem>
+<TabItem value="blueprints">
+
+Using the results of a previously saved lobby ID, call "Connect Lobby":
+
+<Blueprint height="450px" blueprint={bpConnect} />
+</TabItem>
+</Tabs>
+
+
+## Disconnecting from a lobby
+
+<Tabs lazy groupId="code-format" defaultValue="c++" values={[ { label: 'C++', value: 'c++' }, { label: 'Blueprints', value: 'blueprints' } ]}>
+<TabItem value="c++">
+
+To disconnect from a lobby, you'll need the ID of the lobby you previously connected to and call `DisconnectLobby` like so:
+
+```cpp
+if (!Lobby->DisconnectLobby(
+    *LocalUserId,
+    *LobbyIdFromPreviousConnectOrCreate,
+    FOnLobbyOperationComplete::CreateLambda([](
+        const FOnlineError& Error,
+        const FUniqueNetId& UserId)
+    {
+        if (Error.WasSuccessful())
+        {
+            // Player has been disconnected from lobby.
+        }
+        else
+        {
+            // Could not disconnect from lobby.
+        }
+    })
+))
+{
+    // Call failed to start.
+}
+```
+
+
+</TabItem>
+<TabItem value="blueprints">
+
+Using a previously saved lobby ID, call "Disconnect Lobby":
+
+<Blueprint height="350px" blueprint={bpDisconnect} />
+</TabItem>
+</Tabs>
+
+## Joining a lobby as party
+
+<Tabs lazy groupId="code-format" defaultValue="c++" values={[ { label: 'C++', value: 'c++' }, { label: 'Blueprints', value: 'blueprints' } ]}>
+<TabItem value="c++">
+
+First, get the online lobby and party interfaces:
+
+```cpp
+#include "OnlineSubsystem.h"
+#include "OnlineSubsystemUtils.h"
+// If your project can't find this header, make sure you have installed the headers from here:
+// https://src.redpoint.games/redpointgames/online-interfaces/
+#include "OnlineLobbyInterface.h"
+#include "Interfaces/OnlinePartyInterface.h"
+
+// ...
+
+IOnlineSubsystem* Subsystem = Online::GetSubsystem(this->GetWorld());
+TSharedPtr<IOnlineLobby, ESPMode::ThreadSafe> Lobby = Online::GetLobbyInterface(Subsystem);
+IOnlinePartyPtr Party = Subsystem->GetPartyInterface();
+```
+
+Then, convert your LobbyId to an `IOnlinePartyJoinInfoConstPtr`:
+
+```cpp
+FString JoinInfo = PartySystem->MakeJoinInfoJson(
+    *InLocalUserId.GetUniqueNetId(), 
+    InLobbyId);
+if (!JoinInfo.IsEmpty()) 
+{
+    IOnlinePartyJoinInfoConstPtr JoinInfoPtr = PartySystem->MakeJoinInfoFromJson(JoinInfo);
+    if (JoinInfoPtr.IsValid()) 
+    {
+        // JoinInfoPtr contains the OnlinePartyJoinInfo to pass into JoinParty().
+    }
+}
+```
+
+Once you have the resulting join info, you can proceed to [Joining a party](ossv1/lobbies/joining.mdx).
+
+</TabItem>
+<TabItem value="blueprints">
+
+Using the results of a previously saved lobby ID, call "Connect Lobby", then get the returning lobby's ID and convert to a Party Join Info.
+
+<Blueprint height="550px" blueprint={bpConnectToParty} />
+
+Once you have the resulting Party Join Info, you can proceed to [Joining a party](ossv1/lobbies/joining.mdx).
+
+</TabItem>
+</Tabs>

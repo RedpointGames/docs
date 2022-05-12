@@ -1,0 +1,47 @@
+---
+title: Linking a cross-platform account
+description: How to link a local account to a cross-platform account after sign in.
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import Blueprint from '@site/src/Blueprint';
+
+import bpCanLink from './bp/can_link.bp';
+
+If you've configured your project to optionally allow cross-platform accounts, you'll need to know when to prompt the user to link a cross-platform account and how to kick off the cross-platform linking process.
+
+:::info
+These instructions currently only apply if you're using the default authentication graph and Epic Games cross-platform accounts. Authentication graphs and cross-platform providers can fully customize (or choose not to support) account linking.
+:::
+
+## Detecting if an account can be linked
+
+<Tabs lazy groupId="code-format" defaultValue="c++" values={[ { label: 'C++', value: 'c++' }, { label: 'Blueprints', value: 'blueprints' } ]}>
+<TabItem value="c++">
+
+To check whether or not you can start the cross-platform account linking process, you need to check the `crossPlatform.canLink` [authentication attribute](ossv1/identity/user_attributes.mdx#authentication-attributes-fuseronlineaccount-only), like so:
+
+```cpp
+FString CanLink;
+if (Account->GetAuthAttribute(TEXT("crossPlatform.canLink"), CanLink) && CanLink == TEXT("true"))
+{
+    // ... display the cross-platform link prompt or button
+}
+```
+
+</TabItem>
+<TabItem value="blueprints">
+
+To check whether or not you can start the cross-platform account linking process, you need to check the `crossPlatform.canLink` [authentication attribute](ossv1/identity/user_attributes.mdx#authentication-attributes-fuseronlineaccount-only), like so:
+
+<Blueprint height="300px" blueprint={bpCanLink} />
+
+</TabItem>
+</Tabs>
+
+## Starting the linking process
+
+To start the link process, call `AutoLogin` again while the user is signed in. You should use the exact same invocation as described in [Login a user](ossv1/identity/authentication.mdx#login-a-user).
+
+You'll get the `OnLoginComplete` event once the linking process is complete.

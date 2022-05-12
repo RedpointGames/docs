@@ -1,0 +1,57 @@
+---
+id: getstats
+title: Get Stats
+description: The GetStats function of the Stats subsystem.
+---
+
+import TypeRenderer from '@site/src/TypeRenderer';
+import FunctionRenderer from '@site/src/FunctionRenderer';
+
+This is a normal blueprint node.
+
+The C++ documentation for this function is available on [the Unreal Engine documentation website](https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Plugins/OnlineSubsystem/Interfaces/IOnlineStats/).
+
+## Example
+
+<FunctionRenderer subsystemName="Stats" func={{"Identifier":"GetStats","Supported":false,"Async":false,"AsyncPins":[],"Pure":true,"Parameters":[{"Position":0,"Identifier":"StatsUserId","Type":{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl","Out":false}}],"ReturnType":{"Type":"Wrapped","Identifier":"FOnlineStatsUserStatsBP"}}} />
+
+## Inputs
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Input Name</th>
+      <th>Input Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td>Stats User Id</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl","Out":false}} /></td>
+    </tr>
+  </tbody>
+</table>
+
+
+## Outputs
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Output Name</th>
+      <th>Output Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td>Return  Value</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"FOnlineStatsUserStatsBP"}} /></td>
+    </tr>
+  </tbody>
+</table>
+
+

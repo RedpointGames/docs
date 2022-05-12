@@ -1,0 +1,57 @@
+---
+id: index
+title: Introduction to the blueprint API reference
+description: The full auto-generated API reference.
+sidebar_position: 0
+sidebar_label: Introduction
+---
+
+import CoverageBadge from "@site/src/CoverageBadge";
+import Blueprint from "@site/src/Blueprint";
+
+import bpAccess from "./access.bp";
+
+This API reference provides auto-generated documentation for all of the supported blueprint functions and events. It also indicates what functionality is not currently available.
+
+:::warning
+This reference includes all blueprint nodes auto-generated from the engine source code. Some functions and events are not supported by Epic Online Services, and can only be used with a local platform subsystem that implements them.
+:::
+
+:::info
+The Free Edition only allows using blueprint nodes to interact with Epic Online Services; calls to "Get Named Subsystem" will fail with an error. If you need to access platform-specific online functionality in blueprints, you'll need to upgrade to the Paid Edition.
+:::
+
+## Accessing a subsystem
+
+To access the subsystem for Epic Online Services, you can just use (for example) the "Online Achievements Subsystem" blueprint node.
+
+If you need to access a platform-specific subsystem for achievements, you could use the "Get Named Achievements Subsystem" blueprint node off the "Online Subsystem" node.
+
+<Blueprint height="300px" blueprint={bpAccess} />
+
+## Subsystems
+
+| Subsystem                                         | Coverage (%)                     |
+| ------------------------------------------------- | -------------------------------- |
+| [Achievements](./achievements/index.mdx)          | <CoverageBadge coverage={100} /> |
+| [Avatar](./avatar/index.mdx)                      | <CoverageBadge coverage={100} /> |
+| [Entitlements](./entitlements/index.mdx)          | <CoverageBadge coverage={100} /> |
+| [External UI](./externalui/index.mdx)             | <CoverageBadge coverage={89} />  |
+| [Friends](./friends/index.mdx)                    | <CoverageBadge coverage={95} />  |
+| [Game Activity](./gameactivity/index.mdx)         | <CoverageBadge coverage={89} />  |
+| [Identity](./identity/index.mdx)                  | <CoverageBadge coverage={88} />  |
+| [Leaderboards](./leaderboards/index.mdx)          | <CoverageBadge coverage={100} /> |
+| [Lobby](./lobby/index.mdx)                        | <CoverageBadge coverage={95} />  |
+| [Message Sanitizer](./messagesanitizer/index.mdx) | <CoverageBadge coverage={100} /> |
+| [Party](./party/index.mdx)                        | <CoverageBadge coverage={78} />  |
+| [Presence](./presence/index.mdx)                  | <CoverageBadge coverage={75} />  |
+| [Purchase](./purchase/index.mdx)                  | <CoverageBadge coverage={89} />  |
+| [Session](./session/index.mdx)                    | <CoverageBadge coverage={98} />  |
+| [Stats](./stats/index.mdx)                        | <CoverageBadge coverage={100} /> |
+| [Store V2](./storev2/index.mdx)                   | <CoverageBadge coverage={100} /> |
+| [Title File](./titlefile/index.mdx)               | <CoverageBadge coverage={100} /> |
+| [User](./user/index.mdx)                          | <CoverageBadge coverage={100} /> |
+| [User Cloud](./usercloud/index.mdx)               | <CoverageBadge coverage={90} />  |
+| [Voice Admin](./voiceadmin/index.mdx)             | <CoverageBadge coverage={100} /> |
+| [Voice Chat](./voicechat/index.mdx)               | <CoverageBadge coverage={83} />  |
+| [Voice Chat User](./voicechatuser/index.mdx)      | <CoverageBadge coverage={85} />  |

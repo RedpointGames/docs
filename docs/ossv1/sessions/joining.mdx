@@ -1,0 +1,112 @@
+---
+title: Joining a session
+description: How to join an online session.
+---
+
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+import Blueprint from "@site/src/Blueprint";
+
+import bpJoinSession from "./joining/join_session.bp";
+import bpNetworkError from "./joining/network_error.bp";
+
+Once you've got your search results from [Finding a session](ossv1/sessions/finding.mdx), you can proceed to join the session of your choice.
+
+## Joining a session
+
+<Tabs lazy groupId="code-format" defaultValue="c++" values={[ { label: 'C++', value: 'c++' }, { label: 'Blueprints', value: 'blueprints' } ]}>
+<TabItem value="c++">
+
+Before you connect to the server, you need to tell Epic Online Services that you are joining the session.
+
+First, get the online session interface:
+
+```cpp
+#include "OnlineSubsystem.h"
+#include "OnlineSubsystemUtils.h"
+#include "Interfaces/OnlineSessionInterface.h"
+
+// ...
+
+IOnlineSubsystem* Subsystem = Online::GetSubsystem(this->GetWorld());
+IOnlineSessionPtr Session = Subsystem->GetSessionInterface();
+```
+
+Register the event handler so you know when you've successfully joined the session. `JoinSessionDelegateHandle` is declared as an `FDelegateHandle`.
+
+```cpp
+this->JoinSessionDelegateHandle =
+    Session->AddOnJoinSessionCompleteDelegate_Handle(FOnJoinSessionComplete::FDelegate::CreateUObject(
+            this,
+            &UMyClass::HandleJoinSessionComplete));
+```
+
+Using the search result you previously got from a search, call `JoinSession`:
+
+```cpp
+// "MyLocalSessionName" is the local name of the session for this player. It doesn't have to match the name the server gave their session.
+if (!Session->JoinSession(0, FName(TEXT("MyLocalSessionName")), SearchResult->Result))
+{
+    // Call didn't start, return error.
+}
+```
+
+When your callback fires, you can proceed to join the session:
+
+```cpp
+void UMyClass::HandleJoinSessionComplete(
+    FName SessionName,
+    EOnJoinSessionCompleteResult::Type JoinResult)
+{
+    if (JoinResult == EOnJoinSessionCompleteResult::Success ||
+        JoinResult == EOnJoinSessionCompleteResult::AlreadyInSession)
+    {
+        // Use the connection string that you got from FindSessions in order
+        // to connect to the server.
+        //
+        // Refer to "Connecting to a game server" under the "Networking & Anti-Cheat"
+        // section of the documentation for more information on how to do this.
+        //
+        // NOTE: You can also call GetResolvedConnectString at this point instead
+        // of in FindSessions, but it's recommended that you call it in
+        // FindSessions so you know the result is valid.
+    }
+
+    IOnlineSubsystem *Subsystem = Online::GetSubsystem(WorldContextObject->GetWorld());
+    IOnlineSessionPtr Session = Subsystem->GetSessionInterface();
+
+    Session->ClearOnJoinSessionCompleteDelegate_Handle(this->JoinSessionDelegateHandle);
+    this->JoinSessionDelegateHandle.Reset();
+}
+```
+
+</TabItem>
+<TabItem value="blueprints">
+
+Using the search result you previously got from a search, call "Join Session":
+
+<Blueprint height="350px" blueprint={bpJoinSession} />
+</TabItem>
+</Tabs>
+
+## Connecting to the game server
+
+Once you've joined the session, you need to connect to the game server. Refer to [Connecting to the game server](/setup/networking/server_travel.mdx#connecting-to-the-game-server) for information on how to do this.
+
+## Handling join failures
+
+<Tabs lazy groupId="code-format" defaultValue="c++" values={[ { label: 'C++', value: 'c++' }, { label: 'Blueprints', value: 'blueprints' } ]}>
+<TabItem value="c++">
+
+Before you execute the `open` command, but after `JoinSession` succeeds, you should register an event handler for the `NetworkError` event on `UGameInstance`. This event will fire if the game client fails to connect to the server.
+
+In this event handler, you should call `DestroySession` for the session you attempted to connect to. This is because the client has already joined the session as far as the backend is concerned (because the `JoinSession` call previously succeeded), and now you need to call `DestroySession` to clean up.
+
+</TabItem>
+<TabItem value="blueprints">
+
+Bind the event "Network Error" in Game Instance to destroy your current session for the session you attempted to connect to. This is because the client has already joined the session as far as the backend is concerned, because the "Join Session" function succeeded and now you need to call "Destroy Session" to clean up.
+
+<Blueprint height="350px" blueprint={bpNetworkError} />
+</TabItem>
+</Tabs>

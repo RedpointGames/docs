@@ -1,0 +1,39 @@
+---
+title: Cross-platform friends overview
+sidebar_label: Cross-platform friends
+description: Describes how the cross-platform friends system works.
+---
+
+EOS Online Framework provides a cross-platform friends system that goes beyond the functionality that the EOS SDK provides. Of note:
+
+- The plugin includes local friends (such as those from Steam and consoles) in the friends list, and you can invite these friends to parties and sessions with no additional code.
+- The plugin caches local friends in Player Data Storage. This means if a player starts playing on another platform, they can see all their local friends from any platform they've previously played on. They can also invite these cached friends to sessions and parties, as long as those cached friends have previously played the game before.
+- The plugin implements the "blocked players" and "recent players" functionality of the online friends interface. It also automatically tracks which players you see on multiplayer servers, and syncs them to the "recent players" list for you.
+- The plugin allows you to invite _any_ EOS user to your friends list, and accept or reject invites from any player. You don't need Epic Games accounts for this to work.
+
+:::info
+Local platform friends are not cached into Player Data Storage on console platforms, nor are cached friends from other platforms displayed on console platforms. You can still manually add any EOS user to the cross-platform friend list via `SendInvite` though.
+:::
+
+## Prerequisites
+
+In order for the cross-platform accounts system to work, there are some prerequisites that must be met:
+
+- The client policy used by the game must permit access to Player Data Storage. This is where the plugin stores the user's cross-platform friends list, blocked players and recent players.
+- The client policy used by the game must permit access to lobbies. This is how the plugin communicates friend invites, as well as acceptance and rejection messages.
+- The client policy used by the game must allow users to read user information about any other EOS user. This is used to load information about friends on the cross-platform friends list.
+- You must have completed the "Platform Setup" page in it's entirety for the platforms you're publishing on. Some platforms require additional setup beyond just authentication in order for this feature to work.
+
+## The unified friends list
+
+To present the friends list to users, the plugin reads friends from all available sources (such as the local platform and Epic Games), combines this with any friends directly added to the cross-platform friends system, and then unifies friends into a single list.
+
+The plugin automatically maintains the friends list after login, updating it whenever the local platform or Epic Games notifies us of changes to the friends list. You no longer have to call the `ReadFriendsList` function on the online subsystem; you can call `GetFriendsList` immediately after login to display the list of friends.
+
+:::caution
+For players who are signed into Epic Games, their Epic Games friends will only appear on the friends list if that friend has signed into your game _at least once_. This is a privacy limitation imposed by Epic Games.
+:::
+
+## Accessing and modifying the friends list
+
+For information on how to actually read and modify the friends list from within your game code or blueprints, refer to [the Subsystems APIs -> Friends section of the documentation](/ossv1/friends/retrieving.mdx).

@@ -1,0 +1,169 @@
+---
+title: Platform setup for Steam
+sidebar_label: Steam
+description: How to set up your game for Steam.
+---
+
+To deploy your game on Steam, you need to set up the Steam identity provider in the Epic Online Services developer portal, and then enable the Steam online subsystem in your game.
+
+## Obtain your own Steam app ID
+
+To set up Steam authentication, you need to create a Steam app ID by paying the Steam Direct Fee.
+
+:::info
+You can't use app ID 480 with the EOS SDK since authentication changed from encrypted app tickets to session tickets.
+:::
+
+## Set up the Steam identity provider in the Epic Games Dev portal
+
+Once you have the app ID from Steamworks, you need to specify it in the EOS backend so that it can be used:
+
+1. Open the [Epic Online Services developer portal](https://dev.epicgames.com/portal/en-US/) and click on the product you are developing.
+2. Click "Product Settings".
+3. Under the "Identity Providers" tab, click "Add Identity Provider".
+4. Select "Steam" as the identity provider.
+5. Set the "Description" to any value you like.
+6. Leave "Encryption Key" empty. It is no longer used by Steam authentication and is not required to be set.
+7. You must set "SteamNetworkingIdentity" based on your Unreal Engine version:
+   - If you are using Unreal Engine 5.4 or later (including preview builds), set it to "epiconlineservices", which should be the default value.
+   - If you are using Unreal Engine 5.3 or earlier, set it **so that it is empty**. You will need to clear out the default value of "epiconlineservices".
+8. Set the "App ID" to the app ID of your Steamworks application.
+9. Click "Save & Exit".
+10. Under the "Environments" tab, click "Identity Providers" next to the Live sandbox.
+11. For Steam, select the new credential you just made.
+
+## Enable the Steam online subsystem in your game
+
+Open `DefaultEngine.ini` and add the following lines, replacing `__YOUR_APP_ID__` with your Steam app ID.
+
+```
+[OnlineSubsystemSteam]
+bEnabled=True
+SteamDevAppId=__YOUR_APP_ID__
+bUseSteamNetworking=false
+```
+
+You have now set up Steam authentication in your game.
+
+## Enable Steam avatars, friends and invites
+
+Steam avatars, friends and invites are automatically supported, and require no additional configuration.
+
+If you need the `GetAvatarURL` function of `IOnlineAvatar` to work on Steam, you'll need to supply a client web API key:
+
+```ini
+[OnlineSubsystemSteam]
+WebApiKey=...
+```
+
+You can get a [client web API key here](https://steamcommunity.com/dev/apikey). You **must not** use a publisher web API key obtained from the Partner Portal, as those are suitable only for backend servers (kept secret from clients).
+
+## Testing Steam authentication
+
+Steam authentication only works in packaged builds (not in the editor). In addition, for non-development builds it will only work when the game is launched through Steam. These are limitations of the Steam online subsystem, not a limitation of the EOS plugin.
+
+It has been reported that Steam authentication also works in the following situations:
+
+- Right-clicking on the `.uproject` file and clicking "Launch Game".
+- Launching the game from Visual Studio in DebugGame configuration (not DebugGame Editor). This requires cooking game content.
+
+## For developers using a custom version of Unreal Engine (from source code)
+
+If you are using a custom version of Unreal Engine built from source code, you need to manually enable Steam support in your project's `.Target.cs` files.
+
+In each `.Target.cs` file (the main one, the `Editor` variant and if you have it, the `Server` variant), you need to add this project definition:
+
+```csharp
+ProjectDefinitions.Add("ONLINE_SUBSYSTEM_EOS_ENABLE_STEAM=1");
+```
+
+## VDF install scripts for bootstrapper and Easy Anti-Cheat
+
+When deploying your game to Steam, you'll need to create VDF files that describe how your game should be packaged and launched on the player's computer. Below is an example of VDF files that install the Unreal Engine prerequisites, the EOS bootstrapper (for Epic Games accounts) and the Easy Anti-Cheat service. You should omit entries if you're not using a particular feature (e.g. skip the Anti-Cheat sections if you haven't got Anti-Cheat enabled).
+
+Make sure you replace `REPLACE_WITH_YOUR_APP_ID`, `REPLACE_WITH_YOUR_DEPOT_ID` and `REPLACE_WITH_PATH_TO_YOUR_BUILD_GAME` with the correct values for your game.
+
+```txt title="steam_app.vdf"
+"appbuild"
+{
+    "appid" "REPLACE_WITH_YOUR_APP_ID"
+    "desc" ""
+    "preview" "0"
+    "setlive" ""
+    "buildoutput" ".\Cache\"
+    "contentroot" "REPLACE_WITH_PATH_TO_YOUR_BUILD_GAME"
+    "depots"
+    {
+        "REPLACE_WITH_YOUR_DEPOT_ID" "steam_depot.vdf"
+    }
+}
+```
+
+```txt title="steam_depot.vdf"
+"DepotBuildConfig"
+{
+    "DepotID" "REPLACE_WITH_YOUR_DEPOT_ID"
+    "ContentRoot" "."
+    "FileMapping"
+    {
+        "LocalPath" "*"
+        "DepotPath" "."
+        "recursive" "1"
+    }
+    "FileExclusion" "Manifest_*.txt"
+    "FileExclusion" "*/Saved/*"
+    "InstallScript" "Engine/Extras/steam_install_prereqs.vdf"
+}
+```
+
+Unlike the first two files, which can reside anywhere you on your machine, the `steam_install_prereqs.vdf` file needs to be created inside your package game directory, under the `Engine/Extras` folder, so that the relative path matches the `InstallScript` directive inside `steam_depot.vdf`.
+
+```txt title="<ProjectRoot>\Engine\Extras\steam_install_prereqs.vdf"
+"InstallScript"
+{
+    "Firewall"
+    {
+        "Game - REPLACE_WITH_YOUR_DEPOT_ID"       "%INSTALLDIR%\\$PackageTarget.exe"
+    }
+    "Run Process"
+    {
+        "Unreal Engine Prerequisites"
+        {
+            "HasRunKey"     "HKEY_CLASSES_ROOT\\Installer\\Dependencies\\{4e242cc8-5e3c-4b08-9d55-dbc62ddd1208}"
+            "Process 1"     "%INSTALLDIR%\\Engine\\Extras\\Redist\\en-us\\UEPrereqSetup_x64.exe"
+            "Command 1"     "/quiet /norestart"
+            "NoCleanUp"     "1"
+        }
+    }
+    "Run Process"
+    {
+        "EpicOnlineServices"
+        {
+            "HasRunKey"     "HKEY_LOCAL_MACHINE\\Software\\Valve\\Steam\\Apps\\REPLACE_WITH_YOUR_APP_ID\\EOS"
+            "Process 1"     "%INSTALLDIR%\\InstallEOSServices.bat"
+        }
+    }
+    "Run Process On Uninstall"
+    {
+        "EpicOnlineServices"
+        {
+            "Process 1"     "%INSTALLDIR%\\UninstallEOSServices.bat"
+        }
+    }
+    "Run Process"
+    {
+        "EpicOnlineServices"
+        {
+            "HasRunKey"     "HKEY_LOCAL_MACHINE\\Software\\Valve\\Steam\\Apps\\REPLACE_WITH_YOUR_APP_ID\\EOS"
+            "Process 1"     "%INSTALLDIR%\\InstallAntiCheat.bat"
+        }
+    }
+    "Run Process On Uninstall"
+    {
+        "EpicOnlineServices"
+        {
+            "Process 1"     "%INSTALLDIR%\\UninstallAntiCheat.bat"
+        }
+    }
+}
+```

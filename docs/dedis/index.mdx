@@ -1,0 +1,82 @@
+---
+title: Introduction to dedicated servers
+sidebar_label: Introduction
+description: Learn how to deploy dedicated game servers in a cost effective, scalable way.
+---
+
+We often see people ask how to run dedicated game servers with EOS. This documentation aims to be a comprehensive guide on how to design, set up and operate servers for your game in a cost efficient and scalable way.
+
+## Terminology
+
+Dedicated servers, game servers, machines, etc; it can all get a little bit confusing since terms tend to be used interchangably. To help makes this documentation easier to read, we've standardized on the following terms:
+
+- **Dedicated server**: We're referring to the physical machine that your game server containers will run on. This is sometimes referred to as "bare metal", and the term is used in constrast to virtual machines. When you lease a dedicated server from a server provider, your software runs directly on the hardware without virtualization, which gives you the best performance possible. The term "dedicated server" comes from the fact that you're not sharing the hardware with any other customers; it's dedicated just for you.
+  - In most public clouds you can't get dedicated servers, you can only get virtual machines. To be clear, if we say "dedicated servers" in the context of a public cloud provider like AWS or Google Cloud, we mean virtual machines since that's the best you can get.
+- **Game server binaries**: This refers to the actual game server binaries that are produced when you make a server build from Unreal Engine. That's the actual 'MyGameServer' binaries and Content folders that exist on disk.
+- **Packaged game server**: This refers to the Docker image you'll make which will contain the game server binaries. We might also refer to this as "Docker image"; the image contains not only the game server binaries but all of the dependencies required to run them.
+- **Game server container**: We're referring to the actual instance of a game server; the thing that your players will connect to. A game server container is the packaged game server when it is executed on a dedicated server.
+- **Public cloud**: We're referring to one of the big three providers: AWS, Azure or Google Cloud. This also includes GameLift (run by AWS) and PlayFab (run by Azure).
+- **Local provider**: We're referring to a company that can lease dedicated servers (physical machines) to you for you to run your game server containers on. Unlike public clouds, they're often companies that are specific to the region where you're running your game server containers, and offer a much cheaper price that you can get on a public cloud.
+
+## Essential reading
+
+Before you start integrating matchmakers or leasing dedicated servers to run your game on, you should read the following documents. They're critical to designing your dedicated server infrastructure in a way that will keep your costs down as your game scales up to large numbers of players:
+
+- [Avoiding public clouds](/dedis/avoiding_public_clouds.mdx)
+- [Regions & clusters](/dedis/regions_clusters.mdx)
+
+## Prerequisites for game server containers
+
+Running game server containers for your game requires additional setup. Not only do you need to install extra tools to be able to build and package your game server to run on Linux machines, but you'll need to create accounts with various services so you can deploy and run them on the actual hardware. You'll need:
+
+- **A source build of Unreal Engine**: We cover how to set this up in the guide on [how to prepare your game server](/dedis/preparing_your_game_server.mdx#targeting-a-source-build-of-the-engine).
+- **Docker for Windows**: You'll need to install [Docker for Windows](https://docs.docker.com/desktop/windows/install/) so you can package your Linux game server into a Docker container. We cover in-depth later what a Docker container is, but tl;dr it's a self-contained version of your game server that can run anywhere.
+- **A GitLab account**: We'll push the packaged game servers to GitLab's container registry. It's a [free service](https://gitlab.com/) that will allow your Kubernetes clusters to download your game server from anywhere in the world.
+- **A dedicated server somewhere**: You'll need to rent a physical dedicated server from a server provider so that you can install your first Kubernetes cluster on it. We go more in-depth on how to do this in [Creating your cluster](/dedis/creating_your_cluster.mdx).
+  - If you're just running through this guide as a temporary test, you could use a public cloud like AWS, but for production purposes you must lease a dedicated server from a local company to keep costs low, as we covered in [Avoiding public clouds](/dedis/avoiding_public_clouds.mdx).
+  - The dedicated server should be provisioned with [Ubuntu 20.04 LTS Server](https://ubuntu.com/download/server). Ask your provider through their support system to install this OS if they don't give you the option during checkout.
+- **A CloudFlare account**: This is so we can set up secure SSH access through [CloudFlare Teams](https://dash.cloudflare.com/sign-up). We cover how to do this in [Securing your network](/dedis/securing_your_network.mdx). Technically this is optional, but running SSH through CloudFlare Teams is much more secure than having port 22 open to the public Internet. It also lets you authenticate all your employees SSH access through your existing account systems like Google Workspace or Active Directory.
+
+## Introduction to Docker: What is it?
+
+The game server binaries that are produced by Unreal Engine will require certain dependencies; not just general libraries but things like the C runtime SDK and Linux operating system need to be compatible in order to execute the binaries.
+
+Now we could try to make sure that every single dedicated server has the exact same libraries and operating system installed, but this is error-prone and will likely diverge as you install operating system updates.
+
+Docker allows us to package up not only the game server binaries but also all of their dependencies, including a copy of the Linux system we want to run the game server binaries on. The Linux kernel supports running these "mini operating systems" without virtualization, so there's no performance cost associated with running the game server binaries under Docker.
+
+Then, once we've packaged up our game server binaries into a Docker image (and created a packaged game server), we can execute that packaged game server on any machine world-wide without having to worry about the specifics of the machine in question.
+
+For more information on Docker, [read the Docker overview](https://docs.docker.com/get-started/overview/).
+
+## Introduction to Kubernetes: What is it?
+
+Now that we've got our packaged game server, we need to run it on our dedicated servers. If you just want to run a Docker image on a machine, you could use `docker run image/name:version` from the command-line, but as you can imagine, this doesn't scale when you're dealing with lots of machines.
+
+[Kubernetes](https://kubernetes.io/docs/concepts/overview/what-is-kubernetes/) is a container orchestrator, and it allows you to declare what you want to run, and then it does the hard job of scheduling and running it on the actual dedicated servers. You don't have to specify which servers; you can just say "I want you to run 3 copies of this Docker image" and it will go and figure out where to run it.
+
+When we install Kubernetes, we'll be using a variant called [K3S](https://k3s.io/) which is a lightweight version of Kubernetes that's easier to install.
+
+By default, Kubernetes is designed for software-as-a-service type applications. These applications typically have a database server somewhere, and multiple web frontend containers. It doesn't matter which web frontend container user traffic is directed to, because the frontend containers don't have any state and pull it from the database as needed.
+
+Game servers don't work like that, and that's where Agones comes in.
+
+## Introduction to Agones: What is it?
+
+[Agones](https://agones.dev/site/) is a extra tool that we'll install into Kubernetes. It allows you to declare game server fleets which auto-scale game server containers based on player demand, and it manages exposing the game server ports to the Internet so clients can connect to them.
+
+Agones also provides HTTP-based APIs for the game server containers to use. These are the APIs that the game server containers use to indicate that they have players on them and therefore they should not be shutdown while a match is in-progress.
+
+## The dedicated server guide
+
+With all the prerequisite knowledge covered, you can now read through the guide on how to set up dedicated servers. You should read these documents in order:
+
+- [Preparing your game server](/dedis/preparing_your_game_server.mdx)
+- [Securing your network](/dedis/securing_your_network.mdx)
+- [Creating your cluster](/dedis/creating_your_cluster.mdx)
+- [Adding nodes to the cluster](/dedis/adding_nodes.mdx)
+- [Running a test deployment](/dedis/testing_deployment.mdx)
+- [Setting up autoscaling](/dedis/setting_up_autoscaling.mdx)
+- [Updating your game client](/dedis/updating_your_game_client.mdx)
+- [Bursting into cloud](/dedis/bursting_into_cloud.mdx)
+- [Automating deployments](/dedis/automating_deployments.mdx)

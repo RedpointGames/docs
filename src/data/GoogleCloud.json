@@ -1,0 +1,299 @@
+[
+  {
+    "name": "France",
+    "region": "eu-west",
+    "regionDetail": "Paris",
+    "pricePerHour": 1.10813,
+    "vcpu": 32,
+    "ram": 32,
+    "pricePerGb": 0.085
+  },
+  {
+    "name": "South Korea",
+    "region": "ap-north",
+    "regionDetail": "Seoul",
+    "pricePerHour": 1.0165,
+    "vcpu": 32,
+    "ram": 32,
+    "pricePerGb": 0.119
+  },
+  {
+    "name": "California",
+    "region": "us-west",
+    "regionDetail": "Los Angeles",
+    "pricePerHour": 0.95074,
+    "vcpu": 32,
+    "ram": 32,
+    "pricePerGb": 0.085
+  },
+  {
+    "name": "Netherlands",
+    "region": "eu-west",
+    "pricePerHour": 0.87141,
+    "vcpu": 32,
+    "ram": 32,
+    "pricePerGb": 0.085
+  },
+  {
+    "name": "Brazil",
+    "region": "south-america",
+    "regionDetail": "São Paulo",
+    "pricePerHour": 1.25646,
+    "vcpu": 32,
+    "ram": 32,
+    "pricePerGb": 0.12
+  },
+  {
+    "name": "Nevada",
+    "region": "us-west",
+    "regionDetail": "Las Vegas",
+    "pricePerHour": 0.8915,
+    "vcpu": 32,
+    "ram": 32,
+    "pricePerGb": 0.085
+  },
+  {
+    "name": "Texas",
+    "region": "us-central",
+    "regionDetail": "Dallas",
+    "pricePerHour": 0.934,
+    "vcpu": 32,
+    "ram": 32,
+    "pricePerGb": 0.085
+  },
+  {
+    "name": "Melbourne",
+    "region": "ap-australia",
+    "pricePerHour": 1.12314,
+    "vcpu": 32,
+    "ram": 32,
+    "pricePerGb": 0.12
+  },
+  {
+    "name": "Finland",
+    "region": "eu-east",
+    "pricePerHour": 0.8715,
+    "vcpu": 32,
+    "ram": 32,
+    "pricePerGb": 0.085
+  },
+  {
+    "name": "Delhi",
+    "region": "ap-west",
+    "pricePerHour": 0.95072,
+    "vcpu": 32,
+    "ram": 32,
+    "pricePerGb": 0.11
+  },
+  {
+    "name": "England",
+    "region": "eu-west",
+    "regionDetail": "London",
+    "pricePerHour": 1.01983,
+    "vcpu": 32,
+    "ram": 32,
+    "pricePerGb": 0.085
+  },
+  {
+    "name": "Utah",
+    "region": "us-west",
+    "regionDetail": "Salt Lake City",
+    "pricePerHour": 0.95074,
+    "vcpu": 32,
+    "ram": 32,
+    "pricePerGb": 0.085
+  },
+  {
+    "name": "Italy",
+    "region": "eu-west",
+    "regionDetail": "Milan",
+    "pricePerHour": 1.13188,
+    "vcpu": 32,
+    "ram": 32,
+    "pricePerGb": 0.085
+  },
+  {
+    "name": "Iowa",
+    "region": "us-central",
+    "pricePerHour": 0.79152,
+    "vcpu": 32,
+    "ram": 32,
+    "pricePerGb": 0.085
+  },
+  {
+    "name": "Indonesia",
+    "region": "ap-south",
+    "regionDetail": "Jakarta",
+    "pricePerHour": 1.06437,
+    "vcpu": 32,
+    "ram": 32,
+    "pricePerGb": 0.11
+  },
+  {
+    "name": "Ohio",
+    "region": "us-east",
+    "regionDetail": "Columbus",
+    "pricePerHour": 0.79152,
+    "vcpu": 32,
+    "ram": 32,
+    "pricePerGb": 0.085
+  },
+  {
+    "name": "Switzerland",
+    "region": "eu-west",
+    "regionDetail": "Zürich",
+    "pricePerHour": 1.10751,
+    "vcpu": 32,
+    "ram": 32,
+    "pricePerGb": 0.085
+  },
+  {
+    "name": "Sydney",
+    "region": "ap-australia",
+    "pricePerHour": 1.12314,
+    "vcpu": 32,
+    "ram": 32,
+    "pricePerGb": 0.12
+  },
+  {
+    "name": "Hong Kong",
+    "region": "ap-central",
+    "pricePerHour": 1.10751,
+    "vcpu": 32,
+    "ram": 32,
+    "pricePerGb": 0.11
+  },
+  {
+    "name": "Israel",
+    "region": "middle-east",
+    "pricePerHour": 0.87068,
+    "vcpu": 32,
+    "ram": 32,
+    "pricePerGb": 0.085
+  },
+  {
+    "name": "Oregon",
+    "region": "us-west",
+    "pricePerHour": 0.79152,
+    "vcpu": 32,
+    "ram": 32,
+    "pricePerGb": 0.085
+  },
+  {
+    "name": "Mumbai & Pune",
+    "region": "ap-west",
+    "pricePerHour": 0.95072,
+    "vcpu": 32,
+    "ram": 32,
+    "pricePerGb": 0.11
+  },
+  {
+    "name": "Poland",
+    "region": "eu-east",
+    "pricePerHour": 1.01983,
+    "vcpu": 32,
+    "ram": 32,
+    "pricePerGb": 0
+  },
+  {
+    "name": "Virginia",
+    "region": "us-east",
+    "pricePerHour": 0.8915,
+    "vcpu": 32,
+    "ram": 32,
+    "pricePerGb": 0.085
+  },
+  {
+    "name": "Montréal & Quebec City",
+    "region": "na-canada",
+    "pricePerHour": 0.87141,
+    "vcpu": 32,
+    "ram": 32,
+    "pricePerGb": 0.085
+  },
+  {
+    "name": "Singapore",
+    "region": "ap-south",
+    "pricePerHour": 0.97649,
+    "vcpu": 32,
+    "ram": 32,
+    "pricePerGb": 0.11
+  },
+  {
+    "name": "Germany",
+    "region": "eu-west",
+    "regionDetail": "Frankfurt",
+    "pricePerHour": 1.01983,
+    "vcpu": 32,
+    "ram": 32,
+    "pricePerGb": 0.085
+  },
+  {
+    "name": "Belgium",
+    "region": "eu-west",
+    "pricePerHour": 0.8707,
+    "vcpu": 32,
+    "ram": 32,
+    "pricePerGb": 0.085
+  },
+  {
+    "name": "South Carolina",
+    "region": "us-east",
+    "pricePerHour": 0.79152,
+    "vcpu": 32,
+    "ram": 32,
+    "pricePerGb": 0.085
+  },
+  {
+    "name": "Taiwan",
+    "region": "ap-north",
+    "pricePerHour": 0.9165,
+    "vcpu": 32,
+    "ram": 32,
+    "pricePerGb": 0.11
+  },
+  {
+    "name": "Japan",
+    "region": "ap-north",
+    "regionDetail": "Tokyo",
+    "pricePerHour": 1.0165,
+    "vcpu": 32,
+    "ram": 32,
+    "pricePerGb": 0.11
+  },
+  {
+    "name": "Chile",
+    "region": "south-america",
+    "regionDetail": "Santiago",
+    "pricePerHour": 1.13188,
+    "vcpu": 32,
+    "ram": 32,
+    "pricePerGb": 0.12
+  },
+  {
+    "name": "Spain",
+    "region": "eu-west",
+    "regionDetail": "Madrid",
+    "pricePerHour": 1.13188,
+    "vcpu": 32,
+    "ram": 32,
+    "pricePerGb": 0.085
+  },
+  {
+    "name": "Japan",
+    "region": "ap-north",
+    "regionDetail": "Osaka",
+    "pricePerHour": 1.0165,
+    "vcpu": 32,
+    "ram": 32,
+    "pricePerGb": 0
+  },
+  {
+    "name": "Toronto",
+    "region": "na-canada",
+    "pricePerHour": 0.87141,
+    "vcpu": 32,
+    "ram": 32,
+    "pricePerGb": 0.085
+  }
+]

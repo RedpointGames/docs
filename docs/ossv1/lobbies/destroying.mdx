@@ -1,0 +1,52 @@
+---
+title: Destroying a lobby
+description: How to destroy a lobby.
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import Blueprint from '@site/src/Blueprint';
+
+import bpDelete from './bp/delete.bp';
+
+When the host of a lobby no longer needs it, they should destroy the lobby.
+
+:::caution
+Destroying a lobby will kick all players from the lobby.
+:::
+
+<Tabs lazy groupId="code-format" defaultValue="c++" values={[ { label: 'C++', value: 'c++' }, { label: 'Blueprints', value: 'blueprints' } ]}>
+<TabItem value="c++">
+
+To destroy a lobby, you'll need the ID of the lobby you previously connected to and call `DestroyLobby` like so:
+
+```cpp
+if (!Lobby->DestroyLobby(
+    *LocalUserId,
+    *LobbyId,
+    FOnLobbyOperationComplete::CreateLambda([](
+        const FOnlineError & Error,
+        const FUniqueNetId & UserId)
+    {
+        if (Error.WasSuccessful())
+        {
+            // The lobby was destroyed successfully.
+        }
+        else
+        {
+            // Lobby could not be destroyed.
+        }
+    })))
+{
+    // Call failed to start.
+}
+```
+
+</TabItem>
+<TabItem value="blueprints">
+
+Using a previously saved lobby ID, call "Delete Lobby":
+
+<Blueprint height="350px" blueprint={bpDelete} />
+</TabItem>
+</Tabs>

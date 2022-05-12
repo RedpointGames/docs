@@ -1,0 +1,190 @@
+---
+title: Creating a party
+description: How to create and manage parties.
+---
+
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+import Blueprint from "@site/src/Blueprint";
+
+import bpCreate from "./bp/create.bp";
+import bpKick from "./bp/kick.bp";
+import bpPromote from "./bp/promote.bp";
+import bpLeave from "./bp/leave.bp";
+
+To use the party system, you need to either create a party or [be invited to join one](/ossv1/parties/inviting.mdx). You can be a member of multiple parties at the same time.
+
+## Creating a party
+
+<Tabs lazy groupId="code-format" defaultValue="c++" values={[ { label: 'C++', value: 'c++' }, { label: 'Blueprints', value: 'blueprints' } ]}>
+<TabItem value="c++">
+
+To create a party, first get the online party interface:
+
+```cpp
+#include "OnlineSubsystem.h"
+#include "OnlineSubsystemUtils.h"
+#include "Interfaces/OnlinePartyInterface.h"
+
+// ...
+
+IOnlineSubsystem* Subsystem = Online::GetSubsystem(this->GetWorld());
+IOnlinePartyPtr Party = Subsystem->GetPartyInterface();
+```
+
+Then, use `CreateParty` to create the party.
+
+Each party has a "party type ID". For the most party, this is an arbitrary integer value that you can use to distinguish between parties if a player is in multiple parties at the same time.
+
+However, it also plays an important role in determining whether the specified party has presence enabled.
+
+If you set the party type ID to the value returned by `IOnlinePartySystem::GetPrimaryPartyTypeId()`, then presence will be enabled for the party. You can only have one party _or_ session with presence enabled at a given time. This will enable the "Join Party" and "Invite" functionality in the Epic Social Overlay.
+
+```cpp
+TSharedRef<FPartyConfiguration> Config = MakeShared<FPartyConfiguration>();
+Config->bIsAcceptingMembers = true;
+Config->MaxMembers = 4;             // The maximum number of players in the party.
+
+if (!Party->CreateParty(
+        *Identity->GetUniquePlayerId(0).Get(),  // The local player creating the party.
+        (FOnlinePartyTypeId)PartyTypeId,        // The party type ID.
+        *Config,
+        FOnCreatePartyComplete::CreateLambda([](
+            const FUniqueNetId &LocalUserId,
+            const TSharedPtr<const FOnlinePartyId> &PartyId,
+            const ECreatePartyCompletionResult Result)
+            {
+                // If Result == ECreatePartyCompletionResult::Succeeded, the party
+                // was created and you are now the party leader.
+            })))
+{
+    // Call didn't start, return error.
+}
+```
+
+</TabItem>
+<TabItem value="blueprints">
+
+You can create a party using the "Create Party" node. Each party has a "party type ID".
+For the most part, this is an arbitrary integer value that you can use to distinguish between parties if a player is in multiple parties at the same time.
+
+However, it also plays an important role in determining whether the specified party has presence enabled.
+
+If you set the party type ID to the value returned by "Get Primary Party Type", then presence will be enabled for the party.
+You can only have one party or session with presence enabled at a given time. This will enable the "Join Party" and "Invite" functionality in the Epic Social Overlay.
+
+<Blueprint height="600px" blueprint={bpCreate} />
+
+</TabItem>
+</Tabs>
+
+## Kicking a member
+
+<Tabs lazy groupId="code-format" defaultValue="c++" values={[ { label: 'C++', value: 'c++' }, { label: 'Blueprints', value: 'blueprints' } ]}>
+<TabItem value="c++">
+
+If you [are the party leader](/ossv1/parties/status.mdx#checking-who-the-party-leader-is), you can kick members of the party using `KickMember`:
+
+```cpp
+if (!Party->KickMember(
+        *Identity->GetUniquePlayerId(0).Get(),  // The local player that is the leader.
+        *PartyId->PartyId,                      // The party ID.
+        *MemberId->PartyMember->GetUserId(),    // The member to kick from the party.
+        FOnKickPartyMemberComplete::CreateLambda([](
+            const FUniqueNetId &LocalUserId,
+            const FOnlinePartyId &PartyId,
+            const FUniqueNetId &MemberId,
+            const EKickMemberCompletionResult Result
+        ) {
+            // If Result == EKickMemberCompletionResult::Succeeded, then the member
+            // was kicked from the party.
+        })))
+{
+    // Call didn't start, return error.
+}
+```
+
+</TabItem>
+<TabItem value="blueprints">
+
+If you [are the party leader](/ossv1/parties/status.mdx#checking-who-the-party-leader-is), you can kick members of the party using "Kick Member":
+
+<Blueprint height="350px" blueprint={bpKick} />
+</TabItem>
+</Tabs>
+
+## Promoting a member
+
+<Tabs lazy groupId="code-format" defaultValue="c++" values={[ { label: 'C++', value: 'c++' }, { label: 'Blueprints', value: 'blueprints' } ]}>
+<TabItem value="c++">
+
+If you [are the party leader](/ossv1/parties/status.mdx#checking-who-the-party-leader-is), you can promote another member of the party to leader using `PromoteMember`:
+
+```cpp
+if (!Party->PromoteMember(
+        *Identity->GetUniquePlayerId(0).Get(),  // The local player that is the current leader.
+        *PartyId->PartyId,                      // The party ID.
+        *MemberId->PartyMember->GetUserId(),    // The member to promote to leader.
+        FOnPromotePartyMemberComplete::CreateLambda([](
+            const FUniqueNetId &LocalUserId,
+            const FOnlinePartyId &PartyId,
+            const FUniqueNetId &MemberId,
+            const EPromoteMemberCompletionResult Result
+        ) {
+            // If Result == EPromoteMemberCompletionResult::Succeeded, then the member
+            // was promoted to leader.
+        })))
+{
+    // Call didn't start, return error.
+}
+```
+
+</TabItem>
+<TabItem value="blueprints">
+
+If you [are the party leader](/ossv1/parties/status.mdx#checking-who-the-party-leader-is), you can promote another member of the party using "Promote Member":
+
+<Blueprint height="350px" blueprint={bpPromote} />
+
+</TabItem>
+</Tabs>
+
+## Leaving a party
+
+<Tabs lazy groupId="code-format" defaultValue="c++" values={[ { label: 'C++', value: 'c++' }, { label: 'Blueprints', value: 'blueprints' } ]}>
+<TabItem value="c++">
+
+If you are a member of a party, you can leave the party using `LeaveParty`. If you are the party leader, another member will be promoted to the leader at random.
+
+```cpp
+if (!Party->LeaveParty(
+        *Identity->GetUniquePlayerId(0).Get(),  // The local player in the party.
+        *PartyId->PartyId,                      // The party ID.
+        FOnLeavePartyComplete::CreateLambda([](
+            const FUniqueNetId& LocalUserId,
+            const FOnlinePartyId& PartyId,
+            const ELeavePartyCompletionResult Result
+        ) {
+            // If Result == ELeavePartyCompletionResult::Succeeded, then you have
+            // left the party.
+        })))
+{
+    // Call didn't start, return error.
+}
+```
+
+</TabItem>
+<TabItem value="blueprints">
+
+If you are a member of a party you can leave the party using "Leave Party". If you are the party leader, another member will be promoted to the leader at random.
+
+<Blueprint height="350px" blueprint={bpLeave} />
+
+</TabItem>
+</Tabs>
+
+## Listening for party join and exit events
+
+It is important to listen for party join and exit events, since your players might join parties via the Epic Social Overlay. When a player joins a party via the overlay, the party system will automatically leave the current presence party (if there is one) and join the new party.
+
+See [Listening for party join and exit events](/ossv1/parties/inviting.mdx#listening-for-party-join-and-exit-events) under the invite documentation on how to handle these events.

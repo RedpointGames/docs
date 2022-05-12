@@ -1,0 +1,111 @@
+---
+title: Adding nodes to the cluster
+description: Learn how to add additional compute nodes to an existing Kubernetes cluster.
+---
+
+With the Kubernetes control node set up, you can now add your remaining dedicated servers to your cluster. Before proceeding with this section, you should:
+
+- Have set up the Kubernetes control node by following the instructions in [Creating your cluster](/dedis/creating_your_cluster.mdx)
+- Have one or more additional dedicated servers at the same local provider
+- Have secured those additional dedicated servers by following the instructions in [Securing your network](/dedis/securing_your_network.mdx)
+
+For each additional dedicated server, run through the steps below.
+
+## Set the hostname on the machine
+
+Ensure the dedicated server has it's hostname set to something standardized for your cluster (e.g. `west-europe-02`). To set the hostname on the dedicated server, make sure you're the root user (`sudo bash` if you aren't), then run:
+
+```bash
+hostname west-europe-02
+echo "west-europe-02" > /etc/hostname
+echo "127.0.1.1 west-europe-02" >> /etc/hosts
+```
+
+Each hostname must be unique in the cluster.
+
+## Fix up DNS resolution
+
+By default, Ubuntu uses systemd's DNS resolver. This conflicts with Kubernetes, so we need to turn it off.
+
+On the dedicated server, make sure you're the root user (`sudo bash` if you aren't), then run:
+
+```bash
+systemctl stop systemd-resolved
+systemctl disable systemd-resolved
+rm /etc/resolv.conf
+echo "nameserver 1.1.1.1 1.0.0.1" > /etc/resolv.conf
+```
+
+## Get the K3S node token
+
+On the Kubernetes control node, where you originally installed K3S, you'll need to retrieve the node token. This allows Kubernetes worker nodes to register themselves with the control node when the K3S agent starts.
+
+Retrieve the node token by running `cat /var/lib/rancher/k3s/server/node-token`; you should see output similar to the following:
+
+```bash
+root@west-europe-01:/home/jrhodes# cat /var/lib/rancher/k3s/server/node-token
+K10feefb.....9b324fdef746675afced214e07cf6
+```
+
+## Install the K3S agent
+
+On the dedicated server that you want to connect to the existing cluster, install the K3S agent by running the following command. Make sure you set the following values, replacing the examples provided:
+
+- `INSTALL_K3S_VERSION`: This should match the version when you installed K3S on the control node.
+- `K3S_URL`: This should be `https://...:6443`, replacing `...` with the private IP address of the control node.
+- `K3S_TOKEN`: This should be set to the token you copied from the control node.
+
+```bash
+curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true INSTALL_K3S_VERSION=v1.22.7+k3s1 K3S_URL=https://10.0.0.1:6443 K3S_TOKEN=K10...cf6 sh -
+```
+
+Like the control node, we don't start the K3S agent immediately as we need to update it's configuration.
+
+## Determine your network interfaces
+
+Follow the instructions on [Securing your network](/dedis/securing_your_network.mdx#determine-your-network-interfaces) to identify the private and public interfaces on this dedicated server.
+
+In the examples below, `eth0` is the private network interface, and `eth1` is the public network interface. `10.0.0.2` is the private IP address and `126.118.159.101` is the public IP address.
+
+## Override the command-line arguments for K3S
+
+We need to tell K3S agent where it should listen for internal connections and where it should listen for public connections.
+
+On the dedicated server, make sure you're the root user (`sudo bash` if you aren't), then run:
+
+```bash
+mkdir /etc/systemd/system/k3s-agent.service.d || true
+nano /etc/systemd/system/k3s-agent.service.d/override.conf
+```
+
+Using the text editor, add the following contents to that file:
+
+```ini
+[Service]
+ExecStart=
+ExecStart=/usr/local/bin/k3s \
+    agent \
+    --node-name west-europe-02 \
+    --node-ip 10.0.0.2 \
+    --node-external-ip 126.118.159.101 \
+    --flannel-iface eth0
+```
+
+Then run:
+
+```bash
+systemctl daemon-reload
+```
+
+## Check that the worker node has been registered successfully
+
+On the control node, run `k3s kubectl get nodes`. You should see output similar to the following:
+
+```
+root@west-europe-01:/home/jrhodes# k3s kubectl get nodes
+NAME             STATUS   ROLES                  AGE   VERSION
+west-europe-01   Ready    control-plane,master   63m   v1.22.7+k3s1
+west-europe-02   Ready    <none>                 48s   v1.22.7+k3s1
+```
+
+If you see the dedicated server in the list, it has been added to the cluster successfully.

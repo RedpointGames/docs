@@ -1,0 +1,209 @@
+---
+title: Creating your cluster
+description: Learn how to create a Kubernetes/Agones cluster in the region of your choice.
+---
+
+To deploy your packaged game server onto your dedicated servers, you need to install Kubernetes and Agones. Before proceeding with this section, you should:
+
+- Have at least one dedicated server leased
+- Have secured that dedicated server by following the instructions in [Securing your network](/dedis/securing_your_network.mdx)
+- Be able to connect to the dedicated server's SSH in your web browser
+
+## Set the hostname on the machine
+
+Ensure the dedicated server has it's hostname set to something standardized for your cluster (e.g. `west-europe-01`). To set the hostname on the dedicated server, make sure you're the root user (`sudo bash` if you aren't), then run:
+
+```bash
+hostname west-europe-01
+echo "west-europe-01" > /etc/hostname
+echo "127.0.1.1 west-europe-01" >> /etc/hosts
+```
+
+## Fix up DNS resolution
+
+By default, Ubuntu uses systemd's DNS resolver. This conflicts with Kubernetes, so we need to turn it off.
+
+On the dedicated server, make sure you're the root user (`sudo bash` if you aren't), then run:
+
+```bash
+systemctl stop systemd-resolved
+systemctl disable systemd-resolved
+rm /etc/resolv.conf
+echo "nameserver 1.1.1.1 1.0.0.1" > /etc/resolv.conf
+```
+
+## Installing Kubernetes
+
+To install Kubernetes, we'll use a variant called [K3S](https://k3s.io/). This is a lightweight version of Kubernetes that's super easy to install and maintain.
+
+On the dedicated server, make sure you're the root user (`sudo bash` if you aren't), then run:
+
+```bash
+curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true sh -
+```
+
+This will create a new cluster and make this dedicated server the **control node** for the cluster. Each cluster has one control node; all other dedicated servers should be added to the cluster by following the instructions in [Adding nodes to the cluster](/dedis/adding_nodes.mdx) instead.
+
+We skip starting K3S automatically, because we need to modify it's command-line parameters.
+
+You should see output similar to the following:
+
+```
+root@vm-1:/home/jrhodes# curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true sh -
+[INFO]  Finding release for channel stable
+[INFO]  Using v1.22.7+k3s1 as release
+[INFO]  Downloading hash https://github.com/k3s-io/k3s/releases/download/v1.22.7+k3s1/sha256sum-amd64.txt
+[INFO]  Downloading binary https://github.com/k3s-io/k3s/releases/download/v1.22.7+k3s1/k3s
+[INFO]  Verifying binary download
+[INFO]  Installing k3s to /usr/local/bin/k3s
+[INFO]  Skipping installation of SELinux RPM
+[INFO]  Creating /usr/local/bin/kubectl symlink to k3s
+[INFO]  Creating /usr/local/bin/crictl symlink to k3s
+[INFO]  Creating /usr/local/bin/ctr symlink to k3s
+[INFO]  Creating killall script /usr/local/bin/k3s-killall.sh
+[INFO]  Creating uninstall script /usr/local/bin/k3s-uninstall.sh
+[INFO]  env: Creating environment file /etc/systemd/system/k3s.service.env
+[INFO]  systemd: Creating service file /etc/systemd/system/k3s.service
+[INFO]  systemd: Enabling k3s unit
+Created symlink /etc/systemd/system/multi-user.target.wants/k3s.service → /etc/systemd/system/k3s.service.
+```
+
+:::caution
+Make a note of the version that was installed (`v1.22.7+k3s1` above). You need to install the same version on all other nodes in the cluster, and it's recommended you use the same version in every region for consistency as well.
+
+If you want to create a new cluster in a new region with a specific version, you can use:
+
+```bash
+curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true INSTALL_K3S_VERSION=v1.22.7+k3s1 sh -
+```
+
+For installing worker nodes with a specific version, see [Adding nodes to the cluster](/dedis/adding_nodes.mdx) instead.
+:::
+
+## Determine your network interfaces
+
+Follow the instructions on [Securing your network](/dedis/securing_your_network.mdx#determine-your-network-interfaces) to identify the private and public interfaces on this dedicated server.
+
+In the examples below, `eth0` is the private network interface, and `eth1` is the public network interface. `10.0.0.1` is the private IP address and `126.118.159.100` is the public IP address.
+
+## Override the command-line arguments for K3S
+
+We need to tell K3S where it should listen for internal connections and where it should listen for public connections.
+
+On the dedicated server, make sure you're the root user (`sudo bash` if you aren't), then run:
+
+```bash
+mkdir /etc/systemd/system/k3s.service.d || true
+nano /etc/systemd/system/k3s.service.d/override.conf
+```
+
+Using the text editor, add the following contents to that file:
+
+```ini
+[Service]
+ExecStart=
+ExecStart=/usr/local/bin/k3s \
+    server \
+    --node-name west-europe-01 \
+    --node-ip 10.0.0.1 \
+    --node-external-ip 126.118.159.100 \
+    --flannel-iface eth0
+```
+
+Then run:
+
+```bash
+systemctl daemon-reload
+```
+
+## Start K3S and wait for it to be ready
+
+With K3S now configured, you can start it by running:
+
+```bash
+systemctl start k3s.service
+```
+
+After about 30 seconds, you'll be able to see that Kubernetes has started by running `k3s kubectl get node`. You should see output like the following:
+
+```
+root@west-europe-01:/home/jrhodes# k3s kubectl get node
+NAME             STATUS   ROLES                  AGE   VERSION
+west-europe-01   Ready    control-plane,master   11s   v1.22.7+k3s1
+```
+
+## Setting the node priority
+
+If you're planning on bursting into cloud in this region, it's important to label the dedicated servers on your local provider with a priority label. When you launch your game server containers, you'll use this priority label so that the priority value can be fed into the EOS sessions list. Your game clients will then prioritize game server containers with a higher priority value.
+
+This ensures that game clients will prefer to use your cheaper dedicated servers over any current burst capacity you have running in public cloud.
+
+You can label the node with:
+
+```bash
+k3s kubectl label node/west-europe-01 eos/priority=100
+```
+
+## Installing Agones
+
+You're now ready to install Agones, which provides extra tooling on Kubernetes specifically for running game server containers.
+
+To install Agones, you'll first need to install Helm. Install it on the dedicated server with:
+
+```bash
+curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+```
+
+Now, install Agones with Helm:
+
+```bash
+# This tells other Kubernetes tools like Helm how to connect to the cluster.
+export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+
+# Install Agones.
+helm repo add agones https://agones.dev/chart/stable
+helm install agones agones/agones --version 1.21.0 --set agones.ping.http.port=8001 --set agones.allocator.service.http.port=8002 --set agones.allocator.service.grpc.port=8003
+```
+
+After a few minutes, Agones should be up and running in your cluster. You can check by running `kubectl --namespace default get pods -o wide`; you should see output similar to the following:
+
+```
+root@west-europe-01:/home/jrhodes# kubectl --namespace default get pods -o wide
+NAME                                   READY   STATUS        RESTARTS   AGE     IP           NODE             NOMINATED NODE   READINESS GATES
+svclb-agones-ping-udp-service-4x2m8    1/1     Running       0          30s     10.42.0.9    west-europe-01   <none>           <none>
+agones-ping-68c88b5d8b-2tdhj           1/1     Running       0          30s     10.42.0.15   west-europe-01   <none>           <none>
+agones-ping-68c88b5d8b-pjf45           1/1     Running       0          30s     10.42.0.12   west-europe-01   <none>           <none>
+svclb-agones-ping-http-service-7qldt   1/1     Running       0          26s     10.42.0.16   west-europe-01   <none>           <none>
+svclb-agones-allocator-cfz99           2/2     Running       0          25s     10.42.0.17   west-europe-01   <none>           <none>
+agones-controller-db59976bd-rp4lg      1/1     Running       0          24s     10.42.0.19   west-europe-01   <none>           <none>
+agones-allocator-6fd77f6874-r7zkr      1/1     Running       0          25s     10.42.0.18   west-europe-01   <none>           <none>
+agones-allocator-6fd77f6874-9q9ph      1/1     Running       0          22s     10.42.0.20   west-europe-01   <none>           <none>
+agones-allocator-6fd77f6874-xrd9l      1/1     Running       0          19s     10.42.0.21   west-europe-01   <none>           <none>
+```
+
+## Install the GitLab pull secret
+
+Locate the pull secret file you created [in the final steps of preparing your game server](/dedis/preparing_your_game_server.mdx#creating-the-"pull-secret"-so-that-kubernetes-can-download-the-packaged-game-server-from-gitlab).
+
+Open a text editor on the dedicated server with:
+
+```bash
+nano pull-secret.yaml
+```
+
+Copy the contents of the pull secret and paste it into the text editor, then:
+
+- Press `Ctrl-O` and hit Enter to save the file.
+- Press `Ctrl-X` to quit the text editor.
+
+Apply the pull secret to the cluster with:
+
+```bash
+kubectl apply -f pull-secret.yaml
+```
+
+## Add more nodes to the cluster
+
+The control node is now fully set up; read [Adding nodes to the cluster](/dedis/adding_nodes.mdx) on how to add your remaining machines.
+
+Remember that you need to run through the steps in [Securing your network](/dedis/securing_your_network.mdx) for every dedicated server you have.

@@ -1,0 +1,36 @@
+---
+title: Advanced configuration
+description: Describes advanced configuration settings not covered in the Getting Started guide.
+---
+
+There are a few configuration options that are only relevant in advanced scenarios or when upgrading the plugin. These are documented in more detail here.
+
+## Turning off auto-configuration
+
+If you don't want the plugin to automatically configure engine-level settings, you can turn automatic configuration off under **Editor Preferences** → **Epic Online Services** → **Automatically Configure Project for EOS**.
+
+## Upgrading your API version
+
+When you first use EOS Online Framework, the API version for your project will automatically be set to the latest version. Then, when you upgrade the plugin at a later date, the API version remains the same until you choose to change it. This ensures that when you upgrade the plugin to receive fixes, the functional behaviour of the plugin won't change in ways you don't expect.
+
+The date for an API version does not necessarily align with any specific plugin release, except that an API version will first appear in the plugin release with the same or next later date. Below is a list of API versions and the changes in each version.
+
+### 2023-10-27
+
+In this API version, IsPlayerMuted in voice chat only reports the local mute status of remote players instead of the remote mute status.
+
+### 2022-10-28
+
+In this API version, the behaviour of `IOnlineAchievements::WriteAchievements` was changed to unlock achievements directly instead of just passing the call through to `IOnlineStats::UpdateStats`.
+
+### 2022-05-20
+
+Previously this API version introduced ID Token as the network authentication mode for "Default". However, the legacy User Credentials network authentication mode has been removed so all API versions result in "Default" mapping to ID Token.
+
+### 2022-02-11
+
+In this API version, only non-full sessions are returned by default from session results. If you want to include full sessions, add a search filter for `"minslotsavailable" >= 0` (the default is now `"minslotsavailable" >= 1`).
+
+:::info
+API versions prior to 2022-02-11 have been removed as of 2022.03.29, as most of them related to functionality and legacy behaviour that has now been removed.
+:::

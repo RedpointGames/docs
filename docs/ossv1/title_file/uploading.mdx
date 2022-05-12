@@ -1,0 +1,34 @@
+---
+title: Uploading files to Title Storage using the Dev Portal
+description: How to upload data to Title Storage using the Dev Portal, so that you can read it at runtime in your game.
+---
+
+Before you can download files from Title Storage in your game, you need to upload them via the Epic Games Developer Portal.
+
+After you've setup your EOS product in [The Developer Portal](/setup/index.mdx), login to the Developer Portal and select the organization you've created. You should now see a screen like this:
+
+![A screenshot of the developer portal & organization](./uploading/developer_portal.png)
+
+Press the "Games Services" button, then scroll down until you see the "Title Storage" service:
+
+![A screenshot of the games service highlighted](./uploading/games_services.png)
+
+After you're on the Title Storage page, select the Deployment you want to upload a file for, then press "Add File":
+
+![A screenshot of title storage](./uploading/title_storage.png)
+
+Use the "Player Data Encryption Key" found in your project's Project Settings:
+
+![A screenshot of where to find the encryption key](./uploading/player_data_encryption_key.png)
+
+After you've entered your encryption key, choose a file you wish to upload and name it, then press save & close.
+
+:::caution
+You must add the tag "Default" when uploading the file, or the plugin will not list it when files are queried for the Title Storage service.
+:::
+
+![A screenshot of adding files](./uploading/add_file.png)
+
+When you're finished, you should see your file here:
+
+![A screenshot of added file](./uploading/file_added.png)

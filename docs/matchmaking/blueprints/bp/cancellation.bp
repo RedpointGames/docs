@@ -1,0 +1,9 @@
+Begin Object Class=/Script/BlueprintGraph.K2Node_Event Name="K2Node_Event_3"
+   EventReference=(MemberParent=Class'"/Script/MatchmakingMatchmaker.Matchmaker"',MemberName="OnCancelled")
+   bOverrideFunction=True
+   NodePosX=32
+   NodePosY=624
+   NodeGuid=FD5B0BB54808074CB61A49AE8CB52847
+   CustomProperties Pin (PinId=30180D234F1D3931D57443AD92A6F772,PinName="OutputDelegate",Direction="EGPD_Output",PinType.PinCategory="delegate",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(MemberParent=Class'"/Script/MatchmakingMatchmaker.Matchmaker"',MemberName="OnCancelled"),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=40EE0E7E4C35B1A5D324A79F399A16B5,PinName="then",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object

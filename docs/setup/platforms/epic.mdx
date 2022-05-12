@@ -1,0 +1,39 @@
+---
+title: Authenticating with Epic Games Store
+sidebar_label: Epic Games Store
+description: How to enable Epic Games Store authentication in your project.
+---
+
+To enable Epic Games Store authentication, you need to be using Epic Games as the cross-platform account provider.
+
+## Enable Epic Games as the cross-platform account provider
+
+Ensure under Project Settings that your "Cross Platform Account Provider" is set to "EpicGames".
+
+You can also set it in `DefaultEngine.ini` like so:
+
+```ini
+[EpicOnlineServices]
+CrossPlatformAccountProvider=EpicGames
+; You should also set this to true if you are only launching on EGS.
+RequireCrossPlatformAccount=True
+```
+
+## Optionally turn on EGS launch requirement
+
+If you want to require that your game is launched from the Epic Games Store, you can turn on "Require Epic Games Launcher" in Project Settings.
+
+You can also set it in `DefaultEngine.ini` like so:
+
+```ini
+[EpicOnlineServices]
+RequireEpicGamesLauncher=True
+```
+
+## Testing Epic Games Store authentication
+
+When you are developing, you'll still see `scope_consent_required` and the web browser will still open to approve scopes.
+
+The Epic Games Store only implicitly grants access to scopes when a user purchases or claims a game on the Epic Games Store. It does not implicitly grant permission when redeeming a key or logging in from outside the Epic Games Store.
+
+It is normal and expected to see the web browser prompt for permissions during development and release, based on how users purchased your game.

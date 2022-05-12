@@ -1,0 +1,72 @@
+---
+title: Platform setup for Discord
+sidebar_label: Discord
+description: How to set up your game for Discord.
+---
+
+:::danger
+Discord has removed the ability for games to programmatically access the friends list. Many of the Discord features implemented in the plugin are no longer functional, as Discord has removed this access at the API level for all games.
+
+We plan on updating our Discord implementation in the future to align more closely with the now very limited set of features that Discord provides. This may include removing support for Discord authentication and only supporting very simple presence/invite functionality.
+:::
+
+To enable Discord authentication, you need to switch to a source-based version of the plugin, and install the Discord Game SDK.
+
+## Switch to using source code
+
+If you have not done so already, [switch to using a source-based version](../index.mdx#source-code-access) of the plugin by following the instructions on the Welcome page.
+
+## Install the prerequisites
+
+In order to use Discord authentication, you need to install the following prerequisites:
+
+- Download [the Discord Game SDK v2.5.6](https://dl-game-sdk.discordapp.net/2.5.6/discord_game_sdk.zip) and extract it to `C:\ProgramData\DiscordGameSDK` such that `C:\ProgramData\DiscordGameSDK\README.md` exists.
+
+## Set up Discord authentication in the Epic Games Dev Portal
+
+1. Open the [Epic Games Dev Portal](https://dev.epicgames.com/).
+2. Navigate to your product.
+3. Click "Product Settings".
+4. Under the "Identity Providers" tab, click "Add Identity Provider".
+5. Select "Discord" as the identity provider.
+6. Set the "Description" to any value you like.
+7. In the [Discord Developer Portal](https://discord.com/developers/applications/), click on the game you want to set up authentication for.
+8. Copy the `Application ID` value, and paste it into Epic Games Dev Portal as the "Application ID".
+9. Click "Save & Exit".
+10. Under the "Environments" tab, click "Identity Providers" next to the Live sandbox.
+11. For Discord, select the new credential you just made.
+
+## Enable Discord authentication in your game
+
+In each `.Target.cs` file (the main one and the `Editor` variant), you need to add this project definition:
+
+```csharp
+ProjectDefinitions.Add("ONLINE_SUBSYSTEM_EOS_ENABLE_DISCORD=1");
+```
+
+## Configure the Discord online subsystem in your game
+
+In your `DefaultEngine.ini` file (or `WindowsEngine.ini` if you want to configure it for a specific platform), you need to add the following settings:
+
+```ini
+[OnlineSubsystemRedpointDiscord]
+bEnabled=True
+ApplicationId=YOUR_DISCORD_APP_ID
+ApplicationName=My Game Name
+InvitationText=The message sent when a player invites another Discord user to join their party.
+```
+
+## Use Discord authentication at runtime
+
+The Default authentication graph will automatically use Discord authentication if your game is launched through Discord (via a store channel).
+
+If you specifically want to use Discord authentication, you can set the authentication graph in Project Settings to "Discord Only", or set it in a platform-specific INI file with:
+
+```ini
+[EpicOnlineServices]
+AuthenticationGraph=Discord
+```
+
+## Testing Discord authentication
+
+Discord authentication works in the editor. Set "Editor Authentication Graph" to "Discord Only" in Project Settings, and then you will be able to test Discord authentication in the editor without any additional steps.

@@ -1,0 +1,33 @@
+---
+title: Fetching and displaying avatars
+description: How to fetch and display avatars in-game.
+---
+
+Epic Online Services does not yet have support for avatars; even Epic Games accounts don't have avatars on their profiles.
+
+However, native platforms such as Steam have avatars. When you sign in with a native platform, you might be displaying accounts from platforms such as Steam, which *do* support avatars.
+
+To allow you to display avatars for native platforms, EOS implements the [IOnlineAvatar](https://src.redpoint.games/redpointgames/online-interfaces/) interface.
+
+To fetch an avatar, call:
+
+```cpp
+Online::GetAvatarInterface(OSS)->GetAvatar(
+    LocalUserId,
+    TargetUserId,
+    DefaultAvatar,
+    FOnGetAvatarComplete::CreateLambda([](bool bWasSuccessful, TSoftObjectPtr<UTexture> ResultTexture) {
+
+    }));
+```
+
+This API call is also available via Online Subsystem Blueprints.
+
+You should cache the result of this call, as the avatar will be downloaded/fetched each time `GetAvatar` is called.
+
+Avatars are currently supported on the following platforms:
+
+- Steam
+- Discord
+- Oculus
+- itch.io

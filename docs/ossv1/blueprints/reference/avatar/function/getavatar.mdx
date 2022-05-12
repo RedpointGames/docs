@@ -1,0 +1,69 @@
+---
+id: getavatar
+title: Get Avatar
+description: The GetAvatar function of the Avatar subsystem.
+---
+
+import TypeRenderer from '@site/src/TypeRenderer';
+import FunctionRenderer from '@site/src/FunctionRenderer';
+
+This is an asynchronous latent blueprint node.
+
+The C++ documentation for this function is available in [the Online Interfaces repository](https://src.redpoint.games/redpointgames/online-interfaces).
+
+## Example
+
+<FunctionRenderer subsystemName="Avatar" func={{"Identifier":"GetAvatar","Supported":false,"Async":true,"AsyncPins":["OnCallFailed","OnGetAvatarComplete"],"Pure":false,"Parameters":[{"Position":0,"Identifier":"LocalUserId","Type":{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl","Out":false}},{"Position":1,"Identifier":"TargetUserId","Type":{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl","Out":false}},{"Position":2,"Identifier":"DefaultTexture","Type":{"Type":"Wrapped","Identifier":"UTexture*"}},{"Position":3,"Identifier":"bWasSuccessful","Type":{"Type":"Simple","Identifier":"bool","Out":true}},{"Position":4,"Identifier":"ResultTexture","Type":{"Type":"Wrapped","Identifier":"UTexture*","Out":true}}],"ReturnType":null}} />
+
+## Inputs
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Input Name</th>
+      <th>Input Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td>Local User Id</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl","Out":false}} /></td>
+    </tr>
+    <tr>
+      <td>Target User Id</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl","Out":false}} /></td>
+    </tr>
+    <tr>
+      <td>Default Texture</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"UTexture*"}} /></td>
+    </tr>
+  </tbody>
+</table>
+
+
+## Outputs
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Output Name</th>
+      <th>Output Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td>Was Successful</td>
+      <td><TypeRenderer typeInfo={{"Type":"Simple","Identifier":"bool","Out":true}} /></td>
+    </tr>
+    <tr>
+      <td>Result Texture</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"UTexture*","Out":true}} /></td>
+    </tr>
+  </tbody>
+</table>
+
+

@@ -1,0 +1,69 @@
+---
+id: login
+title: Login
+description: The Login function of the VoiceChatUser subsystem.
+---
+
+import TypeRenderer from '@site/src/TypeRenderer';
+import FunctionRenderer from '@site/src/FunctionRenderer';
+
+This is an asynchronous latent blueprint node.
+
+The C++ documentation for this function is available on [the Unreal Engine documentation website](https://dev.epicgames.com/documentation/en-us/unreal-engine/voice-chat-interface-in-unreal-engine).
+
+## Example
+
+<FunctionRenderer subsystemName="VoiceChatUser" func={{"Identifier":"Login","Supported":false,"Async":true,"AsyncPins":["OnCallFailed","OnVoiceChatLoginComplete"],"Pure":false,"Parameters":[{"Position":0,"Identifier":"PlatformId","Type":{"Type":"Wrapped","Identifier":"int32"}},{"Position":1,"Identifier":"PlayerName","Type":{"Type":"Simple","Identifier":"FString","Out":false}},{"Position":2,"Identifier":"Credentials","Type":{"Type":"Simple","Identifier":"FString","Out":false}},{"Position":3,"Identifier":"PlayerName","Type":{"Type":"Simple","Identifier":"FString","Out":true}},{"Position":4,"Identifier":"Result","Type":{"Type":"Wrapped","Identifier":"FVoiceChatResultBP","Out":true}}],"ReturnType":null}} />
+
+## Inputs
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Input Name</th>
+      <th>Input Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td>Platform Id</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"int32"}} /></td>
+    </tr>
+    <tr>
+      <td>Player Name</td>
+      <td><TypeRenderer typeInfo={{"Type":"Simple","Identifier":"FString","Out":false}} /></td>
+    </tr>
+    <tr>
+      <td>Credentials</td>
+      <td><TypeRenderer typeInfo={{"Type":"Simple","Identifier":"FString","Out":false}} /></td>
+    </tr>
+  </tbody>
+</table>
+
+
+## Outputs
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Output Name</th>
+      <th>Output Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td>Player Name</td>
+      <td><TypeRenderer typeInfo={{"Type":"Simple","Identifier":"FString","Out":true}} /></td>
+    </tr>
+    <tr>
+      <td>Result</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"FVoiceChatResultBP","Out":true}} /></td>
+    </tr>
+  </tbody>
+</table>
+
+

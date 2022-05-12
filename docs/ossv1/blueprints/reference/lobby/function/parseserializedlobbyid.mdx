@@ -1,0 +1,57 @@
+---
+id: parseserializedlobbyid
+title: Parse Serialized Lobby Id
+description: The ParseSerializedLobbyId function of the Lobby subsystem.
+---
+
+import TypeRenderer from '@site/src/TypeRenderer';
+import FunctionRenderer from '@site/src/FunctionRenderer';
+
+This is a normal blueprint node.
+
+The C++ documentation for this function is available in [the Online Interfaces repository](https://src.redpoint.games/redpointgames/online-interfaces).
+
+## Example
+
+<FunctionRenderer subsystemName="Lobby" func={{"Identifier":"ParseSerializedLobbyId","Supported":false,"Async":false,"AsyncPins":[],"Pure":false,"Parameters":[{"Position":0,"Identifier":"InLobbyId","Type":{"Type":"Simple","Identifier":"FString","Out":false}}],"ReturnType":{"Type":"Wrapped","Identifier":"ULobbyId*"}}} />
+
+## Inputs
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Input Name</th>
+      <th>Input Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td>Lobby Id</td>
+      <td><TypeRenderer typeInfo={{"Type":"Simple","Identifier":"FString","Out":false}} /></td>
+    </tr>
+  </tbody>
+</table>
+
+
+## Outputs
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Output Name</th>
+      <th>Output Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td>Return  Value</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"ULobbyId*"}} /></td>
+    </tr>
+  </tbody>
+</table>
+
+

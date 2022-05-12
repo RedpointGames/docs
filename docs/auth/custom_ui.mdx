@@ -1,0 +1,68 @@
+---
+title: Customizing login prompts
+description: How to customize the login prompts and how they are displayed.
+---
+
+The authentication system may need to prompt the player in certain scenarios, to confirm how the player wants to log into their account.
+
+There are two ways to customize the login system:
+
+- Customizing the UMG widgets to change the appearance of the prompts.
+- Binding to the "Add Widget to Viewport" and "Remove Widget from Viewport" events to customize where widgets are displayed. This is essential for VR games which will need to attach widgets to actors instead of the viewport.
+
+## Customizing the login appearance
+
+The default user interface prompts that the plugin ships with are built in Slate and C++. This ensures there aren't Asset Manager configuration requirements imposed on developers, which would otherwise conflict with a subset of projects.
+
+To customize the login appearance, you can create your own UMG widgets and configure them to implement the `EOSUserInterface_EnterDevicePinCode` or `EOSUserInterface_SignInOrCreateAccount` interfaces.
+
+### Implementing the interfaces
+
+To implement one of the UI interfaces in your own UMG widget, you need to switch to the "Graph" tab, then click "Class Settings". The "Details" pane, which might be small and in the bottom-left of the screen, should switch to showing class settings. It's recommended to drag the "Details" pane out to the right-hand side of the screen to make it easier to change settings.
+
+With the "Details" pane open, add one of the interfaces to the "Implemented Interfaces" section:
+
+![A screenshot showing where the "Implemented Interfaces" class setting is in the "Details" pane](custom_ui/implement_interfaces.png)
+
+You should only implement one interface, as you should have a unique user interface for each type of prompt.
+
+### Handling "Sign In or Create Account" interface
+
+The "Sign In or Create Account" prompt is used when cross-platform accounts are optional, and a new player is playing the game. In this case, the player could be in two states:
+
+- They've never played the game on any device before, and they want to create a new account tied to the local platform (e.g. Steam) that they're playing on, or
+- They've played the game on another platform (e.g. Xbox), have [linked their cross-platform account](/ossv1/identity/linking.mdx) on that device, and are now playing on a new platform (e.g. Steam) and want to sign into their cross-platform account to bring their existing save data across.
+
+This choice can not be automated. If you were to automatically pick "Create Account" for a player, they would end up with two accounts. In the example above, they'd end up with one tied to Xbox and their cross-platform account, and one tied to Steam.
+
+To implement this interface, store the context from "Setup User Interface" in a variable. When the user clicks on the "Sign In" or "Create Account" buttons, call the "Select Choice" blueprint with the enumeration set based on what kind of button they clicked on.
+
+![A screenshot showing how to implement the "Sign In or Create Account" interface](custom_ui/implement_signin.png)
+
+### Handling "Enter Device PIN Code" interface
+
+The "Enter Device PIN Code" prompt is used on console platforms when players are signing in or linking an Epic Games account. Console platforms do not have a web browser to direct players to, so instead players are provided a URL and a PIN code, and they need to open the URL on another device (such as a phone or computer) and enter the PIN code to link their Epic Games account to their local platform account on the console.
+
+To implement this interface, store the context from "Setup User Interface" in a variable, along with the "Verification Url" and "Pin Code". You should display the both the URL as the URL the player should open on their other device, and the PIN code as the code they should enter.
+
+![A screenshot showing how to implement the "Enter Device PIN Code" interface](custom_ui/implement_pincode.png)
+
+### Update the configuration
+
+Once you have got a copy of the widgets in your project, you can change which widgets are used in your game by changing Project Settings:
+
+![Changing the UMG widgets via Project Settings](custom_ui/change_umg_widgets.png)
+
+## Customizing how widgets are displayed
+
+The plugin provides a global "EOS subsystem" with "Add Widget to Viewport" and "Remove Widget from Viewport" events.
+
+When you bind to these events, you override how the plugin displays widgets on screen with your own behaviour.
+
+The default behaviour is effectively as follows:
+
+![An example of binding to the custom UI events](custom_ui/override_widget_handlers.png)
+
+:::caution
+VR games will need to bind to these events, and attach the widgets to the actors in the scene. Otherwise, your players will not be able to interact with the login prompts.
+:::

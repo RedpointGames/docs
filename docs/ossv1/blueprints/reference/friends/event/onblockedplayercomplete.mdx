@@ -1,0 +1,49 @@
+---
+id: onblockedplayercomplete
+title: On Blocked Player Complete
+description: The OnBlockedPlayerComplete event of the Friends subsystem.
+---
+
+import TypeRenderer from '@site/src/TypeRenderer';
+import EventRenderer from '@site/src/EventRenderer';
+
+This is a bindable event.
+
+The C++ documentation for this event is available on [the Unreal Engine documentation website](https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Plugins/OnlineSubsystem/Interfaces/IOnlineFriends/).
+
+## Example
+
+<EventRenderer subsystemName="Friends" event={{"Identifier":"OnBlockedPlayerComplete","Parameters":[{"Position":0,"Identifier":"bWasSuccessful","Type":{"Type":"Simple","Identifier":"bool"}},{"Position":1,"Identifier":"UniqueId","Type":{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl","Out":false}},{"Position":2,"Identifier":"ListName","Type":{"Type":"Simple","Identifier":"FString","Out":false}},{"Position":3,"Identifier":"ErrorStr","Type":{"Type":"Simple","Identifier":"FString","Out":false}}]}} />
+
+## Outputs
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Output Name</th>
+      <th>Output Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td>bWasSuccessful</td>
+      <td><TypeRenderer typeInfo={{"Type":"Simple","Identifier":"bool"}} /></td>
+    </tr>
+    <tr>
+      <td>UniqueId</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl","Out":false}} /></td>
+    </tr>
+    <tr>
+      <td>ListName</td>
+      <td><TypeRenderer typeInfo={{"Type":"Simple","Identifier":"FString","Out":false}} /></td>
+    </tr>
+    <tr>
+      <td>ErrorStr</td>
+      <td><TypeRenderer typeInfo={{"Type":"Simple","Identifier":"FString","Out":false}} /></td>
+    </tr>
+  </tbody>
+</table>
+
+

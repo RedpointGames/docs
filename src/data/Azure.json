@@ -1,0 +1,302 @@
+{
+  "canadacentral": {
+    "name": "Toronto",
+    "region": "na-canada",
+    "regionDetail": "CA Central",
+    "machineType": "D16asv4",
+    "pricePerHour": 0.856,
+    "pricePerGb": 0.08,
+    "ram": 64,
+    "vcpu": 16
+  },
+  "eastasia": {
+    "name": "Hong Kong",
+    "region": "ap-central",
+    "regionDetail": "AP East",
+    "machineType": "D16asv4",
+    "pricePerHour": 1.056,
+    "pricePerGb": 0.11,
+    "ram": 64,
+    "vcpu": 16
+  },
+  "southcentralus": {
+    "name": "Texas",
+    "region": "us-central",
+    "regionDetail": "US South Central",
+    "machineType": "D16asv4",
+    "pricePerHour": 0.922,
+    "pricePerGb": 0.08,
+    "ram": 64,
+    "vcpu": 16
+  },
+  "southeastasia": {
+    "name": "Singapore",
+    "region": "ap-south",
+    "regionDetail": "AP Southeast",
+    "machineType": "D16asv4",
+    "pricePerHour": 0.96,
+    "pricePerGb": 0.11,
+    "ram": 64,
+    "vcpu": 16
+  },
+  "southafricanorth": {
+    "name": "Johannesburg",
+    "region": "africa",
+    "regionDetail": "ZA North",
+    "machineType": "D16asv4",
+    "pricePerHour": 1.016,
+    "pricePerGb": 0.12,
+    "ram": 64,
+    "vcpu": 16
+  },
+  "uksouth": {
+    "name": "England",
+    "region": "eu-west",
+    "regionDetail": "UK South",
+    "machineType": "D16asv4",
+    "pricePerHour": 0.888,
+    "pricePerGb": 0.08,
+    "ram": 64,
+    "vcpu": 16
+  },
+  "koreacentral": {
+    "name": "South Korea",
+    "region": "ap-north",
+    "regionDetail": "KR Central",
+    "machineType": "D16asv4",
+    "pricePerHour": 0.944,
+    "pricePerGb": 0.11,
+    "ram": 64,
+    "vcpu": 16
+  },
+  "westus": {
+    "name": "California",
+    "region": "us-west",
+    "regionDetail": "US West",
+    "machineType": "D16asv4",
+    "pricePerHour": 0.896,
+    "pricePerGb": 0.08,
+    "ram": 64,
+    "vcpu": 16
+  },
+  "westcentralus": {
+    "name": "Wyoming",
+    "region": "us-west",
+    "regionDetail": "US West Central",
+    "machineType": "D16asv4",
+    "pricePerHour": 0.922,
+    "pricePerGb": 0.08,
+    "ram": 64,
+    "vcpu": 16
+  },
+  "northeurope": {
+    "name": "Ireland",
+    "region": "eu-west",
+    "regionDetail": "EU North",
+    "machineType": "D16asv4",
+    "pricePerHour": 0.856,
+    "pricePerGb": 0.08,
+    "ram": 64,
+    "vcpu": 16
+  },
+  "canadaeast": {
+    "name": "Montréal & Quebec City",
+    "region": "na-canada",
+    "regionDetail": "CA East",
+    "machineType": "D16asv4",
+    "pricePerHour": 0.856,
+    "pricePerGb": 0.08,
+    "ram": 64,
+    "vcpu": 16
+  },
+  "centralus": {
+    "name": "Iowa",
+    "region": "us-central",
+    "regionDetail": "US Central",
+    "machineType": "D16asv4",
+    "pricePerHour": 0.868,
+    "pricePerGb": 0.08,
+    "ram": 64,
+    "vcpu": 16
+  },
+  "australiaeast": {
+    "name": "Sydney",
+    "region": "ap-australia",
+    "regionDetail": "AU East",
+    "machineType": "D16asv4",
+    "pricePerHour": 0.96,
+    "pricePerGb": 0.11,
+    "ram": 64,
+    "vcpu": 16
+  },
+  "japaneast": {
+    "name": "Japan",
+    "region": "ap-north",
+    "regionDetail": "JA East",
+    "machineType": "D16asv4",
+    "pricePerHour": 0.992,
+    "pricePerGb": 0.11,
+    "ram": 64,
+    "vcpu": 16
+  },
+  "eastus": {
+    "name": "Virginia",
+    "region": "us-east",
+    "regionDetail": "US East",
+    "machineType": "D16asv4",
+    "pricePerHour": 0.768,
+    "pricePerGb": 0.08,
+    "ram": 64,
+    "vcpu": 16
+  },
+  "westus2": {
+    "name": "Washington",
+    "region": "us-west",
+    "regionDetail": "US West 2",
+    "machineType": "D16asv4",
+    "pricePerHour": 0.768,
+    "pricePerGb": 0.08,
+    "ram": 64,
+    "vcpu": 16
+  },
+  "northcentralus": {
+    "name": "Illinois",
+    "region": "us-central",
+    "regionDetail": "US North Central",
+    "machineType": "D16asv4",
+    "pricePerHour": 0.768,
+    "pricePerGb": 0.08,
+    "ram": 64,
+    "vcpu": 16
+  },
+  "southindia": {
+    "name": "Chennai",
+    "region": "ap-west",
+    "regionDetail": "IN South",
+    "machineType": "D16asv4",
+    "pricePerHour": 1.083,
+    "pricePerGb": 0.11,
+    "ram": 64,
+    "vcpu": 16
+  },
+  "brazilsouth": {
+    "name": "Brazil",
+    "region": "south-america",
+    "regionDetail": "BR South",
+    "machineType": "D16asv4",
+    "pricePerHour": 1.224,
+    "pricePerGb": 0.12,
+    "ram": 64,
+    "vcpu": 16
+  },
+  "westeurope": {
+    "name": "Netherlands",
+    "region": "eu-west",
+    "regionDetail": "EU West",
+    "machineType": "D16asv4",
+    "pricePerHour": 0.92,
+    "pricePerGb": 0.08,
+    "ram": 64,
+    "vcpu": 16
+  },
+  "centralindia": {
+    "name": "Mumbai & Pune",
+    "region": "ap-west",
+    "regionDetail": "IN Central",
+    "machineType": "D16asv4",
+    "pricePerHour": 0.4933,
+    "pricePerGb": 0.11,
+    "ram": 64,
+    "vcpu": 16
+  },
+  "germanywestcentral": {
+    "name": "Germany",
+    "region": "eu-west",
+    "regionDetail": "DE West Central",
+    "machineType": "F16sv2",
+    "pricePerHour": 0.776,
+    "pricePerGb": 0.08,
+    "ram": 32,
+    "vcpu": 16
+  },
+  "westus3": {
+    "name": "Arizona",
+    "region": "us-west",
+    "regionDetail": "US West 3",
+    "machineType": "F16sv2",
+    "pricePerHour": 0.677,
+    "pricePerGb": 0.08,
+    "ram": 32,
+    "vcpu": 16
+  },
+  "ukwest": {
+    "name": "England",
+    "region": "eu-west",
+    "regionDetail": "UK West",
+    "machineType": "F16sv2",
+    "pricePerHour": 0.809,
+    "pricePerGb": 0.08,
+    "ram": 32,
+    "vcpu": 16
+  },
+  "francecentral": {
+    "name": "France",
+    "region": "eu-west",
+    "regionDetail": "FR Central",
+    "machineType": "F16sv2",
+    "pricePerHour": 0.808,
+    "pricePerGb": 0.08,
+    "ram": 32,
+    "vcpu": 16
+  },
+  "switzerlandnorth": {
+    "name": "Switzerland",
+    "region": "eu-west",
+    "regionDetail": "CH North",
+    "machineType": "F16sv2",
+    "pricePerHour": 0.8536,
+    "pricePerGb": 0.08,
+    "ram": 32,
+    "vcpu": 16
+  },
+  "norwayeast": {
+    "name": "Norway",
+    "region": "eu-west",
+    "regionDetail": "NO East",
+    "machineType": "F16sv2",
+    "pricePerHour": 0.854,
+    "pricePerGb": 0.08,
+    "ram": 32,
+    "vcpu": 16
+  },
+  "swedencentral": {
+    "name": "Sweden",
+    "region": "eu-west",
+    "regionDetail": "SE Central",
+    "machineType": "F16sv2",
+    "pricePerHour": 0.776,
+    "pricePerGb": 0.08,
+    "ram": 32,
+    "vcpu": 16
+  },
+  "uaenorth": {
+    "name": "Dubai",
+    "region": "middle-east",
+    "regionDetail": "AE North",
+    "machineType": "F16sv2",
+    "pricePerHour": 0.816,
+    "pricePerGb": 0.12,
+    "ram": 32,
+    "vcpu": 16
+  },
+  "australiasoutheast": {
+    "name": "Melbourne",
+    "region": "ap-australia",
+    "regionDetail": "AU Southeast",
+    "machineType": "F16sv2",
+    "pricePerHour": 0.891,
+    "pricePerGb": 0.11,
+    "ram": 32,
+    "vcpu": 16
+  }
+}

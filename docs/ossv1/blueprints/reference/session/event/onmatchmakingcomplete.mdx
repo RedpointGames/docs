@@ -1,0 +1,41 @@
+---
+id: onmatchmakingcomplete
+title: On Matchmaking Complete
+description: The OnMatchmakingComplete event of the Session subsystem.
+---
+
+import TypeRenderer from '@site/src/TypeRenderer';
+import EventRenderer from '@site/src/EventRenderer';
+
+This is a bindable event.
+
+The C++ documentation for this event is available on [the Unreal Engine documentation website](https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Plugins/OnlineSubsystem/Interfaces/IOnlineSession/).
+
+## Example
+
+<EventRenderer subsystemName="Session" event={{"Identifier":"OnMatchmakingComplete","Parameters":[{"Position":0,"Identifier":"SessionName","Type":{"Type":"Simple","Identifier":"FName"}},{"Position":1,"Identifier":"bWasSuccessful","Type":{"Type":"Simple","Identifier":"bool"}}]}} />
+
+## Outputs
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Output Name</th>
+      <th>Output Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td>SessionName</td>
+      <td><TypeRenderer typeInfo={{"Type":"Simple","Identifier":"FName"}} /></td>
+    </tr>
+    <tr>
+      <td>bWasSuccessful</td>
+      <td><TypeRenderer typeInfo={{"Type":"Simple","Identifier":"bool"}} /></td>
+    </tr>
+  </tbody>
+</table>
+
+

@@ -1,0 +1,30 @@
+---
+title: Peer-to-peer vs IP connections
+description: Understand the difference between peer-to-peer and IP connections.
+---
+
+When you use Epic Online Services, there are two ways for players to connect to servers: peer-to-peer and IP connections.
+
+## Peer-to-peer connections
+
+Peer-to-peer (P2P) connections allow players to connect to each other over the Internet without having to port forward on their router.
+
+Because P2P connections use the account ID as the networking endpoint, each player must be logged into their own account. Dedicated servers can not listen on peer-to-peer connections, because they do not log into an EOS account.
+
+This is also why you need to sign into unique Epic Games accounts when using the [Developer Authentication Tool](../../auth/dev_auth_tool_usage.mdx) to test in editor. If multiple game instances are signed into the same account, the game can't route network traffic correctly to the other instances.
+
+If you have players hosting games (as listen servers), you must be using peer-to-peer connections so players can play with each other without configuring their routers.
+
+## IP connections
+
+IP connections do not have the same limitations as peer-to-peer connections; that is, you can have game instances logged into the same EOS account. IP connections are also the type of connection used by dedicated servers.
+
+However, because IP connections are just plain IP traffic, they don't handle NAT punchthrough or port forwarding on routers. IP connections are only suitable for LAN traffic or dedicated servers.
+
+## Which should I use?
+
+The plugin automatically chooses the correct type of connection to use, based on whether or not the user is signed into an EOS account.
+
+If you start a listen server in the game, and the user is signed into an EOS account, the plugin will use peer-to-peer connections.
+
+If you start a server (listen or dedicated) and the user is not signed into an EOS account, the plugin will use an IP connection.

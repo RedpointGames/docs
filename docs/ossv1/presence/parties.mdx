@@ -1,0 +1,25 @@
+---
+title: Joining parties from the Overlay
+description: Allow players to join parties from the Epic Games Overlay.
+---
+
+Turning on presence parties allows players to join parties from the Epic Games Overlay.
+
+## Configuration
+
+To enable **Join** and **Invite** functionality in the Epic Games Overlay for parties, make sure you set the `PresenceAdvertises` setting to `Party`, like so:
+
+```ini
+[OnlineSubsystem] 
+PresenceAdvertises=Party
+```
+
+This is the default behaviour, so in most cases you don't need to explicitly set this option.
+
+## Handling events
+
+When using parties with presence, all of the events are already handled for you. As long as your game code accesses the party through it's primary type ID, joining and leaving parties through the Epic Games Overlay should work without any additional changes.
+
+## Specifying the presence party
+
+Only one party can be set as the "presence party" (that is, the one associated with the overlay). This is determined by the party having a type ID that matches the primary party type ID.

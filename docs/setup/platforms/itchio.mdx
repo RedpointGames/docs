@@ -1,0 +1,64 @@
+---
+title: Platform setup for itch.io
+sidebar_label: itch.io
+description: How to set up your game for itch.io.
+---
+
+To publish your game on itch.io, you just need to configure itch.io in the Epic Games Developer portal.
+
+## Add the required scope to your itch.io game
+
+To authenticate with itch.io, you have to tell the itch.io app to provide the JWT as an environment variable at runtime.
+
+You need to add the following to your `.itch.toml` file, located in the root of the packaged build that you upload. If you don't have an `.itch.toml` file, create one:
+
+```toml
+[[actions]]
+name = "play"
+path = "YourGame.exe"
+scope = "profile:me"
+```
+
+If you don't set up `.itch.toml` correctly, or if you launch your game outside of the itch.io app, you'll see the following error in the logs:
+
+```
+LogRedpointItchIo: Error: Can't sign in with itch.io, ITCHIO_API_KEY environment variable is missing.
+```
+
+## Set up itch.io authentication in the Epic Games Dev Portal
+
+1. Open the [Epic Games Dev Portal](https://dev.epicgames.com/).
+2. Navigate to your product.
+3. Click "Product Settings".
+4. Under the "Identity Providers" tab, click "Add Identity Provider".
+5. Select "itch.io" as the identity provider.
+6. Set the "Description" to any value you like.
+7. Set the "Game ID" to the ID of your itch.io game. When you are editing the game on itch.io, it will be located in the URL like so: `https://itch.io/game/edit/<GAME_ID_HERE>`.
+8. Click "Save & Exit".
+9. Under the "Environments" tab, click "Identity Providers" next to the Live sandbox.
+10. For itch.io, select the new credential you just made.
+
+## Enable the itch.io online subsystem in your game
+
+In your `DefaultEngine.ini` file (or `WindowsEngine.ini` if you want to configure it for a specific platform), you need to add the following settings:
+
+```ini
+[OnlineSubsystemRedpointItchIo]
+bEnabled=True
+```
+
+## Enable itch.io avatars
+
+itch.io avatars are supported automatically.
+
+:::caution
+Only the avatar for the locally signed in player can be fetched. Avatars for other itch.io players can not be retrieved, as itch.io does not provide an API for this.
+:::
+
+## Use itch.io authentication at runtime
+
+The default authentication graph will automatically use itch.io authentication if your game is launched through the itch.io app.
+
+## Testing itch.io authentication
+
+To test itch.io authentication, you will need to launch your game through the itch.io app.

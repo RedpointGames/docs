@@ -1,0 +1,73 @@
+---
+id: readfriendslist
+title: Read Friends List
+description: The ReadFriendsList function of the Friends subsystem.
+---
+
+import TypeRenderer from '@site/src/TypeRenderer';
+import FunctionRenderer from '@site/src/FunctionRenderer';
+
+This is an asynchronous latent blueprint node.
+
+The C++ documentation for this function is available on [the Unreal Engine documentation website](https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Plugins/OnlineSubsystem/Interfaces/IOnlineFriends/).
+
+## Example
+
+<FunctionRenderer subsystemName="Friends" func={{"Identifier":"ReadFriendsList","Supported":false,"Async":true,"AsyncPins":["OnCallFailed","OnReadFriendsListComplete"],"Pure":false,"Parameters":[{"Position":0,"Identifier":"LocalUserNum","Type":{"Type":"Simple","Identifier":"int32"}},{"Position":1,"Identifier":"ListName","Type":{"Type":"Simple","Identifier":"FString","Out":false}},{"Position":2,"Identifier":"LocalUserNum","Type":{"Type":"Simple","Identifier":"int32","Out":true}},{"Position":3,"Identifier":"bWasSuccessful","Type":{"Type":"Simple","Identifier":"bool","Out":true}},{"Position":4,"Identifier":"ListName","Type":{"Type":"Simple","Identifier":"FString","Out":true}},{"Position":5,"Identifier":"ErrorStr","Type":{"Type":"Simple","Identifier":"FString","Out":true}}],"ReturnType":null}} />
+
+## Inputs
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Input Name</th>
+      <th>Input Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td>Local User Num</td>
+      <td><TypeRenderer typeInfo={{"Type":"Simple","Identifier":"int32"}} /></td>
+    </tr>
+    <tr>
+      <td>List Name</td>
+      <td><TypeRenderer typeInfo={{"Type":"Simple","Identifier":"FString","Out":false}} /></td>
+    </tr>
+  </tbody>
+</table>
+
+
+## Outputs
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Output Name</th>
+      <th>Output Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td>Local User Num</td>
+      <td><TypeRenderer typeInfo={{"Type":"Simple","Identifier":"int32","Out":true}} /></td>
+    </tr>
+    <tr>
+      <td>Was Successful</td>
+      <td><TypeRenderer typeInfo={{"Type":"Simple","Identifier":"bool","Out":true}} /></td>
+    </tr>
+    <tr>
+      <td>List Name</td>
+      <td><TypeRenderer typeInfo={{"Type":"Simple","Identifier":"FString","Out":true}} /></td>
+    </tr>
+    <tr>
+      <td>Error Str</td>
+      <td><TypeRenderer typeInfo={{"Type":"Simple","Identifier":"FString","Out":true}} /></td>
+    </tr>
+  </tbody>
+</table>
+
+

@@ -1,0 +1,386 @@
+---
+title: Finding a session
+description: How to find available sessions to join.
+---
+
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+import Blueprint from "@site/src/Blueprint";
+
+To join a multiplayer game, you'll need to search for available sessions.
+
+## Default search filters
+
+<Tabs lazy groupId="code-format" defaultValue="c++" values={[ { label: 'C++', value: 'c++' }, { label: 'Blueprints', value: 'blueprints' } ]}>
+<TabItem value="c++">
+
+To ensure that you only get usable session results, the EOS plugin adds the following search filters to your search by default:
+
+- Only sessions that have a listening game server are returned. That is, the Unreal Engine instance that created the session must be running a listen server or be a dedicated server.
+- Only sessions which are not full and have at least one slot available are returned as of [API version 2022-02-11](/support/advanced_configuration.mdx#2022-02-11).
+
+If you can't see your game session when searching for sessions, try the following troubleshooting steps:
+
+1. Ensure that the session appears in the EOS backend by opening the Dev Portal and searching for the session ID. The session ID is emitted in the Output Log and log files of the server.
+2. Check the `__EOS_bListening` attribute of the session in the EOS backend. If it's `false`, then the session won't be returned by default because either the game server isn't listening, or you haven't configured your networking drivers correctly in your INI files, which prevents the plugin from being aware that the server is listening for connections.
+3. Check that the game session isn't considered full and has at least one player slot available.
+4. Try running the search again. The sessions list is eventually consistent, which means it can take a few seconds (and a few attempts) for a game session to start appearing in it.
+
+### Including non-listening sessions
+
+To search for only non-listening sessions, add the following search filter:
+
+```cpp
+Search->QuerySettings.Set(
+    FName(TEXT("__EOS_bListening")),
+    false,
+    EOnlineComparisonOp::Equals);
+```
+
+To search for both listening and non-listening sessions, add the following search filter:
+
+```cpp
+Search->QuerySettings.Set(
+    FName(TEXT("__EOS_bListening")),
+    FVariantData() /* Empty value */,
+    EOnlineComparisonOp::Equals);
+```
+
+### Including full sessions
+
+To include sessions which are full, add the following search filter:
+
+```cpp
+Search->QuerySettings.SearchParams.Add(
+    FName(TEXT("minslotsavailable")),
+    FOnlineSessionSearchParam(
+        (int64)0L,
+        EOnlineComparisonOp::GreaterThanEquals));
+```
+
+:::caution
+The `Set` function does not have an implementation for `int64` values. You must use `int64` when querying on integer session attributes, so you have to use the longer `SearchParams.Add` form to add these kinds of search filters.
+
+If you use the `Set` function accidentally, you'll get a linker error similar to the one shown below. The fix is to switch to using `SearchParams.Add` instead.
+
+```
+unresolved external symbol "public: void __cdecl FOnlineSearchSettings::Set<__int64>
+class FName,__int64 const &,enum EOnlineComparisonOp::Type)" (??$Set@_J@FOnlineSearchSettings
+@@QEAAXVFName@@AEB_JW4Type@EOnlineComparisonOp@@@Z) referenced in function "..."
+```
+
+:::
+
+</TabItem>
+<TabItem value="blueprints">
+
+To ensure that you only get usable session results, the EOS plugin adds the following search filters to your search by default:
+
+- Only sessions that have a listening game server are returned. That is, the Unreal Engine instance that created the session must be running a listen server or be a dedicated server.
+- Only sessions which are not full and have at least one slot available are returned as of [API version 2022-02-11](/support/advanced_configuration.mdx#2022-02-11).
+
+If you can't see your game session when searching for sessions, try the following troubleshooting steps:
+
+1. Ensure that the session appears in the EOS backend by opening the Dev Portal and searching for the session ID. The session ID is emitted in the Output Log and log files of the server.
+2. Check the `__EOS_bListening` attribute of the session in the EOS backend. If it's `false`, then the session won't be returned by default because either the game server isn't listening, or you haven't configured your networking drivers correctly in your INI files, which prevents the plugin from being aware that the server is listening for connections.
+3. Check that the game session isn't considered full and has at least one player slot available.
+4. Try running the search again. The sessions list is eventually consistent, which means it can take a few seconds (and a few attempts) for a game session to start appearing in it.
+
+</TabItem>
+</Tabs>
+
+## Finding a session
+
+<Tabs lazy groupId="code-format" defaultValue="c++" values={[ { label: 'C++', value: 'c++' }, { label: 'Blueprints', value: 'blueprints' } ]}>
+<TabItem value="c++">
+
+First, get the online session interface:
+
+```cpp
+#include "OnlineSubsystem.h"
+#include "OnlineSubsystemUtils.h"
+#include "Interfaces/OnlineSessionInterface.h"
+
+// ...
+
+IOnlineSubsystem* Subsystem = Online::GetSubsystem(this->GetWorld());
+IOnlineSessionPtr Session = Subsystem->GetSessionInterface();
+```
+
+Next, create the session settings:
+
+```cpp
+TSharedRef<FOnlineSessionSearch> Search = MakeShared<FOnlineSessionSearch>();
+// Remove the default search parameters that FOnlineSessionSearch sets up.
+Search->QuerySettings.SearchParams.Empty();
+
+// Add your search settings here. If you're including both listening and non-listening sessions as per the __EOS_bListening example above, then you must include at least one additional filter, or EOS will not return any search results.
+Search->QuerySettings.Set(
+    FName(TEXT("SessionSetting")),
+    FString(TEXT("SettingValue")),
+    EOnlineComparisonOp::Equals);
+```
+
+Register the event handler so you know when you're received the list of available sessions. Note that we're passing the `Search` instance as a bound parameter to the delegate so we can retrieve it when the callback fires. `FindSessionsDelegateHandle` is declared as an `FDelegateHandle`.
+
+```cpp
+this->FindSessionsDelegateHandle =
+    Session->AddOnFindSessionsCompleteDelegate_Handle(FOnFindSessionsComplete::FDelegate::CreateUObject(
+        this,
+        &UMyClass::HandleFindSessionsComplete,
+        Search));
+```
+
+Then call `FindSession` with your session settings:
+
+```cpp
+if (!Session->FindSessions(0, Search))
+{
+    // Call didn't start, return error.
+}
+```
+
+When your callback fires, you can iterate through the returned results. Make sure you clear deregister the event handler.
+
+```cpp
+void UMyClass::HandleFindSessionsComplete(
+    bool bWasSuccessful,
+    TSharedRef<FOnlineSessionSearch> Search)
+{
+    IOnlineSubsystem *Subsystem = Online::GetSubsystem(WorldContextObject->GetWorld());
+    IOnlineSessionPtr Session = Subsystem->GetSessionInterface();
+
+    if (bWasSuccessful)
+    {
+        for (auto RawResult : Search->SearchResults)
+        {
+            if (RawResult.IsValid())
+            {
+                FString ConnectInfo;
+                if (Session->GetResolvedConnectString(RawResult, NAME_GamePort, ConnectInfo))
+                {
+                    // Store both RawResult and ConnectInfo in an array or some kind of temporary storage. You will need both values when you join the session later.
+
+                    // If you only want to get the first result, break the loop here.
+                    break;
+                }
+            }
+        }
+    }
+
+    Session->ClearOnFindSessionsCompleteDelegate_Handle(this->FindSessionsDelegateHandle);
+    this->FindSessionsDelegateHandle.Reset();
+}
+```
+
+</TabItem>
+<TabItem value="blueprints">
+
+First, construct an "Online Session Search" using the construct blueprint function and save it as a variable.
+Then, call "Find Sessions", using the previously saved variable.
+
+<Blueprint
+  height="375px"
+  blueprint={`Begin Object Class=/Script/BlueprintGraph.K2Node_GenericCreateObject Name="K2Node_GenericCreateObject_0"
+   NodePosX=-1696
+   NodePosY=-178
+   NodeGuid=A2907B194D09FFE3372D889045CF8179
+   CustomProperties Pin (PinId=EA6D684A47BE485A234AFFB8EDD5534E,PinName="execute",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=2BD6556D45374DB15DD80189AFFE910B,PinName="then",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_VariableSet_2 8395B8FB451E05B0BD578DA44455DCCB,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=B6DEBC27482048A901855F92510620A7,PinName="Class",PinToolTip="Object Class Reference Class\\nThe object class you want to construct",PinType.PinCategory="class",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/CoreUObject.Object"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,DefaultObject="/Script/OnlineSubsystemBlueprints.OnlineSessionSearch",PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=044A42C146880B51013CFA86E836C5FF,PinName="ReturnValue",PinToolTip="Online Session Search Object Reference Return Value\\nThe constructed object",Direction="EGPD_Output",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/OnlineSubsystemBlueprints.OnlineSessionSearch"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_VariableSet_2 9B450AAF4E3A6D205D78798DC1D8D687,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=0255F5914B586938895E94B1C554046D,PinName="Outer",PinToolTip="Object Reference Outer\\nOwner of the constructed object",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/CoreUObject.Object"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_VariableSet Name="K2Node_VariableSet_2"
+   VariableReference=(MemberName="Online Search",MemberGuid=BEE3A8514DA01424C644DEB58C3193FF,bSelfContext=True)
+   NodePosX=-1376
+   NodePosY=-162
+   NodeGuid=6847E7DA42DF570AC9B5DE87105C6E37
+   CustomProperties Pin (PinId=8395B8FB451E05B0BD578DA44455DCCB,PinName="execute",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_GenericCreateObject_0 2BD6556D45374DB15DD80189AFFE910B,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=600B1B9043EEAD30A77EBD9F6C924242,PinName="then",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_AsyncAction_0 FDE71ADF46C6BA0FEFB892B06F5C0CF9,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=9B450AAF4E3A6D205D78798DC1D8D687,PinName="Online Search",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/OnlineSubsystemBlueprints.OnlineSessionSearch"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_GenericCreateObject_0 044A42C146880B51013CFA86E836C5FF,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=37CA80F94179E87CA3D6C4B6D37A54E8,PinName="Output_Get",PinToolTip="Retrieves the value of the variable, can use instead of a separate Get node",Direction="EGPD_Output",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/OnlineSubsystemBlueprints.OnlineSessionSearch"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_AsyncAction_0 F1FD57A6418253A84D1F5AB1E33C0C2F,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=169FBE32462AD02331F053A5E6FC742F,PinName="self",PinFriendlyName=NSLOCTEXT("K2Node", "Target", "Target"),PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=BlueprintGeneratedClass'"/Game/ExampleOSS/Blueprints/Session/BpFindSessionsTask.BpFindSessionsTask_C"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=True,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_AsyncAction Name="K2Node_AsyncAction_0"
+   ProxyFactoryFunctionName="FindSessions"
+   ProxyFactoryClass=Class'"/Script/OnlineSubsystemBlueprints.OnlineSessionSubsystemFindSessions"'
+   ProxyClass=Class'"/Script/OnlineSubsystemBlueprints.OnlineSessionSubsystemFindSessions"'
+   NodePosX=-1152
+   NodePosY=-178
+   NodeGuid=10B9A3B84A13FA0F2606779436AC684A
+   CustomProperties Pin (PinId=FDE71ADF46C6BA0FEFB892B06F5C0CF9,PinName="execute",PinToolTip="\\nExec",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_VariableSet_2 600B1B9043EEAD30A77EBD9F6C924242,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=8640FEC4450BD2BC3DD36FA361F95A04,PinName="then",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=A1A886284AB712FBFB1EF8BF0507E9AE,PinName="OnCallFailed",PinFriendlyName=NSLOCTEXT("", "8F63F96E444E5F7E66C0239B5F2EB125", "On Call Failed"),PinToolTip="On Call Failed",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=9A92EC354FDECB671B838C9B4FB8E79D,PinName="OnFindSessionsComplete",PinFriendlyName=NSLOCTEXT("", "CC6BD80048192D2EA05A0AA1E0A89963", "On Find Sessions Complete"),PinToolTip="On Find Sessions Complete",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=CB765D07468CC59769CEA2A0A13DE5CC,PinName="bWasSuccessful",PinToolTip="Was Successful",Direction="EGPD_Output",PinType.PinCategory="bool",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=BDD23B7F448BA2B05B0862AF48EB47D9,PinName="Subsystem",PinToolTip="Subsystem\\nOnline Session Subsystem Object Reference",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/OnlineSubsystemBlueprints.OnlineSessionSubsystem"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_GetSubsystem_0 41CF013C4CA693BB2AC3139FD7439F66,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=16382D90454AAAC4789267B94D78E9D6,PinName="SearchingPlayerId",PinToolTip="Searching Player Id\\nUnique Net Id Repl Structure",PinType.PinCategory="struct",PinType.PinSubCategory="",PinType.PinSubCategoryObject=ScriptStruct'"/Script/Engine.UniqueNetIdRepl"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=F1FD57A6418253A84D1F5AB1E33C0C2F,PinName="SearchSettings",PinToolTip="Search Settings\\nOnline Session Search Object Reference",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/OnlineSubsystemBlueprints.OnlineSessionSearch"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_VariableSet_2 37CA80F94179E87CA3D6C4B6D37A54E8,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_GetSubsystem Name="K2Node_GetSubsystem_0"
+   CustomClass=Class'"/Script/OnlineSubsystemBlueprints.OnlineSessionSubsystem"'
+   NodePosX=-1536
+   NodePosY=-32
+   NodeGuid=DE42949A48FE79C46F58818B5B4BBBD0
+   CustomProperties Pin (PinId=41CF013C4CA693BB2AC3139FD7439F66,PinName="ReturnValue",Direction="EGPD_Output",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/OnlineSubsystemBlueprints.OnlineSessionSubsystem"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_AsyncAction_0 BDD23B7F448BA2B05B0862AF48EB47D9,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+`}
+/>
+
+If you want to edit the search settings, you can reference the saved variable and edit these variables:
+
+<Blueprint
+  height="700px"
+  blueprint={`
+Begin Object Class=/Script/BlueprintGraph.K2Node_VariableSet Name="K2Node_VariableSet_3"
+   VariableReference=(MemberParent=Class'"/Script/OnlineSubsystemBlueprints.OnlineSessionSearch"',MemberName="MaxSearchResults")
+   SelfContextInfo=NotSelfContext
+   NodePosX=-3104
+   NodePosY=784
+   NodeGuid=045BC6F9421E851EF49CF3A9B3E4CA0A
+   CustomProperties Pin (PinId=432BD1B0464F963FCFD0D5807AF434E5,PinName="execute",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=2DB5A3584A2FC7EA892319916E7BCB6A,PinName="then",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=0A59E6E844209569536087BD391B3783,PinName="MaxSearchResults",PinFriendlyName=NSLOCTEXT("", "C3D07D9E4DF3B75B9D0A59924715AFD2", "Max Search Results"),PinType.PinCategory="int",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,DefaultValue="100",AutogeneratedDefaultValue="0",PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=FA81401F44A18B8556EA60A307525B98,PinName="Output_Get",PinFriendlyName=NSLOCTEXT("", "0DA00C7E4BC663E87760CE8A8E431273", "Max Search Results"),PinToolTip="Retrieves the value of the variable, can use instead of a separate Get node",Direction="EGPD_Output",PinType.PinCategory="int",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,DefaultValue="0",AutogeneratedDefaultValue="0",PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=6EE8BF6943E9AB1438BA1FBFC4330118,PinName="self",PinFriendlyName=NSLOCTEXT("K2Node", "Target", "Target"),PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/OnlineSubsystemBlueprints.OnlineSessionSearch"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_VariableGet_10 E9752CC848F89C99DA6E2586FAC2D00C,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_VariableSet Name="K2Node_VariableSet_4"
+   VariableReference=(MemberParent=Class'"/Script/OnlineSubsystemBlueprints.OnlineSessionSearch"',MemberName="bIsLanQuery")
+   SelfContextInfo=NotSelfContext
+   NodePosX=-3104
+   NodePosY=400
+   NodeGuid=DEE94980452651CCE155B69591999DE9
+   CustomProperties Pin (PinId=5FFA48A94023158AE4836CA76B5A32D3,PinName="execute",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=14E0E1A748F9313377290390DB093262,PinName="then",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=83B53F5C4109DC11B36574A9B049803E,PinName="bIsLanQuery",PinFriendlyName=NSLOCTEXT("", "929CE1044504D01E212499AAE28070BA", "Is Lan Query"),PinType.PinCategory="bool",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,DefaultValue="false",AutogeneratedDefaultValue="false",PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=DD813670466D1A1362B9C082E44B84F4,PinName="Output_Get",PinFriendlyName=NSLOCTEXT("", "2A20FB61420F607A93A20D8A3F1B938C", "Is Lan Query"),PinToolTip="Retrieves the value of the variable, can use instead of a separate Get node",Direction="EGPD_Output",PinType.PinCategory="bool",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,DefaultValue="false",AutogeneratedDefaultValue="false",PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=8D67B0334A2D24CB2DFCBCB54416B8EB,PinName="self",PinFriendlyName=NSLOCTEXT("K2Node", "Target", "Target"),PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/OnlineSubsystemBlueprints.OnlineSessionSearch"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_VariableGet_10 E9752CC848F89C99DA6E2586FAC2D00C,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_VariableSet Name="K2Node_VariableSet_6"
+   VariableReference=(MemberParent=Class'"/Script/OnlineSubsystemBlueprints.OnlineSessionSearch"',MemberName="PingBucketSize")
+   SelfContextInfo=NotSelfContext
+   NodePosX=-3104
+   NodePosY=496
+   NodeGuid=A65909924DB2753FC4AA29BF90161168
+   CustomProperties Pin (PinId=BEC4BFD44290341236B087A7CE44BCE7,PinName="execute",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=FD9084734DE06B1D1DDE45B5A37E8046,PinName="then",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=C4A5480149E77DB453A78AA0EB1F75D3,PinName="PingBucketSize",PinFriendlyName=NSLOCTEXT("", "543772A046943DA8A0EA11899E03627C", "Ping Bucket Size"),PinType.PinCategory="int",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,DefaultValue="0",AutogeneratedDefaultValue="0",PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=5E159B40432712EBCB2FCB91967404C1,PinName="Output_Get",PinFriendlyName=NSLOCTEXT("", "63C4500E489FAD8FBA908FA749732719", "Ping Bucket Size"),PinToolTip="Retrieves the value of the variable, can use instead of a separate Get node",Direction="EGPD_Output",PinType.PinCategory="int",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,DefaultValue="0",AutogeneratedDefaultValue="0",PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=6DD2371644FEB8FDFBBB90BCA5B1D46A,PinName="self",PinFriendlyName=NSLOCTEXT("K2Node", "Target", "Target"),PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/OnlineSubsystemBlueprints.OnlineSessionSearch"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_VariableGet_10 E9752CC848F89C99DA6E2586FAC2D00C,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_VariableSet Name="K2Node_VariableSet_7"
+   VariableReference=(MemberParent=Class'"/Script/OnlineSubsystemBlueprints.OnlineSessionSearch"',MemberName="PlatformHash")
+   SelfContextInfo=NotSelfContext
+   NodePosX=-3104
+   NodePosY=592
+   NodeGuid=CD9DBE0B4B19F5ABE0A6F78E64D69FA9
+   CustomProperties Pin (PinId=7E090A7E488338DDBD63BC8255547F07,PinName="execute",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=95BA381D4D1E72849A54DAB3AEEB83BA,PinName="then",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=4141F2FB43CFDF93BFFE05B40884A9CD,PinName="PlatformHash",PinFriendlyName=NSLOCTEXT("", "412E425641038819B22B09BA0BDACCE4", "Platform Hash"),PinType.PinCategory="int",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,DefaultValue="0",AutogeneratedDefaultValue="0",PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=D40BAEDC475ACB6971BD2EBC641592C3,PinName="Output_Get",PinFriendlyName=NSLOCTEXT("", "CAE06ADD4C6B0FEB5C9122AD1D07711E", "Platform Hash"),PinToolTip="Retrieves the value of the variable, can use instead of a separate Get node",Direction="EGPD_Output",PinType.PinCategory="int",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,DefaultValue="0",AutogeneratedDefaultValue="0",PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=337B3BDF4619F936C9F5AE889E6BAFFE,PinName="self",PinFriendlyName=NSLOCTEXT("K2Node", "Target", "Target"),PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/OnlineSubsystemBlueprints.OnlineSessionSearch"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_VariableGet_10 E9752CC848F89C99DA6E2586FAC2D00C,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_VariableSet Name="K2Node_VariableSet_8"
+   VariableReference=(MemberParent=Class'"/Script/OnlineSubsystemBlueprints.OnlineSessionSearch"',MemberName="TimeoutInSeconds")
+   SelfContextInfo=NotSelfContext
+   NodePosX=-3104
+   NodePosY=688
+   NodeGuid=45B367BE42573CF0B4AF3285CFE366F6
+   CustomProperties Pin (PinId=DB16619A40F8ABD278208A83A1BD269E,PinName="execute",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=7754A6E54BE84908637D30AB6365D793,PinName="then",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=8543AD21496D2B271EDF698DE7F26673,PinName="TimeoutInSeconds",PinFriendlyName=NSLOCTEXT("", "E15A35684022879D7830A198AF4F0CAF", "Timeout in Seconds"),PinType.PinCategory="float",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,DefaultValue="120.000000",AutogeneratedDefaultValue="0.0",PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=34E706F7437857B3CD7C12B275F16E69,PinName="Output_Get",PinFriendlyName=NSLOCTEXT("", "76EC8E3C4BF746AA9B1DBD806C8A83B5", "Timeout in Seconds"),PinToolTip="Retrieves the value of the variable, can use instead of a separate Get node",Direction="EGPD_Output",PinType.PinCategory="float",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,DefaultValue="0.0",AutogeneratedDefaultValue="0.0",PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=115CA45348CA62B99D8A5E8BC95E36F0,PinName="self",PinFriendlyName=NSLOCTEXT("K2Node", "Target", "Target"),PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/OnlineSubsystemBlueprints.OnlineSessionSearch"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_VariableGet_10 E9752CC848F89C99DA6E2586FAC2D00C,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_VariableSet Name="K2Node_VariableSet_0"
+   VariableReference=(MemberParent=Class'"/Script/OnlineSubsystemBlueprints.OnlineSessionSearch"',MemberName="SearchParams")
+   SelfContextInfo=NotSelfContext
+   NodePosX=-3104
+   NodePosY=304
+   NodeGuid=258187094717093E28F6EDBA7FF9BE4B
+   CustomProperties Pin (PinId=52DCF90245DE985554C3D4A6B69C8C65,PinName="execute",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=219EEB4C49B981E1B8181DACF8570288,PinName="then",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=7AFC086D435F9B168B90599AFD1B3877,PinName="SearchParams",PinFriendlyName=NSLOCTEXT("", "F2E0CE394C23DA03BFEBAF95D110E3FF", "Search Params"),PinType.PinCategory="name",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(TerminalCategory="struct",TerminalSubCategoryObject=ScriptStruct'"/Script/OnlineSubsystemBlueprints.SessionSearchParamBP"'),PinType.ContainerType=Map,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_MakeMap_0 9CF027AA44A9536E340F6F81EF680C56,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=1E7E9FB847DBC82ACC411F954D828A7C,PinName="Output_Get",PinFriendlyName=NSLOCTEXT("", "25B5F5914B7E435CB0CE94B95FD3A79A", "Search Params"),PinToolTip="Retrieves the value of the variable, can use instead of a separate Get node",Direction="EGPD_Output",PinType.PinCategory="name",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(TerminalCategory="struct",TerminalSubCategoryObject=ScriptStruct'"/Script/OnlineSubsystemBlueprints.SessionSearchParamBP"'),PinType.ContainerType=Map,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=AB0298C74458377E5B5F3E94FB0C0FAC,PinName="self",PinFriendlyName=NSLOCTEXT("K2Node", "Target", "Target"),PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/OnlineSubsystemBlueprints.OnlineSessionSearch"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_VariableGet_10 E9752CC848F89C99DA6E2586FAC2D00C,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_MakeMap Name="K2Node_MakeMap_0"
+   NodePosX=-3616
+   NodePosY=320
+   NodeGuid=C914E7A24F26E73767C44FBA125DE871
+   CustomProperties Pin (PinId=9CF027AA44A9536E340F6F81EF680C56,PinName="Map",Direction="EGPD_Output",PinType.PinCategory="name",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(TerminalCategory="struct",TerminalSubCategoryObject=ScriptStruct'"/Script/OnlineSubsystemBlueprints.SessionSearchParamBP"'),PinType.ContainerType=Map,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_VariableSet_0 7AFC086D435F9B168B90599AFD1B3877,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=7343212B4F6289EBF18D2BB2C31E53B6,PinName="Key 0",PinType.PinCategory="name",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,DefaultValue="SessionSetting",AutogeneratedDefaultValue="None",PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=F04427CC400F36C6AC33FA8AF5DC4CD7,PinName="Value 0",PinType.PinCategory="struct",PinType.PinSubCategory="",PinType.PinSubCategoryObject=ScriptStruct'"/Script/OnlineSubsystemBlueprints.SessionSearchParamBP"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_MakeStruct_0 085B5EF8423265991FC74BB26D4DD62B,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_MakeStruct Name="K2Node_MakeStruct_0"
+   bMadeAfterOverridePinRemoval=True
+   ShowPinForProperties(0)=(PropertyName="Data",PropertyFriendlyName="Data",PropertyTooltip=NSLOCTEXT("", "168AACE7480095D79741C1BFBF1DC187", "The value of the search parameter."),CategoryName="Online",bShowPin=True,bCanToggleVisibility=True)
+   ShowPinForProperties(1)=(PropertyName="Op",PropertyFriendlyName="Op",PropertyTooltip=NSLOCTEXT("", "5EC94F1544BA29EA94F302840B45D22D", "The comparison operator."),CategoryName="Online",bShowPin=True,bCanToggleVisibility=True)
+   ShowPinForProperties(2)=(PropertyName="ID",PropertyFriendlyName="ID",PropertyTooltip=NSLOCTEXT("", "B99F363F46376586918384A45B0E4885", "The ID of the parameter - only used by some subsystems."),CategoryName="Online",bShowPin=True,bCanToggleVisibility=True)
+   StructType=ScriptStruct'"/Script/OnlineSubsystemBlueprints.SessionSearchParamBP"'
+   NodePosX=-3632
+   NodePosY=400
+   NodeGuid=C506441942D18DB4316740ABF6456033
+   CustomProperties Pin (PinId=085B5EF8423265991FC74BB26D4DD62B,PinName="SessionSearchParamBP",Direction="EGPD_Output",PinType.PinCategory="struct",PinType.PinSubCategory="",PinType.PinSubCategoryObject=ScriptStruct'"/Script/OnlineSubsystemBlueprints.SessionSearchParamBP"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_MakeMap_0 F04427CC400F36C6AC33FA8AF5DC4CD7,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=B372EC96497E66755773BFB6F39D11EF,PinName="Data",PinFriendlyName=NSLOCTEXT("", "872146DD469C8F8B8D9817854DE0A50D", "Data"),PinToolTip="Data\\nVariant Data BP Structure\\n\\nThe value of the search parameter.",PinType.PinCategory="struct",PinType.PinSubCategory="",PinType.PinSubCategoryObject=ScriptStruct'"/Script/OnlineSubsystemBlueprints.VariantDataBP"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,DefaultValue="(Type=Empty,AsBool=False,AsInt=0,AsFloat=0.000000,AsInt64=0,AsString=\"\")",AutogeneratedDefaultValue="(Type=Empty,AsBool=False,AsInt=0,AsFloat=0.000000,AsInt64=0,AsString=\"\")",LinkedTo=(K2Node_MakeStruct_1 EA11C7DB48DA0028979C7BAF5F36D3CD,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=686C8AA8432A29EC175754A50F3DDA26,PinName="Op",PinFriendlyName=NSLOCTEXT("", "174C0D2244A2EFC340CAAAB0795F64DF", "Op"),PinToolTip="Op\\nEOnlineComparisonOp_ Enum\\n\\nThe comparison operator.",PinType.PinCategory="byte",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Enum'"/Script/OnlineSubsystemBlueprints.EOnlineComparisonOp_"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,DefaultValue="Equals",AutogeneratedDefaultValue="Equals",PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=E4663DE141B1382070FF099081D52973,PinName="ID",PinFriendlyName=NSLOCTEXT("", "5756E09B44F854E8C057BE9582B84E7F", "ID"),PinToolTip="ID\\nInteger\\n\\nThe ID of the parameter - only used by some subsystems.",PinType.PinCategory="int",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,DefaultValue="0",AutogeneratedDefaultValue="0",PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_MakeStruct Name="K2Node_MakeStruct_1"
+   bMadeAfterOverridePinRemoval=True
+   ShowPinForProperties(0)=(PropertyName="Type",PropertyFriendlyName="Type",PropertyTooltip=NSLOCTEXT("", "F913CD6E45E9324D6CAD618D85D4D4BB", "Type"),CategoryName="Online",bShowPin=True,bCanToggleVisibility=True)
+   ShowPinForProperties(1)=(PropertyName="AsBool",PropertyFriendlyName="As Bool",PropertyTooltip=NSLOCTEXT("", "BD2911A14B079E8A5CCC9CB126C43006", "As Bool"),CategoryName="Online",bShowPin=True,bCanToggleVisibility=True)
+   ShowPinForProperties(2)=(PropertyName="AsInt",PropertyFriendlyName="As Int",PropertyTooltip=NSLOCTEXT("", "C912470C4C4B4784F7EE0B86793FB8B5", "As Int"),CategoryName="Online",bShowPin=True,bCanToggleVisibility=True)
+   ShowPinForProperties(3)=(PropertyName="AsFloat",PropertyFriendlyName="As Float",PropertyTooltip=NSLOCTEXT("", "C9DA79C64C8EBBAC663A5D9B778851A5", "As Float"),CategoryName="Online",bShowPin=True,bCanToggleVisibility=True)
+   ShowPinForProperties(4)=(PropertyName="AsInt64",PropertyFriendlyName="As Int 64",PropertyTooltip=NSLOCTEXT("", "2DE36B6C4CD8E20C5C7B52B94B96BF63", "As Int 64"),CategoryName="Online",bShowPin=True,bCanToggleVisibility=True)
+   ShowPinForProperties(5)=(PropertyName="AsString",PropertyFriendlyName="As String",PropertyTooltip=NSLOCTEXT("", "6BA9387E4033E6D7EC9D4B9C302AA253", "As String"),CategoryName="Online",bShowPin=True,bCanToggleVisibility=True)
+   StructType=ScriptStruct'"/Script/OnlineSubsystemBlueprints.VariantDataBP"'
+   NodePosX=-3632
+   NodePosY=528
+   AdvancedPinDisplay=Shown
+   NodeGuid=A5F684E74528606BF10BC8B20B411C2B
+   CustomProperties Pin (PinId=EA11C7DB48DA0028979C7BAF5F36D3CD,PinName="VariantDataBP",Direction="EGPD_Output",PinType.PinCategory="struct",PinType.PinSubCategory="",PinType.PinSubCategoryObject=ScriptStruct'"/Script/OnlineSubsystemBlueprints.VariantDataBP"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_MakeStruct_0 B372EC96497E66755773BFB6F39D11EF,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=4A409F8448B71D93255E418CDF372075,PinName="Type",PinFriendlyName=NSLOCTEXT("", "0D108AA345790308D41A1692A924EAC6", "Type"),PinToolTip="Type\\nEOnlineKeyValuePairDataType_ Enum\\n\\nType",PinType.PinCategory="byte",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Enum'"/Script/OnlineSubsystemBlueprints.EOnlineKeyValuePairDataType_"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,DefaultValue="String",AutogeneratedDefaultValue="Empty",PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=899AFA724F968631AD407B91158E4AF0,PinName="AsBool",PinFriendlyName=NSLOCTEXT("", "2B585D7F48BF7233C84859BA9F767F55", "As Bool"),PinToolTip="As Bool\\nBoolean\\n\\nAs Bool",PinType.PinCategory="bool",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,DefaultValue="False",AutogeneratedDefaultValue="False",PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=ACF1155F408BB895E54AEB96048F2BDC,PinName="AsInt",PinFriendlyName=NSLOCTEXT("", "7DAA249C4D550C95129F1BAE6D4BF5A5", "As Int"),PinToolTip="As Int\\nInteger\\n\\nAs Int",PinType.PinCategory="int",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,DefaultValue="0",AutogeneratedDefaultValue="0",PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=True,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=FDA65F7B4CED6BD040C8409F16CCE662,PinName="AsFloat",PinFriendlyName=NSLOCTEXT("", "7C0F98B0455E85E6B01B0BB0E83DA97E", "As Float"),PinToolTip="As Float\\nFloat\\n\\nAs Float",PinType.PinCategory="float",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,DefaultValue="0.000000",AutogeneratedDefaultValue="0.000000",PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=True,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=D26925D24896FBE3F2C6C3BE4B1A141A,PinName="AsInt64",PinFriendlyName=NSLOCTEXT("", "5C5F40C440C53C3E58C6818308371568", "As Int 64"),PinToolTip="As Int 64\\nInteger64\\n\\nAs Int 64",PinType.PinCategory="int64",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,DefaultValue="0",AutogeneratedDefaultValue="0",PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=True,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=0126244C49AC850B7B681784F6D7C6EC,PinName="AsString",PinFriendlyName=NSLOCTEXT("", "8B5E4D554EEB4EDFD00657960CC76D20", "As String"),PinToolTip="As String\\nString\\n\\nAs String",PinType.PinCategory="string",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,DefaultValue="SettingValue",PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=True,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_VariableGet Name="K2Node_VariableGet_10"
+   VariableReference=(MemberName="Online Search",MemberGuid=BEE3A8514DA01424C644DEB58C3193FF,bSelfContext=True)
+   NodePosX=-3280
+   NodePosY=640
+   NodeGuid=B8F4FF8A4E47AB81983A45B0F444A571
+   CustomProperties Pin (PinId=E9752CC848F89C99DA6E2586FAC2D00C,PinName="Online Search",Direction="EGPD_Output",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/OnlineSubsystemBlueprints.OnlineSessionSearch"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_VariableSet_4 8D67B0334A2D24CB2DFCBCB54416B8EB,K2Node_VariableSet_6 6DD2371644FEB8FDFBBB90BCA5B1D46A,K2Node_VariableSet_7 337B3BDF4619F936C9F5AE889E6BAFFE,K2Node_VariableSet_8 115CA45348CA62B99D8A5E8BC95E36F0,K2Node_VariableSet_3 6EE8BF6943E9AB1438BA1FBFC4330118,K2Node_VariableSet_0 AB0298C74458377E5B5F3E94FB0C0FAC,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=B88913BA4083694391AA5194056ACFBB,PinName="self",PinFriendlyName=NSLOCTEXT("K2Node", "Target", "Target"),PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=BlueprintGeneratedClass'"/Game/ExampleOSS/Common/Multiplayer/MultiplayerGameMode.MultiplayerGameMode_C"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=True,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+`}
+/>
+
+Once the search has completed, you can iterate through the returned results by referencing the saved variable and calling "Get Search Results".
+
+<Blueprint height="175px" blueprint={`Begin Object Class=/Script/BlueprintGraph.K2Node_VariableGet Name="K2Node_VariableGet_9"
+   VariableReference=(MemberName="Online Search",MemberGuid=BEE3A8514DA01424C644DEB58C3193FF,bSelfContext=True)
+   NodePosX=-1440
+   NodePosY=199
+   NodeGuid=C361DD7C41D2B8B5822406BDAA317B72
+   CustomProperties Pin (PinId=FF418C4849A334D2C203CE9903B20F4A,PinName="Online Search",Direction="EGPD_Output",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/OnlineSubsystemBlueprints.OnlineSessionSearch"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_CallFunction_6 A1725C51450B59C34C8BCABEC8D0CFEE,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=187924764850309ACA7847BAC80A3302,PinName="self",PinFriendlyName=NSLOCTEXT("K2Node", "Target", "Target"),PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=BlueprintGeneratedClass'"/Game/ExampleOSS/Blueprints/Session/BpFindSessionsTask.BpFindSessionsTask_C"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=True,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="K2Node_CallFunction_6"
+   bIsPureFunc=True
+   bIsConstFunc=True
+   FunctionReference=(MemberParent=Class'"/Script/OnlineSubsystemBlueprints.OnlineSessionSearch"',MemberName="GetSearchResults")
+   NodePosX=-1280
+   NodePosY=160
+   NodeGuid=E753CEA84A81C2AC5D27AEA1B6222407
+   CustomProperties Pin (PinId=A1725C51450B59C34C8BCABEC8D0CFEE,PinName="self",PinFriendlyName=NSLOCTEXT("K2Node", "Target", "Target"),PinToolTip="Target\\nOnline Session Search Object Reference",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/OnlineSubsystemBlueprints.OnlineSessionSearch"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_VariableGet_9 FF418C4849A334D2C203CE9903B20F4A,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=BB3C9CB34708E5F1A3E6BF99A34CB013,PinName="ReturnValue",PinToolTip="Return Value\\nArray of Online Session Search Result BP Structures\\n\\nGet Search Results",Direction="EGPD_Output",PinType.PinCategory="struct",PinType.PinSubCategory="",PinType.PinSubCategoryObject=ScriptStruct'"/Script/OnlineSubsystemBlueprints.OnlineSessionSearchResultBP"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=Array,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+`} />
+</TabItem>
+</Tabs>
+
+Once you have stored the search results and connection strings somewhere, you can proceed to [Joining a session](ossv1/sessions/joining.mdx).

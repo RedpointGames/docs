@@ -1,0 +1,148 @@
+/* stylelint-disable docusaurus/copyright-header */
+/**
+ * Any CSS included here will be global. The classic template
+ * bundles Infima by default. Infima is a CSS framework designed to
+ * work well for content-centric websites.
+ */
+
+/* You can override the default Infima variables here. */
+:root {
+  --ifm-color-primary: #3578bf;
+  --ifm-color-primary-dark: #306cac;
+  --ifm-color-primary-darker: #2d66a2;
+  --ifm-color-primary-darkest: #255486;
+  --ifm-color-primary-light: #4284cb;
+  --ifm-color-primary-lighter: #4b8acd;
+  --ifm-color-primary-lightest: #689dd5;
+  --ifm-code-font-size: 95%;
+}
+
+.docusaurus-highlight-code-line {
+  background-color: rgb(72, 77, 91);
+  display: block;
+  margin: 0 calc(-1 * var(--ifm-pre-padding));
+  padding: 0 var(--ifm-pre-padding);
+}
+
+.hero__title,
+.hero__subtitle {
+  color: white;
+}
+
+main div.col-12 p:first-child {
+  padding-top: 3em;
+}
+
+.card {
+  border: 1px #eee solid;
+  border-radius: 5px;
+}
+
+.card-body {
+  margin: 20px 20px;
+}
+
+.homepage h3 {
+  text-align: center;
+}
+
+.homepage .card__body ul {
+  margin: 0px auto;
+  display: table;
+  padding: 0;
+  padding-right: 1em;
+}
+
+.homepage .card__body ul li {
+  list-style: none;
+  margin: 0;
+  text-align: left;
+}
+
+.homepage .card__body ul li l {
+  width: 2em;
+  text-align: center;
+  display: inline-block;
+}
+
+.homepage .card__body a {
+  color: black;
+  text-decoration: underline;
+}
+
+html[data-theme="dark"] .homepage .card__body a {
+  color: white;
+}
+
+main div.col-12 a.preview {
+  display: block;
+}
+
+main div.col-12 a.preview img {
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 2em;
+  margin-bottom: 2em;
+  max-width: 100%;
+  display: block;
+}
+
+h2 {
+  margin-top: 3em;
+}
+
+.loading-animation {
+  opacity: 0.5;
+}
+
+.loading-animation span {
+  animation: fade-repeat ease 1s;
+  animation-iteration-count: infinite;
+}
+
+@keyframes fade-repeat {
+  0% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 0.3;
+  }
+}
+
+.menu__list-item[data-label="Configuration"],
+.menu__list-item[data-label="Getting Started"] {
+  margin-top: 1rem;
+  border-top: 1px solid #ccc;
+  padding-top: calc(1rem - 1px);
+}
+
+td.no-p-padding p:last-child,
+td.no-p-padding div:last-child {
+  margin-bottom: 0;
+}
+
+select.input {
+  border-color: var(--ifm-color-content-secondary);
+  border-radius: var(--ifm-global-radius);
+  border-style: solid;
+  border-width: var(--ifm-global-border-width);
+  font-size: var(--ifm-font-size-base);
+  padding: 0.5rem;
+}
+
+.dropdown__link--active,
+.dropdown__link--active:hover {
+  --ifm-dropdown-link-color: var(--ifm-color);
+}
+
+.dropdown__link--active .wants-active,
+.dropdown__link--active:hover .wants-active {
+  color: var(--ifm-link-color);
+}
+
+.navbar__item {
+  white-space: nowrap;
+}

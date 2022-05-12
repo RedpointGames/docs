@@ -1,0 +1,188 @@
+---
+title: Configuring authentication
+description: Choose how you want to authenticate players in your game.
+---
+
+EOS Online Framework ships with sensible authentication defaults for most games on most platforms. However, you can customize authentication to suite your needs.
+
+You can find the settings for customizing authentication in the Project Settings window in Unreal Engine. You can also customize authentication by editing the `DefaultEngine.ini` and `<Platform>Engine.ini` files.
+
+## Choosing an authentication graph
+
+The authentication graph tells the game how to obtain credentials from the player to authenticate them with EOS. The default authentication graph picks the right approach based on what store or platform the game was launched on, and then authenticates them with the backend.
+
+You can replace the authentication graph with your own implementation if you want to customize where credentials are obtained, or if you want to change how account linking works. There are also a ton of built-in authentication graphs you can use, which are outlined in the table below.
+
+### Available authentication graphs
+
+The following authentication graphs are built into the plugin for you to use.
+
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td valign="top" style={{ minWidth: "30%" }}>
+        Default
+      </td>
+      <td valign="top">
+        Signs the player in with the account associated with the store or
+        platform that the game is launched on. This works for desktop, mobile
+        and console platforms.
+        <br />
+        <br />
+        If the player can't be authenticated with the store or platform the game
+        is launched on, authentication fails.
+        <br />
+        <br />
+        <strong>Note:</strong> In order for a particular platform to be used for
+        authentication, you must first configure it by following the setup
+        guides. You can find them located in the documentation sidebar under
+        "Platform Setup".
+      </td>
+    </tr>
+    <tr>
+      <td valign="top">Default, with Cross-Platform Fallback</td>
+      <td valign="top">
+        The same implementation as the default authentication graph, except that
+        if the user can't be signed in with the native platform or store, they
+        will be asked to interactively sign in with the cross-platform account
+        provider.
+        <br />
+        <br />
+        If you have Epic Games set as your cross-platform account provider, this
+        will take the form of a web browser launching on desktop and mobile, and
+        a PIN code login on console platforms.
+      </td>
+    </tr>
+    <tr>
+      <td valign="top">Runtime Platform</td>
+      <td valign="top">
+        This graph only authenticates with the runtime platform, and does not
+        handle the Epic Games Store, Nintendo Switch or the Developer
+        Authentication Tool. You should always use the "Default" or "Default,
+        with Cross-Platform Fallback" authentication graphs instead of this one.
+      </td>
+    </tr>
+    <tr>
+      <td valign="top">Cross-Platform Only</td>
+      <td valign="top">
+        Players will only be able to sign in with their cross-platform account
+        interactively. No credentials from the local platform (such as Steam)
+        will be fetched, so the authentication will always be either
+        interactive, or rely on a previously remembered login if the
+        cross-platform account provider supports that.
+        <br />
+        <br />
+        If the user can't be signed into their cross-platform account, such as if
+        they cancel the interactive login, authentication fails.
+      </td>
+    </tr>
+    <tr>
+      <td valign="top">Anonymous</td>
+      <td valign="top" className="no-p-padding">
+        Players will be signed in anonymously. The accounts that are created are
+        tied to the device that the player is signed in on.
+        <br />
+        <br />
+        This can be a good option for mobile games, if you don't want to ask people
+        to sign in or create an account. However, they won't be able to bring their
+        save data or profile across devices, even of the same platform type.
+        <br />
+        Anonymous authentication does not work on macOS or console platforms. It
+        is only expected to work on Windows, iOS and Android.
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+### Setting the editor authentication graph
+
+You should leave the editor authentication graph as the default, unless you want to test a particular authentication graph (such as your own) from the editor. This graph will apply when you call AutoLogin as part of a play-in-editor game. It is not used when you enable "login before PIE".
+
+### Writing your own custom authentication graph
+
+For a guide on how to write your own authentication graph, please refer to [Writing a custom authentication graph](auth/write_your_own_authentication_graph.mdx).
+
+## Choosing a cross-platform account provider
+
+When players sign into your game using the store or platform account system, they'll be signed into your game without any requirement to enter login details. However, they won't be able to bring their game profile to other devices or platforms without a cross-platform account system.
+
+The reason for this is simple: When a player signs into your game with their Steam account, they can sign into your game on any desktop PC that is running Steam. But they can't sign into that account on a mobile device or console, because the Steam client isn't available on those platforms.
+
+To allow players to bring their profile across platforms, you need a cross-platform account provider. You can choose the cross-platform account provider you want to use in Project Settings.
+
+### Available cross-platform account providers
+
+The following cross-platform account providers are built into the plugin for you to use.
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td valign="top" style={{minWidth: '30%'}}>
+                EpicGames
+            </td>
+<td valign="top" className="no-p-padding">
+
+Refer to [Epic Games](auth/xplat/epic.mdx) on how to use Epic Games as a cross-platform account system.
+
+</td>
+        </tr>
+        <tr>
+            <td valign="top" style={{minWidth: '30%'}}>
+                SimpleFirstParty
+            </td>
+<td valign="top" className="no-p-padding">
+
+Refer to [Simple First-Party](auth/xplat/simplefp.mdx) on how to use your own username/password based first-party account system for cross-platform accounts.
+
+</td>
+        </tr>
+    </tbody>
+</table>
+
+### Using your own cross-platform account system
+
+For a guide on how to write your own cross-platform account provider, please refer to [Using your own cross-platform account system](auth/write_your_own_cross_platform_account_provider.mdx).
+
+### Requiring a cross-platform account
+
+If you want to require that all users have a cross-platform account, you can enable "Require Cross Platform Account". In this case, the plugin will try to authenticate users into the cross-platform account system using the store or platform account.
+
+When the user can't be signed in automatically, the user will need to interactively login with their cross-platform account. After this it will be linked with the store or platform account so they don't need to interactively sign in next time. This requires the cross-platform account provider to have implemented account linking (only Epic Games implements this; the simple first-party implementation does not).
+
+## Logging in with the Developer Authentication Tool
+
+When you are running the game in the editor (via play-in-editor), the plugin will attempt to authenticate using the **EOS Developer Authentication Tool**. You can launch it from the EOS dropdown in the toolbar.
+
+For information on how to use the Developer Authentication Tool, refer to [Using the Developer Authentication Tool](/auth/dev_auth_tool_usage.mdx).
+
+## Overriding platform selected for authentication
+
+If you need to override the specific platform that the plugin attempts to authenticate with, you can set:
+
+```ini
+[EpicOnlineServices]
+AuthServiceOverride=Steam
+```
+
+If you need to utilise this configuration option, please file a support case as we expect the plugin to automatically detect the necessary platform in almost all cases.
+
+## Require online play privileges for the signed in user
+
+Some platforms, such as consoles, require an active subscription to use online features, depending on the type of game you are building. If your game should require an active subscription to multiplayer services, set the following configuration option:
+
+```ini
+[EpicOnlineServices]
+RequireOnlinePlayUserPrivilege=True
+```

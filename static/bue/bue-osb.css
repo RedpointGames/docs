@@ -1,0 +1,48 @@
+/**
+ * Additional styles on top of bue.css.
+ */ 
+
+.bue-render .node.nosbsubsystem {
+    border-radius: 15px;
+    min-width: 130px;
+    background-color: rgba(15, 15, 15, 0.3);
+}
+.bue-render .node.nosbsubsystem .body {
+background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAANCAQAAAAz1Zf0AAAApklEQVQY02P4z4AKv4t/8/9e9r3le9/3WSgSn9Q/V/86++fhn3vft3+Y9KwISep14o+zv+68mnoiEgahEk84HuV/Pftm7c6YbZEICJU8HPLp9N1piyNRIViqT+/F9suTJ0aiQ6BUveDyvHtr6yMxIVAy0+nxnpKYvEhMyBDJFxe1d0JCJDbI4K87rSw0Ejtk8HI9MicwEjtk8Azd2IVT0iO2OQ+XJAAPhKrLNis3XwAAAABJRU5ErkJggg==)
+    no-repeat left 1px,
+    url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAANCAQAAAAz1Zf0AAAAo0lEQVQY02P41v+19mvxp+j3Bh/5/jOAIBJ4mPqq9sui79u/bXrbft3+Fj+K9IlIGLxd9KT1VPR+AwaE/m2RCLgj6mrVlqgNdtuYoZKLI1Hh4ZKFUdOdGCB6J0aiw+1FfVH1RmDp+khMuLGiJLZIGCiZF4kJC6Nyo2I9gMYmRGKDU4tCEoP5GUIjscOAWDcjhsBI7DAgysEPp2RivGMMHkmHFACiTo2994dI+AAAAABJRU5ErkJggg==)
+    no-repeat right 1px;
+}
+.bue-render .node.nosbsubsystem .body .center-text {
+position: absolute;
+font-size: 28px;
+font-family: Roboto, sans-serif;
+color: hsla(0, 0%, 100%, 0.35);
+font-weight: 700;
+pointer-events: none;
+width: 100%;
+height: 100%;
+text-align: center;
+top: 0;
+}
+.bue-render .node.nosbsubsystem .body .center-text > span {
+position: relative;
+float: left;
+top: 50%;
+left: 50%;
+transform: translate(-50%, -50%);
+}
+.bue-render .node.nosbsubsystem .body .round-bg {
+position: absolute;
+background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAANCAQAAADC3sx5AAAAJklEQVQI12P4Po3p8WGmdwwg9JYBynjPwPSJgekrA9MfBiYGEAIAHZULw3oyOrQAAAAASUVORK5CYII=)
+    repeat-x left 1px;
+left: 14px;
+right: 14px;
+height: 13px;
+top: 0;
+z-index: -1;
+}
+
+.bue-render .node > .tooltip {
+    display: none;
+}

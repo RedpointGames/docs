@@ -1,0 +1,138 @@
+---
+title: Platform setup for Meta Quest
+sidebar_label: Meta Quest
+description: How to set up your game for Meta Quest.
+---
+
+:::danger
+Meta no longer supports Oculus Rift, and authenticating with Meta accounts on Oculus Rift is no longer supported. If you need to run your game on Oculus Rift headsets, it is recommended that you publish your game on Steam for PC and make use of Steam VR.
+
+The instructions below are only for Meta Quest 2 and later.
+
+Meta Quest is only officially supported in Unreal Engine 5.5 and later. If you are using an earlier engine version, you must upgrade the engine before following the instructions below.
+:::
+
+To publish your game on Meta Quest, you need to configure your game in the Meta Horizon Dashboard, configure Oculus in the Epic Games Developer portal, install the Meta XR plugin, and enable Meta Quest support in your project.
+
+## Configure your Meta Quest app in the Meta Horizon Dashboard
+
+In order for Meta authentication to work, you need to enable certain permissions in the Meta Horizon Dashboard.
+
+1. Open the [Meta Horizon Dashboard](https://developer.oculus.com/manage/).
+2. Locate the Meta Quest game you want to enable authentication for.
+3. Select "Development -> API" on the left hand side.
+4. Copy the "App ID" and "App secret" values. You will need them to configure Epic Online Services and your Unreal Engine project.
+5. Select "Data Use Checkup" on the left hand side.
+6. Add the following features with the following usages:
+   - User ID: "View Oculus username"
+   - User Profile: "View Oculus username"
+   - Deep Linking: "Enable users to invite others"
+   - Friends: "Display friends to invite"
+   - Blocked Users: "Use Matchmaking"
+   - Invites: "Display friends to invite", "Enable users to invite others"
+7. Click "Submit Requests" and fill out the remaining information.
+8. These features should be approved relatively quickly.
+9. Select "Distribution" -> "Release Channels" on the left hand side.
+10. Select the release channel you are uploading builds for. You must have uploaded at least one build a release channel in order for authentication to work. It is recommended you use the ALPHA channel for testing.
+11. Click on the release channel you want to use.
+12. Under the "Users" tab, click "Add Users".
+13. Enter the email address of your Oculus account.
+14. You will be sent an email inviting you to add the Oculus application to your account. Click the link in the email you get.
+
+## Set up Oculus authentication in the Epic Games Dev Portal
+
+:::caution
+The Epic Games Developer Portal still references to the identity provider as "Oculus" for historical reasons, but it is the correct option for Meta Quest support.
+:::
+
+1. Open the [Epic Games Dev Portal](https://dev.epicgames.com/).
+2. Navigate to your product.
+3. Click "Product Settings".
+4. Under the "Identity Providers" tab, click "Add Identity Provider".
+5. Select "Oculus" as the identity provider.
+6. Set the "Description" to any value you like.
+7. For "Environment", select "Quest".
+8. Enter the App ID and App secret values that you copied previously from the Meta Horizon Dashboard.
+9. Click "Save & Exit".
+10. Under the "Environments" tab, click "Identity Providers" next to the Live sandbox.
+11. For Oculus, add the new credential you just made.
+
+## Install the Meta XR plugin
+
+If you have not done so already, [download and install the Meta XR plugin](https://developers.meta.com/horizon/documentation/unreal/unreal-quick-start-install-metaxr-plugin) for Unreal Engine from the Meta Developer website.
+
+## Download the OVR Platform SDK
+
+Separate to the Meta XR plugin, you must also [download the OVR Platform SDK](https://developers.meta.com/horizon/downloads/package/oculus-platform-sdk) and place it in one of the following locations:
+
+- `C:\ProgramData\OVRPlatformSDK`
+- `C:\Users\<username>\Downloads\ovr_platform_sdk_69.0`
+- `C:\OVRPlatformSDK`
+
+## Configure Meta Quest in your Unreal Engine project
+
+Once you open your project with the Meta XR plugin enabled, you'll see additional toolbar entries for configuring your project for Meta Quest. **Ensure you go through the Meta XR setup, and that you can deploy your project to a Meta Quest device, before continuing.**
+
+In your `AndroidEngine.ini` file, add the following configuration:
+
+```ini
+[OnlineSubsystemOculus]
+bEnabled=True
+MobileAppId=YOUR_QUEST_APP_ID
+```
+
+## Enable Meta Quest support in the Redpoint EOS plugin during build
+
+In your `.Target.cs` files, located underneath the `Source` directory of your project, add the following project definition to enable Meta Quest support:
+
+```csharp
+ProjectDefinitions.Add("ONLINE_SUBSYSTEM_EOS_ENABLE_META=1");
+```
+
+:::caution
+If you don't have a `Source` directory or `.Target.cs` files, you'll need to add a C++ class from the Unreal Editor first. It doesn't matter what C++ class you pick - you just need to get Unreal building your game with C++ so you can turn this option on.
+:::
+
+## Enable Meta Quest avatars, friends and invites
+
+You don't have to do any additional configuration in your Unreal Engine project for avatars, friends and invites to work on Meta Quest. However, you do have to configure "destinations" in the Meta Horizon Dashboard that tell Meta Quest devices how to handle invites outside of the game.
+
+:::caution
+Support for destinations is currently experimental. If you run into issues, please reach out to support with full logs from the Meta Quest device.
+:::
+
+Configure destinations in the Meta Horizon Dashboard:
+
+- Under "Engagement -> Destinations", click "Create a Single Destination" for _each_ map you have in your Unreal Engine game.
+- The destination API name must exactly match the map name in your Unreal Engine. For example, if your map is called `MyMap`, even if it's in subfolders of the Content Browser, the destination API name is `MyMap`.
+- For single player maps, set:
+  - **Deeplink Message:** (leave blank)
+  - **Deeplink Type:** Enabled
+  - **Audience:** Everyone
+  - **Minimum Supported Group Launch:** 1
+  - **Maximum Supported Group Launch:** (leave blank)
+- For multiplayer maps, set:
+  - **Deeplink Message:** (leave blank)
+  - **Deeplink Type:** Enabled
+  - **Audience:** Everyone
+  - **Minimum Supported Group Launch:** 1
+  - **Maximum Supported Group Launch:** 4 (or the maximum number of players you want to allow in a multiplayer game)
+
+Each destination must then appear in the "Published" status before it will work.
+
+:::caution
+In order for a Meta Quest friend to appear in the friends list:
+
+- They must be entitled to the app on the _same channel_ as you. As an example, both you and your friend must be on the ALPHA channel.
+- They must have previously launched the game on their Meta Quest headset.
+- They must have signed into EOS in the game using their Meta account.
+- Check the Meta Quest and Facebook privacy settings for both users. Some settings are too restrictive for friends to appear in-game.
+  :::
+
+## Use Meta authentication at runtime
+
+The default authentication graph will automatically use Meta authentication when the game is launched on a Meta Quest headset.
+
+:::caution
+If you're using cross-platform accounts and you have set them as optional, then you must [override how the plugin displays authentication prompts](../../auth/custom_ui.mdx#customizing-how-widgets-are-displayed) while your game is running in VR, otherwise players will not be able to interact with the "Create or sign in" prompt that will occur for new players.
+:::

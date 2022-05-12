@@ -1,0 +1,237 @@
+---
+title: "Voice chat overview"
+sidebar_label: Overview & calling Login
+description: Understand how voice chat works on Epic Online Services.
+---
+
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+import Blueprint from "@site/src/Blueprint";
+
+To access voice chat in EOS, you'll need to use the `IVoiceChat` interface. You'll use this interface to create a voice chat user, and then "connect" that voice chat user to the EOS online subsystem (where you've already signed the user in).
+
+## Using the IVoiceChat interface
+
+To access the IVoiceChat interface in C++, you'll need to:
+
+- Reference the "VoiceChat" module in your `.Build.cs` file.
+- Include the "VoiceChat.h" header.
+- Call the `IVoiceChat::Get()` static function to get a reference to the voice chat interface.
+
+To get the voice chat interface in Online Subsystem Blueprints, use the "Online Voice Chat Subsystem" node.
+
+:::info
+In blueprints, the "Online Voice Subsystem" node is different to "Online Voice Chat Subsystem" node.
+
+You want to use the "Online Voice Chat Subsystem" node.
+
+The "Online Voice Subsystem" node is a legacy API for older games and should not be used to access EOS voice chat.
+:::
+
+## Understanding "voice chat users"
+
+Instances of `IVoiceChatUser` act as "windows" into the EOS online subsystem. You can have multiple instances of `IVoiceChatUser` referencing the same local EOS user.
+
+In C++, this is important, as instances of `IVoiceChatUser` are not shared references. Thus it's not safe to share the pointer around in C++ in case it is later released with `ReleaseUser`. Each part of your game that needs to control voice chat should have it's own `IVoiceChatUser` instance and release it when it's no longer used.
+
+In blueprints, Online Subsystem Blueprints wraps the `IVoiceChatUser` pointer so that it is automatically released when there are no further references to it.
+
+## Creating a voice chat user
+
+To create a voice chat user, use `IVoiceChat->CreateUser()`. This user won't be connected to the EOS online subsystem until you call `Login` on it, which tells it which local EOS user it maps to.
+
+:::info
+If you're using voice chat users in C++, you must also call `IVoiceChat->ReleaseUser()` in Unreal Engine 4.26 when you're finished using the `IVoiceChatUser` instance.
+:::
+
+<Tabs lazy groupId="code-format" defaultValue="c++" values={[ { label: 'C++', value: 'c++' }, { label: 'Blueprints', value: 'blueprints' } ]}>
+<TabItem value="c++">
+
+```cpp
+IVoiceChat* VoiceChat = IVoiceChat::Get();
+IVoiceChatUser* VoiceChatUser = VoiceChat->CreateUser();
+
+// Store VoiceChatUser for the lifetime of your containing object or until you're otherwise finished with it.
+
+// On Unreal Engine 4.26 and later only.
+VoiceChat->ReleaseUser(VoiceChatUser);
+```
+
+</TabItem>
+<TabItem value="blueprints">
+<Blueprint height="250px" blueprint={`
+Begin Object Class=/Script/BlueprintGraph.K2Node_GetSubsystem Name="K2Node_GetSubsystem_2"
+   CustomClass=Class'"/Script/OnlineSubsystemBlueprints.OnlineVoiceChatSubsystem"'
+   NodePosY=300
+   NodeGuid=59D2D5A84BD194541F1C67ACA0B8FA97
+   CustomProperties Pin (PinId=00089D924ADD6F142578D6A0CC254B74,PinName="ReturnValue",Direction="EGPD_Output",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/OnlineSubsystemBlueprints.OnlineVoiceChatSubsystem"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_VariableGet_3 79014B2744B8CA05585A75B9CA44566F,K2Node_CallFunction_13 6B938F7B41EE7EF11672F2832A1CACA3,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="K2Node_CallFunction_13"
+   FunctionReference=(MemberParent=Class'"/Script/OnlineSubsystemBlueprints.OnlineVoiceChatSubsystem"',MemberName="CreateUser")
+   NodePosX=256
+   NodePosY=300
+   NodeGuid=55D43F8A4C64C73A6AEBFBB4FC5FF177
+   CustomProperties Pin (PinId=DB3F8B774E26A8A10A657C86346F398E,PinName="execute",PinToolTip="\\nExec",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_Event_0 814325244E56B49FBDDFF68F05D9BEAE,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=262E002442D42EE3AF3319A72FE42613,PinName="then",PinToolTip="\\nExec",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_MacroInstance_0 8120BB784B6B7CB67F7D7FB645F80B95,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=6B938F7B41EE7EF11672F2832A1CACA3,PinName="self",PinFriendlyName=NSLOCTEXT("K2Node", "Target", "Target"),PinToolTip="Target\\nOnline Voice Chat Subsystem Object Reference",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/OnlineSubsystemBlueprints.OnlineVoiceChatSubsystem"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=True,LinkedTo=(K2Node_GetSubsystem_2 00089D924ADD6F142578D6A0CC254B74,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=2A89441B4C20792C229434965D3D3868,PinName="ReturnValue",PinToolTip="Return Value\\nVoice Chat User Object Reference\\n\\nCreate User",Direction="EGPD_Output",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/OnlineSubsystemBlueprints.VoiceChatUser"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_MacroInstance_0 90F70D29411CD81DA586B0BE15B5A02A,K2Node_Knot_0 FC1DB1104726DCE12CFEA995C7307A3D,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+`} />
+</TabItem>
+</Tabs>
+
+## Connecting the voice chat interface to EOS
+
+Once you've created an `IVoiceChatUser` instance, you need to connect it to the EOS online subsystem by calling `Login`.
+
+<Tabs lazy groupId="code-format" defaultValue="c++" values={[ { label: 'C++', value: 'c++' }, { label: 'Blueprints', value: 'blueprints' } ]}>
+<TabItem value="c++">
+
+To connect a voice chat user in C++, fetch the identity interface and use it to get both the unique net ID for the local user and their platform user ID. Then pass those values into the Login function of the `IVoiceChatUser` instance you created.
+
+This example also shows releasing the `VoiceChatUser` instance during `BeginDestroy`, to ensure that memory is not leaked when `AMyClass` is garbage collected by Unreal Engine.
+
+```cpp
+// MyClass.h
+
+#include "Interfaces/OnlineIdentityInterface.h"
+#include "VoiceChat.h"
+
+class AMyClass : public AActor
+{
+    GENERATED_BODY()
+
+private:
+    IVoiceChatUser* VoiceChatUser;
+
+    void OnLoginComplete(const FString& PlayerName, const FVoiceChatResult& Result);
+
+public:
+    virtual void BeginDestroy() override;
+    void DoLogin();
+}
+
+// MyClass.cpp
+
+void AMyClass::DoLogin()
+{
+    IVoiceChat* VoiceChat = IVoiceChat::Get();
+    this->VoiceChatUser = VoiceChat->CreateUser();
+
+    IOnlineSubsystem *Subsystem = Online::GetSubsystem(this->GetWorld());
+    IOnlineIdentityPtr Identity = Subsystem->GetIdentityInterface();
+
+    TSharedPtr<const FUniqueNetId> UserId = Identity->GetUniquePlayerId(0);
+    FPlatformUserId PlatformUserId = Identity->GetPlatformUserIdFromUniqueNetId(*UserId);
+
+    VoiceChatUser->Login(
+        PlatformUserId,
+        UserId->ToString(),
+        TEXT(""),
+        FOnVoiceChatLoginCompleteDelegate::CreateUObject(this, &AMyClass::OnLoginComplete));
+}
+
+void AMyClass::BeginDestroy()
+{
+    IVoiceChat* VoiceChat = IVoiceChat::Get();
+    if (this->VoiceChatUser != nullptr && VoiceChat != nullptr)
+    {
+        VoiceChat->ReleaseUser(this->VoiceChatUser);
+        this->VoiceChatUser = nullptr;
+    }
+    Super::BeginDestroy();
+}
+
+void AMyClass::OnLoginComplete(const FString& PlayerName, const FVoiceChatResult& Result)
+{
+    if (Result.IsSuccess())
+    {
+        // You can now use this->VoiceChatUser to control the user's voice chat.
+    }
+}
+```
+
+</TabItem>
+<TabItem value="blueprints">
+
+To login a voice chat user in blueprints, get the local user's platform ID and unique net ID via the Online Identity subsystem, and then pass in the returned values as parameters to the voice chat user's Login function.
+
+<Blueprint height="400px" blueprint={`
+Begin Object Class=/Script/BlueprintGraph.K2Node_GetSubsystem Name="K2Node_GetSubsystem_1"
+   CustomClass=Class'"/Script/OnlineSubsystemBlueprints.OnlineIdentitySubsystem"'
+   NodePosX=300
+   NodePosY=930
+   NodeGuid=CC8C9D28411D169A9FDBD1BAC690B32D
+   CustomProperties Pin (PinId=BCB442AE47BF401D6F8BB38E2253B8D2,PinName="ReturnValue",Direction="EGPD_Output",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/OnlineSubsystemBlueprints.OnlineIdentitySubsystem"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_CallFunction_1 EDBB83F64A5BD468273A9486C4942D67,K2Node_CallFunction_2 8FDF8D1340FD72300D9C28B45A382439,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="K2Node_CallFunction_2"
+   bIsPureFunc=True
+   FunctionReference=(MemberParent=Class'"/Script/OnlineSubsystemBlueprints.OnlineIdentitySubsystem"',MemberName="GetUniquePlayerId")
+   NodePosX=380
+   NodePosY=1080
+   NodeGuid=1E8965B34919DAEBF45AA18C24C53B23
+   CustomProperties Pin (PinId=8FDF8D1340FD72300D9C28B45A382439,PinName="self",PinFriendlyName=NSLOCTEXT("K2Node", "Target", "Target"),PinToolTip="Target\\nOnline Identity Subsystem Object Reference",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/OnlineSubsystemBlueprints.OnlineIdentitySubsystem"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=True,LinkedTo=(K2Node_GetSubsystem_1 BCB442AE47BF401D6F8BB38E2253B8D2,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=898179A548BBF5F7A5D55AB596C8E704,PinName="LocalUserNum",PinToolTip="Local User Num\\nInteger",PinType.PinCategory="int",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,DefaultValue="0",AutogeneratedDefaultValue="0",PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=3A168C104040E30DB3B7C8825771D73F,PinName="ReturnValue",PinToolTip="Return Value\\nUnique Net Id Repl Structure\\n\\nGet Unique Player Id",Direction="EGPD_Output",PinType.PinCategory="struct",PinType.PinSubCategory="",PinType.PinSubCategoryObject=ScriptStruct'"/Script/Engine.UniqueNetIdRepl"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_CallFunction_1 A7FDE2954FF1456BD5C8FFA5EAA65A53,K2Node_CallFunction_3 995C39564B580D4E0BFDBA9541A5499E,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="K2Node_CallFunction_1"
+   bIsPureFunc=True
+   FunctionReference=(MemberParent=Class'"/Script/OnlineSubsystemBlueprints.OnlineIdentitySubsystem"',MemberName="GetPlatformUserIdFromUniqueNetId")
+   NodePosX=680
+   NodePosY=930
+   NodeGuid=B69F8F704B62309B38C4399EC9CEEF70
+   CustomProperties Pin (PinId=EDBB83F64A5BD468273A9486C4942D67,PinName="self",PinFriendlyName=NSLOCTEXT("K2Node", "Target", "Target"),PinToolTip="Target\\nOnline Identity Subsystem Object Reference",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/OnlineSubsystemBlueprints.OnlineIdentitySubsystem"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=True,LinkedTo=(K2Node_GetSubsystem_1 BCB442AE47BF401D6F8BB38E2253B8D2,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=A7FDE2954FF1456BD5C8FFA5EAA65A53,PinName="UniqueNetId",PinToolTip="Unique Net Id\\nUnique Net Id Repl Structure",PinType.PinCategory="struct",PinType.PinSubCategory="",PinType.PinSubCategoryObject=ScriptStruct'"/Script/Engine.UniqueNetIdRepl"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_CallFunction_2 3A168C104040E30DB3B7C8825771D73F,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=400824C44AF80CC448583087C2C427AA,PinName="ReturnValue",PinToolTip="Return Value\\nInteger\\n\\nGet Platform User Id from Unique Net Id",Direction="EGPD_Output",PinType.PinCategory="int",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,DefaultValue="0",AutogeneratedDefaultValue="0",LinkedTo=(K2Node_AsyncAction_0 C68B800B459826890341BDB69915976C,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="K2Node_CallFunction_3"
+   bIsPureFunc=True
+   FunctionReference=(MemberParent=Class'"/Script/OnlineSubsystemBlueprints.OnlineHelpers"',MemberName="Conv_FUniqueNetIdReplToString")
+   NodePosX=680
+   NodePosY=1080
+   NodeGuid=D20CE2F543D58CF0BE6E3BA6791B01D1
+   CustomProperties Pin (PinId=680D066F4353A0A5A04B4286D176F80A,PinName="self",PinFriendlyName=NSLOCTEXT("K2Node", "Target", "Target"),PinToolTip="Target\\nOnline Helpers Object Reference",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/OnlineSubsystemBlueprints.OnlineHelpers"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=True,DefaultObject="/Script/OnlineSubsystemBlueprints.Default__OnlineHelpers",PersistentGuid=00000000000000000000000000000000,bHidden=True,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=995C39564B580D4E0BFDBA9541A5499E,PinName="InNetId",PinToolTip="In Net Id\\nUnique Net Id Repl Structure",PinType.PinCategory="struct",PinType.PinSubCategory="",PinType.PinSubCategoryObject=ScriptStruct'"/Script/Engine.UniqueNetIdRepl"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_CallFunction_2 3A168C104040E30DB3B7C8825771D73F,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=56BA3732497645BF205D3C9D7C1C8FC8,PinName="ReturnValue",PinToolTip="Return Value\\nString\\n\\nConvert the unique net ID to it\\'s string representation",Direction="EGPD_Output",PinType.PinCategory="string",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_AsyncAction_0 BC24F7764AC766B43B3DF2898332F153,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_AsyncAction Name="K2Node_AsyncAction_0"
+   ProxyFactoryFunctionName="Login"
+   ProxyFactoryClass=Class'"/Script/OnlineSubsystemBlueprints.VoiceChatUserLogin"'
+   ProxyClass=Class'"/Script/OnlineSubsystemBlueprints.VoiceChatUserLogin"'
+   NodePosX=1000
+   NodePosY=930
+   NodeGuid=29CA249F4A1446208E2444B38C3E16FC
+   CustomProperties Pin (PinId=BA144A604617990B77EFF092472DA173,PinName="execute",PinToolTip="\\nExec",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=True,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=C4CF16C14C4C34F6E15BD1B9164BCCCD,PinName="then",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=True,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=CA6775F045101BB7EEDAAFABB161E04C,PinName="OnCallFailed",PinFriendlyName="On Call Failed",PinToolTip="On Call Failed",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=True,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=E9BF88C74DF615E37677658654A202BB,PinName="OnVoiceChatLoginComplete",PinFriendlyName="On Voice Chat Login Complete",PinToolTip="On Voice Chat Login Complete",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=True,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=B42F0E114B7995C99508329D574188E6,PinName="PlayerName",PinToolTip="Player Name",Direction="EGPD_Output",PinType.PinCategory="string",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=943527FA422F1E96098D918B2D995044,PinName="Result",PinToolTip="Result",Direction="EGPD_Output",PinType.PinCategory="struct",PinType.PinSubCategory="",PinType.PinSubCategoryObject=ScriptStruct'"/Script/OnlineSubsystemBlueprints.VoiceChatResultBP"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=46316BF040785A3EFF3D7FB06AE593AD,PinName="VoiceChatUser",PinToolTip="VoiceChatUser\\nVoice Chat User Object Reference",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/OnlineSubsystemBlueprints.VoiceChatUser"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=C68B800B459826890341BDB69915976C,PinName="PlatformId",PinToolTip="Platform Id\\nInteger",PinType.PinCategory="int",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,DefaultValue="0",AutogeneratedDefaultValue="0",LinkedTo=(K2Node_CallFunction_1 400824C44AF80CC448583087C2C427AA,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=BC24F7764AC766B43B3DF2898332F153,PinName="PlayerName",PinToolTip="Player Name\\nString",PinType.PinCategory="string",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_CallFunction_3 56BA3732497645BF205D3C9D7C1C8FC8,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=25B1B73F486AC808E52BCEAD962D5012,PinName="Credentials",PinToolTip="Credentials\\nString",PinType.PinCategory="string",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+`} />
+</TabItem>
+</Tabs>
+
+## Testing voice chat
+
+The EOS SDK provides an "echo" feature which allows you to test voice chat with only a single user. You can enable echo in the following ways:
+
+- For parties, enable the "Enable Echo in Parties (Development Only)" option in Project Settings.
+- For listen servers, set the "EOSVoiceChat_Echo" lobby attribute to "true" (boolean value).
+- For dedicated servers, pass `EVoiceChatChannelType::Echo` when joining the channel.
+
+:::caution
+The echo functionality does not appear to reliably work in EOS SDK 1.13.1. For now, it's recommended that you test voice chat by:
+
+- Start two play-in-editor instances, each signed into a different EOS account using the Developer Authentication Tool.
+- Set each play-in-editor instance to use a different input/output audio device. For example on a laptop you could use the laptop mic/speakers for one user, and a bluetooth headset for another. You need to select these audio devices through the `IVoiceChatUser` interface.
+- Join both users to voice chat.
+  :::
+
+:::caution
+The "is talking" status of voice chat users will always return false if there is only one user in the voice chat channel, even if you have echo enabled. If you want to use the "is talking" status, you must test with multiple players in voice chat.
+:::

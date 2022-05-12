@@ -1,0 +1,110 @@
+---
+title: Creating a lobby
+description: How to create a new online lobby.
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import Blueprint from '@site/src/Blueprint';
+
+import bpCreate from './bp/create.bp';
+
+Lobbies are like sessions, except that lobby data, lobby member data and the member list is automatically kept in-sync for all of the clients who are in the lobby. Sessions don't automatically synchronise player lists from the host of the match to clients.
+
+Lobbies can't be used by dedicated servers.
+
+Lobbies and parties both use "EOS Lobbies" under the hood, which is why you can [join a party from a lobby search result](ossv1/lobbies/joining.mdx#joining-a-lobby-as-party).
+
+## Prerequisites
+
+If you're using C++, you'll need to add the [Online Interfaces headers](https://src.redpoint.games/redpointgames/online-interfaces/) to your project so you can access the lobby APIs.
+
+If you're using Online Subsystem Blueprints, you don't need to do any additional steps to access the lobby APIs.
+
+## Create a lobby
+
+<Tabs lazy groupId="code-format" defaultValue="c++" values={[ { label: 'C++', value: 'c++' }, { label: 'Blueprints', value: 'blueprints' } ]}>
+<TabItem value="c++">
+
+To create a lobby, first get the online lobby interface:
+
+```cpp
+#include "OnlineSubsystem.h"
+#include "OnlineSubsystemUtils.h"
+// If your project can't find this header, make sure you have installed the headers from here:
+// https://src.redpoint.games/redpointgames/online-interfaces/
+#include "OnlineLobbyInterface.h"
+
+// ...
+
+IOnlineSubsystem* Subsystem = Online::GetSubsystem(this->GetWorld());
+TSharedPtr<IOnlineLobby, ESPMode::ThreadSafe> Lobby = Online::GetLobbyInterface(Subsystem);
+```
+
+Then, make a lobby transaction for creating the lobby:
+
+```cpp
+TSharedPtr<const FUniqueNetId> LocalUserId = Identity->GetUniquePlayerId(0);
+TSharedPtr<FOnlineLobbyTransaction> Txn = Lobby->MakeCreateLobbyTransaction(*LocalUserId.Get());
+
+// To enable voice chat on a lobby, set the special "EOSVoiceChat_Enabled" metadata value.
+Txn->SetMetadata.Add(TEXT("EOSVoiceChat_Enabled"), true);
+
+// To allow clients connecting to the listen server to join the lobby based on just the ID, we need
+// to set it to public.
+Txn->Public = true;
+
+// Here you can adjust the capacity of the lobby. 
+Txn->Capacity = 4;
+
+// Setting a lobby as locked prevents players from joining it.
+Txn->Locked = false;
+```
+
+Then, create the lobby:
+
+```cpp
+if (!Lobby->CreateLobby(
+    *LocalUserId.Get(),
+    *Txn,
+    FOnLobbyCreateOrConnectComplete::CreateLambda([](
+        const FOnlineError & Error,
+        const FUniqueNetId & UserId,
+        const TSharedPtr<class FOnlineLobby> & CreatedLobby)
+    {
+        if (Error.WasSuccessful())
+        {
+            // The lobby was created successfully and is now in CreatedLobby.
+            FString IdStr = CreatedLobby->Id->ToString();
+
+            // You'll need to store IdStr somewhere, as that is what needs to be sent to connecting clients.
+        }
+        else
+        {
+            // Lobby could not be created.
+        }
+    })))
+{
+    // Call failed to start.
+}
+```
+
+</TabItem>
+<TabItem value="blueprints">
+
+When the "Create Lobby" operation finishes, make sure you store the returned "Lobby" object somewhere. You'll need to send the lobby's ID to connecting clients later.
+
+<Blueprint height="500px" blueprint={bpCreate} />
+
+You can customize the created lobby by calling the following blueprint nodes off the "Create Lobby Transaction" before you pass it to "Create Lobby":
+
+- "Set Metadata"
+- "Set Metadata by Map"
+- "Set Locked"
+- "Set Capacity"
+- "Set Public"
+
+There are also "Delete Metadata" and "Delete Metadata by Array" blueprint nodes, but these only have an effect when [updating an existing lobby](ossv1/lobbies/data.mdx).
+
+</TabItem>
+</Tabs>

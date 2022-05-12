@@ -1,0 +1,73 @@
+---
+id: startmatchmaking
+title: Start Matchmaking
+description: The StartMatchmaking function of the Session subsystem.
+---
+
+import TypeRenderer from '@site/src/TypeRenderer';
+import FunctionRenderer from '@site/src/FunctionRenderer';
+
+This is an asynchronous latent blueprint node.
+
+The C++ documentation for this function is available on [the Unreal Engine documentation website](https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Plugins/OnlineSubsystem/Interfaces/IOnlineSession/).
+
+## Example
+
+<FunctionRenderer subsystemName="Session" func={{"Identifier":"StartMatchmaking","Supported":false,"Async":true,"AsyncPins":["OnCallFailed","OnMatchmakingComplete"],"Pure":false,"Parameters":[{"Position":0,"Identifier":"LocalPlayers","Type":{"Type":"Array","Element":{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl"},"Out":false}},{"Position":1,"Identifier":"SessionName","Type":{"Type":"Simple","Identifier":"FName"}},{"Position":2,"Identifier":"NewSessionSettings","Type":{"Type":"Wrapped","Identifier":"FOnlineSessionSettingsBP","Out":false}},{"Position":3,"Identifier":"SearchSettings","Type":{"Type":"Wrapped","Identifier":"UOnlineSessionSearch*","Out":true}},{"Position":4,"Identifier":"SessionName","Type":{"Type":"Simple","Identifier":"FName","Out":true}},{"Position":5,"Identifier":"bWasSuccessful","Type":{"Type":"Simple","Identifier":"bool","Out":true}}],"ReturnType":null}} />
+
+## Inputs
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Input Name</th>
+      <th>Input Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td>Local Players</td>
+      <td><TypeRenderer typeInfo={{"Type":"Array","Element":{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl"},"Out":false}} /></td>
+    </tr>
+    <tr>
+      <td>Session Name</td>
+      <td><TypeRenderer typeInfo={{"Type":"Simple","Identifier":"FName"}} /></td>
+    </tr>
+    <tr>
+      <td>New Session Settings</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"FOnlineSessionSettingsBP","Out":false}} /></td>
+    </tr>
+  </tbody>
+</table>
+
+
+## Outputs
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Output Name</th>
+      <th>Output Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td>Search Settings</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"UOnlineSessionSearch*","Out":true}} /></td>
+    </tr>
+    <tr>
+      <td>Session Name</td>
+      <td><TypeRenderer typeInfo={{"Type":"Simple","Identifier":"FName","Out":true}} /></td>
+    </tr>
+    <tr>
+      <td>Was Successful</td>
+      <td><TypeRenderer typeInfo={{"Type":"Simple","Identifier":"bool","Out":true}} /></td>
+    </tr>
+  </tbody>
+</table>
+
+

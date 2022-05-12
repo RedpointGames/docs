@@ -1,0 +1,322 @@
+---
+title: Updating lobbies and managing lobby members
+description: How to update lobby data, lobby member data, view members of a lobby and kick lobby members if you're the owner
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import Blueprint from '@site/src/Blueprint';
+
+import bpUpdate from './bp/update.bp';
+import bpUpdateMember from './bp/update_member.bp';
+import bpGetMembers from './bp/get_members.bp';
+import bpIdToString from './bp/id_to_string.bp';
+import bpStringToId from './bp/string_to_id.bp';
+import bpKick from './bp/kick.bp';
+
+Lobbies have two types of data:
+
+- Lobby data, which is stored against the lobby itself
+- Lobby member data, which is stored for a particular member of a lobby
+
+The owner of a lobby can update the lobby data and kick members.
+
+Members of a lobby can update the lobby member data of themselves. The lobby owner can't update the member data of another member (even though they're the owner).
+
+Any member of the lobby, whether they are the host or not, can see lobby data, view the list of members in the lobby, and see the current lobby member data of a member.
+
+When the owner of a lobby deletes the lobby, all members of the lobby are kicked and removed from the lobby. If you don't want this behaviour, you should use [create a party](/ossv1/parties/creating.mdx) instead, as parties support promoting another member as a new owner, whereas the lobby interface does not.
+
+## Update a lobby's settings, or change lobby data
+
+You can update a lobby's settings (such as whether it is public and it's capacity), and update the lobby data of a lobby in a single update lobby call.
+
+<Tabs lazy groupId="code-format" defaultValue="c++" values={[ { label: 'C++', value: 'c++' }, { label: 'Blueprints', value: 'blueprints' } ]}>
+<TabItem value="c++">
+
+To update a lobby, first get the online lobby interface:
+
+```cpp
+#include "OnlineSubsystem.h"
+#include "OnlineSubsystemUtils.h"
+// If your project can't find this header, make sure you have installed the headers from here:
+// https://src.redpoint.games/redpointgames/online-interfaces/
+#include "OnlineLobbyInterface.h"
+
+// ...
+
+IOnlineSubsystem* Subsystem = Online::GetSubsystem(this->GetWorld());
+TSharedPtr<IOnlineLobby, ESPMode::ThreadSafe> Lobby = Online::GetLobbyInterface(Subsystem);
+```
+
+Then, make a lobby transaction for updating the lobby, using the `LobbyId` of a lobby you own:
+
+```cpp
+TSharedPtr<const FUniqueNetId> LocalUserId = Identity->GetUniquePlayerId(0);
+TSharedPtr<FOnlineLobbyTransaction> Txn = Lobby->MakeUpdateLobbyTransaction(*LobbyIdFromPreviousCreate, *LocalUserId.Get());
+
+// To change the visibility of the lobby, set the Public value. If you
+// don't set a value for this, it leaves the setting unchanged.
+Txn->Public = true;
+
+// To change the capacity of the lobby, set the Capacity value. If you
+// don't set a value for this, it leaves the setting unchanged.
+Txn->Capacity = 4;
+
+// To change whether players can join the lobby, set the Locked value.
+// If you don't set a value for this, it leaves the setting unchanged.
+Txn->Locked = false;
+
+// To set or change existing lobby data, change the SetMetadata
+// map on the transaction.
+Txn->SetMetadata.Add(TEXT("MySetting"), FVariantData(TEXT("MyValue")));
+
+// To delete existing lobby data, add an item to the DeleteMetadata
+// array on the transaction.
+Txn->DeleteMetadata.Add(TEXT("MySettingToDelete"));
+```
+
+Then, update the lobby:
+
+```cpp
+if (!Lobby->UpdateLobby(
+    *LocalUserId.Get(),
+    *LobbyId,
+    *Txn,
+    FOnLobbyOperationComplete::CreateLambda([](
+        const FOnlineError & Error,
+        const FUniqueNetId & UserId)
+    {
+        if (Error.WasSuccessful())
+        {
+            // The lobby was updated successfully.
+        }
+        else
+        {
+            // Lobby could not be updated.
+        }
+    })))
+{
+    // Call failed to start.
+}
+```
+
+</TabItem>
+<TabItem value="blueprints">
+
+To update a lobby, call "Make Update Lobby Transaction" using a previously saved "LobbyId" of a lobby you own and set your new data, then call "Update Lobby". You can use the following blueprint nodes on on the "Update Lobby Transaction" value:
+
+- "Set Public"
+- "Set Capacity"
+- "Set Locked"
+- "Set Metadata"
+- "Set Metadata by Map"
+- "Delete Metadata"
+- "Delete Metadata by Map"
+
+<Blueprint height="650px" blueprint={bpUpdate} />
+</TabItem>
+</Tabs>
+
+## Update lobby member data
+
+When you're in a lobby, you can update your own member data, but no-one else's, even if you're the lobby owner.
+
+:::caution
+`UpdateMemberSelf` can only be called for yourself. You can't update the member data of a different member in the lobby.
+:::
+
+<Tabs lazy groupId="code-format" defaultValue="c++" values={[ { label: 'C++', value: 'c++' }, { label: 'Blueprints', value: 'blueprints' } ]}>
+<TabItem value="c++">
+
+First, create a Online Lobby Member Transaction for modifying the lobby member's data:
+
+```cpp
+TSharedPtr<const FUniqueNetId> LocalUserId = Identity->GetUniquePlayerId(0);
+TSharedPtr<FOnlineLobbyMemberTransaction> Txn = Lobby->MakeUpdateLobbyMemberTransaction(*LocalUserId.Get(), *LobbyIdFromPreviousConnectOrCreate, *LocalUserId.Get());
+
+// Used to set Metadata, call SetMetadata using the variable name you want, followed by the value.
+Txn->SetMetadata.Add(TEXT("ExampleAttributeName"), FVariantData(TEXT("ExampleAttributeValue")));
+
+// Used to delete Metadata, using an Attribute name.
+Txn->DeleteMetadata(TEXT("ExampleAttributeToDelete"));
+```
+
+Then, update your own lobby member data, using the `LobbyId` of a lobby you are currently connected to:
+
+```cpp
+if (!Lobby->UpdateMemberSelf(
+    *LocalUserId.Get(),
+    *LobbyId,
+    *Txn,
+    FOnLobbyOperationComplete::CreateLambda([](
+        const FOnlineError & Error,
+        const FUniqueNetId & UserId)
+    {
+        if (Error.WasSuccessful())
+        {
+            // Your lobby member data was updated successfully.
+        }
+        else
+        {
+            // Your lobby member data could not be updated.
+        }
+    })))
+{
+    // Call failed to start.
+}
+```
+
+</TabItem>
+<TabItem value="blueprints">
+
+To update your own lobby member data, call the "Make Update Lobby Member Transaction" blueprint node, and then call "Update Member Self". You can use the following blueprint nodes on the "Update Lobby Member Transaction" value before passing it to "Update Member Self":
+
+- "Set Metadata"
+- "Set Metadata by Map"
+- "Delete Metadata"
+- "Delete Metadata by Map"
+
+<Blueprint height="650px" blueprint={bpUpdateMember} />
+</TabItem>
+</Tabs>
+
+## Getting lobby members
+
+Anyone in the lobby can get the list of currently connected lobby members.
+
+<Tabs lazy groupId="code-format" defaultValue="c++" values={[ { label: 'C++', value: 'c++' }, { label: 'Blueprints', value: 'blueprints' } ]}>
+<TabItem value="c++">
+
+To get each member's `UniqueNetId`, get the lobby member count and then iterate through that count by calling `GetMemberUserId`.
+
+```cpp
+TArray<TSharedRef<const FUniqueNetId>> MemberIds;
+const int32 MemberCount = Lobby->GetMemberCount(
+    *LocalUserId.Get(),
+    *LobbyId)
+
+for (int32 i = 0; i < MemberCount; i++) 
+{
+    TSharedPtr<const FUniqueNetId> MemberId;
+    Lobby->GetMemberUserId(*LobbyId, Index, NewId);
+    if (MemberId.IsValid()) 
+    {
+        MemberIds.AddUnique(NewId.ToSharedRef());
+    }
+}
+
+// MemberIds now contains all of the member user IDs.
+```
+
+</TabItem>
+<TabItem value="blueprints">
+
+First, declare an array of `UniqueNetIdRepl`, then use "Get Member Count" and "Get Member User Id" to copy the member user IDs into the array.
+
+<Blueprint height="450px" blueprint={bpGetMembers} />
+</TabItem>
+</Tabs>
+
+## Checking who is the owner of a lobby
+
+The owner of the lobby is returned in the result when [creating a lobby](ossv1/lobbies/creating.mdx) or [joining a lobby](ossv1/lobbies/joining.mdx). The owner of a lobby can never change, so there is no API to get the owner after a lobby is created or joined.
+
+If you need to know who the owner of a lobby is, store the owner ID from the create or join operation and then reference it later.
+
+## Convert a lobby ID to a string
+
+Lobby IDs are not string types by default (either in C++ or blueprints). If you want to send a lobby ID to another player or store it in the attribute of a lobby, party or session, you'll need to convert it to a string first.
+
+<Tabs lazy groupId="code-format" defaultValue="c++" values={[ { label: 'C++', value: 'c++' }, { label: 'Blueprints', value: 'blueprints' } ]}>
+<TabItem value="c++">
+
+To convert a `LobbyId` into a string, call `ToString()` on a previously created `LobbyId`.
+
+```cpp
+FString SerializedLobbyIdFromPreviousCreate = LobbyIdFromPreviousCreate.ToString();
+```
+
+</TabItem>
+<TabItem value="blueprints">
+
+To convert a lobby ID to a string, call Get Display Name, using a previously created lobby ID
+
+<Blueprint height="200px" blueprint={bpIdToString} />
+</TabItem>
+</Tabs>
+
+## Parsing a string as a lobby ID
+
+If you're receiving a lobby ID as a string, you'll need to convert it back to the lobby ID type before you can use it with the lobby API.
+
+<Tabs lazy groupId="code-format" defaultValue="c++" values={[ { label: 'C++', value: 'c++' }, { label: 'Blueprints', value: 'blueprints' } ]}>
+<TabItem value="c++">
+
+To convert a string back into a `LobbyId` in C++, call `ParseSerializedLobbyId` with the string value as the first argument.
+
+```cpp
+TSharedPtr<FOnlineLobbyId> LobbyId = Lobby->ParseSerializedLobbyId(SerializedLobbyIdFromPreviousCreate);
+if (LobbyId.IsValid())
+{
+    // LobbyId holds a lobby ID with a valid syntax (though
+    // it doesn't necessarily mean the lobby exists or that
+    // you can join it).
+}
+else 
+{
+    // The string value wasn't a lobby ID.
+}
+```
+
+</TabItem>
+<TabItem value="blueprints">
+
+To convert a string back into a lobby ID in blueprints, use the "Parse Serialized Lobby Id" blueprint node and pass in the string value as the lobby ID.
+
+If the return value is valid, then the string was a lobby ID that could be parsed. If it's not valid, then the string wasn't a lobby ID.
+
+<Blueprint height="350px" blueprint={bpStringToId} />
+</TabItem>
+</Tabs>
+
+## Kicking a lobby member
+
+The owner of the lobby can remove ("kick") any member of the lobby.
+
+<Tabs lazy groupId="code-format" defaultValue="c++" values={[ { label: 'C++', value: 'c++' }, { label: 'Blueprints', value: 'blueprints' } ]}>
+<TabItem value="c++">
+
+To kick a member, call `KickMember` as the owner of the lobby with the target member's user ID:
+
+```cpp
+if (!Lobby->KickMember(
+    *LocalUserId.Get(),
+    *LobbyIdFromPreviousCreate,
+    *MemberUserIdToKick,
+    FOnLobbyOperationComplete::CreateLambda([](
+        const FOnlineError & Error,
+        const FUniqueNetId & UserId)
+    {
+        if (Error.WasSuccessful())
+        {
+            // The member was kicked successfully.
+        }
+        else
+        {
+            // Member could not be kicked.
+        }
+    })))
+{
+    // Call failed to kick.
+}
+```
+
+</TabItem>
+<TabItem value="blueprints">
+
+To kick a lobby member from the lobby, call "Kick Member" using the member's user ID and the ID of the lobby you own.
+
+<Blueprint height="350px" blueprint={bpKick} />
+</TabItem>
+</Tabs>

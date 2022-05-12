@@ -1,0 +1,45 @@
+---
+id: onpartymemberjoined
+title: On Party Member Joined
+description: The OnPartyMemberJoined event of the Party subsystem.
+---
+
+import TypeRenderer from '@site/src/TypeRenderer';
+import EventRenderer from '@site/src/EventRenderer';
+
+This is a bindable event.
+
+The C++ documentation for this event is available on [the Unreal Engine documentation website](https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Plugins/OnlineSubsystem/Interfaces/IOnlineParty/).
+
+## Example
+
+<EventRenderer subsystemName="Party" event={{"Identifier":"OnPartyMemberJoined","Parameters":[{"Position":0,"Identifier":"LocalUserId","Type":{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl","Out":false}},{"Position":1,"Identifier":"PartyId","Type":{"Type":"Wrapped","Identifier":"UPartyId*","Out":false}},{"Position":2,"Identifier":"MemberId","Type":{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl","Out":false}}]}} />
+
+## Outputs
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Output Name</th>
+      <th>Output Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td>LocalUserId</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl","Out":false}} /></td>
+    </tr>
+    <tr>
+      <td>PartyId</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"UPartyId*","Out":false}} /></td>
+    </tr>
+    <tr>
+      <td>MemberId</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl","Out":false}} /></td>
+    </tr>
+  </tbody>
+</table>
+
+

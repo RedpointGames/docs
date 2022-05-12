@@ -1,0 +1,51 @@
+---
+title: Regions & clusters
+description: Understand what regions are and how you should deploy Kubernetes clusters into them.
+---
+
+It's important to choose where you'll run your game server containers ahead of time, to ensure that you have sufficient global coverage so that players have a low-latency experience.
+
+## Designing a global, region-agnostic service
+
+Some games make players explicitly choose a region to play in; whether that's through a region-locked account system or simply a preference in the game settings. However, forcing players to specific regions is a worse experience and should be avoided as it prevents players from playing with international friends.
+
+The architecture that we'll design and deploy in this guide will create a global service for your players. Even though you'll deploy game server containers into specific regions, from the perspective of your players they won't need to know about regions at all.
+
+## How to choose regions for your game server containers
+
+When choosing what regions to lease dedicated servers in, you'll want to think about your game's audience and where you expect people to play. The more regions you have dedicated servers in, the lower-latency experience players will have. Even if you only rent a few dedicated servers in each region, this will provide a better player experience than high latencies.
+
+Here are some regions that you could consider for deployment:
+
+- Mainland United States, on both east and west coast.
+- South America, typically located in Brazil.
+- Caribbean to cover the area between Mexico and Colombia.
+- Europe, on both east (UK/Germany/France) and west (Poland/Serbia/Turkey) regions.
+- Middle East, typically Bahrain or Cairo.
+- Africa, typically South Africa but also somewhere on the east coast if you can.
+- India.
+- Japan.
+- Guam, which interconnects to a lot of smaller island countries in the south-east of the Pacific. 
+- Australia, typically Sydney or Melbourne. International links in and out of Australia are poor, so this region can't typically be covered well by other options (Guam or east-coast US).
+
+In each of these regions you'll want to consider:
+
+- Where can you get the most cost-efficient dedicated servers from a local provider?
+- Is there a public cloud in the same city as your dedicated servers? Ideally Google Cloud when you can, as it's the cheapest public cloud compute available.
+- Does the city or location of your dedicated servers have high levels of interconnect? You can check the [submarine cable map](https://www.submarinecablemap.com/) to see what coastal cities have a high number of international connections. 
+
+Remember: you don't have to have a huge number of servers in each of these locations. You can start with a small number (2 or 3 dedicated servers), see how many players get placed onto them due to latency and matchmaking, and then scale those regions up and down based on the actual demand you see for your game.
+
+## What is a cluster? How does it compare with a region?
+
+Let us take the region of "US East" as an example. You might lease dedicated servers in Los Angeles, which gives you connectivity into the east coast, Mexico and to the Pacific.
+
+The dedicated servers you lease in Los Angeles collectively make up a cluster; you'll install a Kubernetes cluster on these dedicated servers so that when game server containers are scheduled, they can run on any of the dedicated servers you have in that region.
+
+A region will generally consist of:
+- Dedicated servers from a single local provider in a given city.
+- Optionally, a public cloud which also services that city that you can burst into when needed.
+
+You should ensure that you have a few regions around in the world that have a public cloud in the same city so that you can set up bursting. If you don't set up bursting, you might find yourself running out of capacity on your dedicated servers with no way to serve the spike in player traffic.
+
+Where possible, you should choose cities and regions that are serviced by Google Cloud for your public cloud burst capacity, as this is the cheapest public cloud at the time of writing.

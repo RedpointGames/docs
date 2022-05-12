@@ -1,0 +1,37 @@
+---
+title: Display party members in your lobby
+description: Learn how to use the Redpoint Party Member actor to display party members in your main menu or lobby map.
+---
+
+import Video from "@site/src/Video";
+
+import videoCreatePartyMemberActorUrl from "./party_members/create_party_member_actor.mp4";
+import videoPartyMemberEventUrl from "./party_members/party_member_event.mp4";
+
+Redpoint EOS Online Framework includes a "Redpoint Party Member" actor which you can subclass. This actor represents a party member slot in a party, and receives events when that slot is filled, vacated or the party member changes.
+
+## Create your own party member actor
+
+To create your own party member actor:
+
+- In the Content Browser, create a new Blueprint Class.
+- Under All Classes, search for `RedpointPartyMember`.
+- Click "Select" to create your new actor, and give it a name.
+
+<Video url={videoCreatePartyMemberActorUrl} />
+
+## Customize your party member actor
+
+On your party member actor, you should add components that are needed to render players such as static and skeletal mesh components, as well as widget components that you can use to show the player's name. The ["Minute of Mayhem" example project](../example_project.mdx) demonstrates how to do this.
+
+- With the asset open, select the "EventGraph" tab.
+- Under "Functions" -> "Override", override the "PartyMemberChanged" event.
+- This event has all the information you need; you should update the state of your components based on the values provided in this event.
+
+<Video url={videoPartyMemberEventUrl} />
+
+Once you have created your party member actor, you should place multiple copies of it in your main menu or lobby map, as many as your maximum party size.
+
+:::info
+Make sure you change the "Party Member Slot" value on each actor you place in the map! A value of `0` indicates the first player in the party, `1` the second player, and so on.
+:::

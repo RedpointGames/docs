@@ -1,0 +1,93 @@
+---
+title: "Controlling voice chat audio"
+description: How to adjust audio input devices, output devices, control muting and read speaking/mute statuses.
+---
+
+To fully implement EOS voice chat, you'll want to allow the user to configure which audio devices they want to use for input and output, and allow them to mute or block other remote players during gameplay.
+
+## Get the current or available audio devices
+
+To get the current or available audio devices, on the `IVoiceChatUser` instance, use the following functions or blueprint nodes:
+
+- `GetAvailableInputDeviceInfos()`
+- `GetAvailableOutputDeviceInfos()`
+- `GetInputDeviceInfo()` _(Returns the currently used input device)_
+- `GetOutputDeviceInfo()` _(Returns the currently used output device)_
+- `GetDefaultInputDeviceInfo()`
+- `GetDefaultOutputDeviceInfo()`
+
+The functions for getting the current and default audio devices might return an empty device info if the user does not have any audio devices (e.g. if they have no microphone plugged in).
+
+## Adjusting the audio input device
+
+To set the audio device used for input, retrieve an audio input device from one of the above functions, and then pass it's `Id` value into `VoiceChatUser->SetInputDeviceId`.
+
+## Adjusting the audio output device
+
+To set the audio device used for input, retrieve an audio output device from one of the above functions, and then pass it's `Id` value into `VoiceChatUser->SetOutputDeviceId`.
+
+## Adjusting the volume for input or output devices
+
+To change the volume for the selected input or output audio device, you can use `VoiceChatUser->SetAudioInputVolume(Volume)` and `VoiceChatUser->SetAudioOutputVolume(Volume)`. The volume is a value between `0.0f` and `200.0f`, which means silence and "2x gain" respectively. A value of `100.0f` means the volume is unadjusted from the input or output device.
+
+You can get the current volume with `VoiceChatUser->GetAudioInputVolume()` and `VoiceChatUser->GetAudioOutputVolume()`.
+
+:::caution
+The input device volume can be set to any of the values above, but the only value that impacts the volume is `0.0f`, which silences the microphone. Any other value is treated as `100.0f`. This is a limitation of the EOS SDK.
+:::
+
+## Muting the input or output devices
+
+You can mute the input or output audio devices using `VoiceChatUser->SetAudioInputDeviceMuted(bIsMuted)` and `VoiceChatUser->SetAudioOutputDeviceMuted(bIsMuted)`. You can get the current mute status with `VoiceChatUser->GetAudioInputDeviceMuted()` and `VoiceChatUser->GetAudioOutputDeviceMuted()`.
+
+## Detecting if a player is talking
+
+To detect if either a remote player or the local player is talking, use `VoiceChatUser->IsPlayerTalking(PlayerName)`.
+
+The value to pass into the `PlayerName` argument is the stringified version of the player's unique net ID. You can get it by calling `ToString()` on a unique net ID.
+
+:::caution
+The "is talking" status will only work if you have at least two people in a channel. It will always return false if you only have one person in a channel by themselves (regardless of whether echo is turned on or not).
+:::
+
+## Detecting if a remote player is muted
+
+To detect if either a remote player or the local player is muted locally or by the dedicated server, use `VoiceChatUser->IsPlayerMuted(PlayerName)`.
+
+The value to pass into the `PlayerName` argument is the stringified version of the player's unique net ID. You can get it by calling `ToString()` on a unique net ID.
+
+## Muting or unmuting a remote player
+
+To mute or unmute a remote player across all voice channels the local player is currently in, use `VoiceChatUser->SetPlayerMuted(PlayerName, bMuted)`.
+
+The value to pass into the `PlayerName` argument is the stringified version of the player's unique net ID. You can get it by calling `ToString()` on a unique net ID.
+
+## Blocking or unblocking a remote player
+
+To block one or more remote players, use `VoiceChatUser->BlockPlayers(PlayerNamesArray)`. To unblock one or more remote players, use `VoiceChatUser->UnblockPlayers(PlayerNamesArray)`.
+
+The value to pass into the `PlayerNamesArray` argument should be an array of stringified unique net IDs. You can get these values by calling `ToString()` on one or more unique net IDs.
+
+## Controlling which channels are transmitted to
+
+You can limit which channels the user's microphone is transmitted to using the following functions:
+
+- `VoiceChatUser->TransmitToAllChannels()`
+- `VoiceChatUser->TransmitToNoChannels()`
+- `VoiceChatUser->TransmitToSpecificChannel(ChannelName)`
+
+You can get the current transmit mode with `VoiceChatUser->GetTransmitMode()`. If you are transmitting to a set of specific channels, you can get the list of channels with `VoiceChatUser->GetTransmitChannel()` (comma-separated). If you are transmitting to all channels, `GetTransmitChannel()` will return an empty string.
+
+`TransmitToSpecificChannel` is cumulative in EOS. Before you call `TransmitToSpecificChannel`, you should call `TransmitToNoChannels` to reset to no channels for transmission. Then, you can call `TransmitToSpecificChannel` to enable transmitting for each channel you want to enable transmission on. This allows you to transmit on 2 or more channels, even though the Unreal Engine API isn't designed for it.
+
+## Controlling audio features
+
+To control features like echo cancellation, noise suppression, auto gain control, DTX and platform AEC, call `SetSetting` with one of the following setting names:
+
+- `EnableEchoCancellation` (defaults to `true`)
+- `EnableNoiseSuppression` (defaults to `true`)
+- `EnableAutoGainControl` (defaults to `true`)
+- `EnableDtx` (defaults to `true`)
+- `EnablePlatformAEC` (defaults based on Project Settings)
+
+You can retrieve the current status of these features using `GetSetting`. To turn these features on, the value must be `true` (exactly, case-sensitive). Any other value is treated as `false`.

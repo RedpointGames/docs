@@ -1,0 +1,22 @@
+.sidebarCategory {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  border-right: none;
+
+  padding: var(--ifm-menu-link-padding-vertical)
+    var(--ifm-menu-link-padding-horizontal);
+}
+
+.viewLead {
+  font-size: 80%;
+}
+
+.switchTo {
+  font-size: 80%;
+  margin-top: 1px;
+}
+
+.switchTo a {
+  width: 100%;
+  text-align: left;
+}

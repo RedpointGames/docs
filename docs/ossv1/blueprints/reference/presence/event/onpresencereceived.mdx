@@ -1,0 +1,41 @@
+---
+id: onpresencereceived
+title: On Presence Received
+description: The OnPresenceReceived event of the Presence subsystem.
+---
+
+import TypeRenderer from '@site/src/TypeRenderer';
+import EventRenderer from '@site/src/EventRenderer';
+
+This is a bindable event.
+
+The C++ documentation for this event is available on [the Unreal Engine documentation website](https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Plugins/OnlineSubsystem/Interfaces/IOnlinePresence/).
+
+## Example
+
+<EventRenderer subsystemName="Presence" event={{"Identifier":"OnPresenceReceived","Parameters":[{"Position":0,"Identifier":"UserId","Type":{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl","Out":false}},{"Position":1,"Identifier":"Presence","Type":{"Type":"Wrapped","Identifier":"FOnlineUserPresenceData","Out":false}}]}} />
+
+## Outputs
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Output Name</th>
+      <th>Output Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td>UserId</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl","Out":false}} /></td>
+    </tr>
+    <tr>
+      <td>Presence</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"FOnlineUserPresenceData","Out":false}} /></td>
+    </tr>
+  </tbody>
+</table>
+
+

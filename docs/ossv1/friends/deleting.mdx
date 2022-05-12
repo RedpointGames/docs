@@ -1,0 +1,122 @@
+---
+title: Deleting a friend from the friends list
+description: How to delete a friend from the friends list
+---
+
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+import Blueprint from "@site/src/Blueprint";
+
+A user might want to delete a friend that they previously added to their friends list. You can delete friends from the friends list, where those friends were added through `SendInvite` or `AcceptInvite`.
+
+:::caution
+You can't delete friends if they're friends from the local platform (such as Steam). To know if you can delete a friend from the friends list, check the `deletable` user attribute. It will be `true` if the friend can be deleted.
+:::
+
+## Deleting a friend from the friends list
+
+<Tabs lazy groupId="code-format" defaultValue="c++" values={[ { label: 'C++', value: 'c++' }, { label: 'Blueprints', value: 'blueprints' } ]}>
+<TabItem value="c++">
+
+To delete a friend from the friends list, use `DeleteFriend`. You'll first need to get the friends interface:
+
+```cpp
+#include "OnlineSubsystem.h"
+#include "OnlineSubsystemUtils.h"
+#include "Interfaces/OnlineFriendsInterface.h"
+
+// ...
+
+IOnlineSubsystem *Subsystem = Online::GetSubsystem(this->GetWorld());
+IOnlineFriendsPtr Friends = Subsystem->GetFriendsInterface();
+```
+
+Then, call `DeleteFriend` with the user ID of the target player:
+
+```cpp
+// Store the delegate handle, as you'll need to unregister it
+// in the OnDeleteFriendComplete callback.
+this->DeleteFriendCompleteHandle = Friends->AddOnDeleteFriendCompleteDelegate_Handle(
+    0 /* LocalUserNum */,
+    FOnDeleteFriendCompleteDelegate::CreateUObject(
+        this,
+        &UMyClass::OnDeleteFriendComplete));
+
+if (!Friends->DeleteFriend(
+        0 /* LocalUserNum */,
+        TargetUserId /* The friend to delete */,
+        TEXT("") /* ListName, unused by EOS */))
+{
+    // Call failed to start
+}
+
+// ...
+
+void UMyClass::OnDeleteFriendComplete(
+    int32 LocalUserNum,
+    bool bWasSuccessful,
+    const FUniqueNetId &FriendId,
+    const FString &ListName,
+    const FString &ErrorStr)
+{
+    IOnlineSubsystem *Subsystem = Online::GetSubsystem(this->GetWorld());
+    IOnlineFriendsPtr Friends = Subsystem->GetFriendsInterface();
+
+    // NOTE: If you're sending multiple deletions in parallel, you'll need to
+    // capture the original FriendId for the DeleteFriend call as a user parameter
+    // to this callback, and then compare the FriendId the event is for with the
+    // FriendId you called DeleteFriend for. You'll also need to store the delegate
+    // handle (DeleteFriendCompleteHandle) per friend you are deleting.
+
+    // Remove the event handler.
+    Friends->ClearOnDeleteFriendCompleteDelegate_Handle(LocalUserNum, this->DeleteFriendCompleteHandle);
+
+    if (bWasSuccessful)
+    {
+        // Friend was successfully deleted. The "delete" notification to tell
+        // the friend to remove us from their friends list might be
+        // stored for later sending if the friend is currently offline.
+    }
+    else
+    {
+        // The friend could not be deleted.
+    }
+}
+```
+
+</TabItem>
+<TabItem value="blueprints">
+
+To delete a friend from the friends list, use the "Delete Friend" blueprint node:
+
+<Blueprint height="380px" blueprint={`
+Begin Object Class=/Script/BlueprintGraph.K2Node_GetSubsystem Name="K2Node_GetSubsystem_4"
+   CustomClass=Class'"/Script/OnlineSubsystemBlueprints.OnlineFriendsSubsystem"'
+   NodePosX=560
+   NodePosY=1139
+   NodeGuid=437B9BCA4EFC6951FA1A00A106915FE0
+   CustomProperties Pin (PinId=865E1FFA4AAB3E3C14586DBF4FDCC638,PinName="ReturnValue",Direction="EGPD_Output",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/OnlineSubsystemBlueprints.OnlineFriendsSubsystem"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_AsyncAction_4 635A7D914DCDB4A4E80EBE88D14117EB,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+Begin Object Class=/Script/BlueprintGraph.K2Node_AsyncAction Name="K2Node_AsyncAction_4"
+   ProxyFactoryFunctionName="DeleteFriend"
+   ProxyFactoryClass=Class'"/Script/OnlineSubsystemBlueprints.OnlineFriendsSubsystemDeleteFriend"'
+   ProxyClass=Class'"/Script/OnlineSubsystemBlueprints.OnlineFriendsSubsystemDeleteFriend"'
+   NodePosX=832
+   NodePosY=1120
+   NodeGuid=90D0B39A4427E65B3D77D88377917F13
+   CustomProperties Pin (PinId=A69A09B04477F142C9025AA0805BE1F0,PinName="execute",PinToolTip="\\nExec",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=5021452A4BCD497757BFCEBE4FB7C22B,PinName="then",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=B3BB2EC94A90D0C765568EB476C56A04,PinName="OnCallFailed",PinFriendlyName="On Call Failed",PinToolTip="On Call Failed",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=F50F5842470402164652BDAB1CFBC479,PinName="OnDeleteFriendComplete",PinFriendlyName="On Delete Friend Complete",PinToolTip="On Delete Friend Complete",Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=C55BB33E4D66906CED5108A9FEE58476,PinName="bWasSuccessful",PinToolTip="Was Successful",Direction="EGPD_Output",PinType.PinCategory="bool",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=B2DE894F45FAE5E241FE99A437FF99BD,PinName="FriendId",PinToolTip="Friend Id",Direction="EGPD_Output",PinType.PinCategory="struct",PinType.PinSubCategory="",PinType.PinSubCategoryObject=ScriptStruct'"/Script/Engine.UniqueNetIdRepl"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=D02F485C4152020A7C2671BC16B89E39,PinName="ListName",PinToolTip="List Name",Direction="EGPD_Output",PinType.PinCategory="string",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=D9CA251B44D469C1400B8D9371EE287C,PinName="ErrorStr",PinToolTip="Error Str",Direction="EGPD_Output",PinType.PinCategory="string",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=635A7D914DCDB4A4E80EBE88D14117EB,PinName="Subsystem",PinToolTip="Subsystem\\nOnline Friends Subsystem Object Reference",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/OnlineSubsystemBlueprints.OnlineFriendsSubsystem"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,LinkedTo=(K2Node_GetSubsystem_4 865E1FFA4AAB3E3C14586DBF4FDCC638,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=E9215D8E40A045438A8B5C9B5A4550FB,PinName="LocalUserNum",PinToolTip="Local User Num\\nInteger",PinType.PinCategory="int",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,DefaultValue="0",AutogeneratedDefaultValue="0",PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=F45ABB724FBCAE28314BC2923C2D28F7,PinName="FriendId",PinToolTip="Friend Id\\nUnique Net Id Repl Structure",PinType.PinCategory="struct",PinType.PinSubCategory="",PinType.PinSubCategoryObject=ScriptStruct'"/Script/Engine.UniqueNetIdRepl"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+   CustomProperties Pin (PinId=181776BC4278CA61A3DBE7BD186C704C,PinName="ListName",PinToolTip="List Name\\nString",PinType.PinCategory="string",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
+End Object
+`} />
+</TabItem>
+</Tabs>

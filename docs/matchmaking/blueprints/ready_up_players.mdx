@@ -1,0 +1,29 @@
+---
+title: Ready up players to queue matchmaking
+description: Learn how to mark players in a party or solo players as ready for matchmaking.
+---
+
+import Blueprint from "@site/src/Blueprint";
+
+import bpQueueSolo from "./bp/queue_solo.bp";
+import bpQueueSplit from "./bp/queue_split.bp";
+
+To queue a player or a party up for matchmaking, you need to have each player indicate their readiness.
+
+Once all players in a party are ready, or if you're not in a party and the only local player is ready, matchmaking will begin.
+
+## Queuing solo, or parties with no split-screen
+
+If you're queuing a solo player locally, or if you're in a party but don't support split-screen in your game, you can call "Set Ready State" with a default user ID in the `Matchmaker`. It'll automatically select the user ID of the first local player controller.
+
+<Blueprint height="280px" blueprint={bpQueueSolo} />
+
+## Queuing parties with split-screen
+
+If you have multiple local players (such as on console), you'll need to tell the matchmaker which local player is readying up for matchmaking by passing their user ID.
+
+<Blueprint height="280px" blueprint={bpQueueSplit} />
+
+## Unreadying a player
+
+To unready a previously readied player, just call `Set Ready State` again with the same arguments, but with "Is Ready" set to false.

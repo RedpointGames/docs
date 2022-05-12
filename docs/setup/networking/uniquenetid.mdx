@@ -1,0 +1,91 @@
+---
+title: Retrieving the user ID of a player controller or player state actor
+description: How to get the user ID of another player controller or player state actor.
+---
+
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+import Blueprint from "@site/src/Blueprint";
+
+import bpPlayerController from "./uniquenetid/controller.bp";
+import bpPlayerState from "./uniquenetid/state.bp";
+
+When you're in a multiplayer match, you might need to get a user ID from a player controller or player state actor in the match.
+
+On servers, you'll be able to see all of the player controllers in the match and can retrieve the user ID the player controller.
+
+On both clients and servers, you'll be able to see all of the player state actors in the match and can retrieve the user ID from player state.
+
+## Get the user ID from a player controller
+
+<Tabs lazy groupId="code-format" defaultValue="c++" values={[ { label: 'C++', value: 'c++' }, { label: 'Blueprints', value: 'blueprints' } ]}>
+<TabItem value="c++">
+
+Player controllers store their user ID differently based on whether they're a local player controller on the current machine or a remote player controller connected via a network connection. You can use the following function to retrieve the user ID regardless of the player controller type:
+
+```cpp
+TSharedPtr<const FUniqueNetId> GetControllerUniqueNetId(APlayerController *InPlayerController)
+{
+    if (!IsValid(InPlayerController))
+    {
+        return nullptr;
+    }
+
+    if (InPlayerController->IsLocalPlayerController())
+    {
+        ULocalPlayer *LocalPlayer = InPlayerController->GetLocalPlayer();
+        if (IsValid(LocalPlayer))
+        {
+            return LocalPlayer->GetPreferredUniqueNetId().GetUniqueNetId();
+        }
+    }
+
+    UNetConnection *RemoteNetConnection = Cast<UNetConnection>(InPlayerController->Player);
+    if (IsValid(RemoteNetConnection))
+    {
+        return RemoteNetConnection->PlayerId.GetUniqueNetId();
+    }
+
+    UE_LOG(LogTemp, Error, TEXT("Player controller does not have a valid remote network connection"));
+    return nullptr;
+}
+```
+
+</TabItem>
+<TabItem value="blueprints">
+
+To get the user ID from a player controller, use the "Get Controller Unique Net Id" helper blueprint node:
+
+<Blueprint height="200px" blueprint={bpPlayerController} />
+
+</TabItem>
+</Tabs>
+
+## Get the user ID from a player state
+
+<Tabs lazy groupId="code-format" defaultValue="c++" values={[ { label: 'C++', value: 'c++' }, { label: 'Blueprints', value: 'blueprints' } ]}>
+<TabItem value="c++">
+
+Player states provide the user's ID through the `GetUniqueId` function. You can safely access the user ID on a player state with the following function:
+
+```cpp
+TSharedPtr<const FUniqueNetId> GetPlayerStateUniqueNetId(APlayerState *InPlayerState)
+{
+    if (!IsValid(InPlayerState))
+    {
+        return nullptr;
+    }
+
+    return InPlayerState->GetUniqueId().GetUniqueNetId();
+}
+```
+
+</TabItem>
+<TabItem value="blueprints">
+
+To get the user ID from a player state, use the "Get Player State Unique Net Id" helper blueprint node:
+
+<Blueprint height="200px" blueprint={bpPlayerState} />
+
+</TabItem>
+</Tabs>

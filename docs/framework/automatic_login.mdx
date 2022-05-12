@@ -1,0 +1,114 @@
+---
+title: Automatic login with startup screens
+description: Display a startup screen for your game, and get the user signed into Epic Online Services before any of your game code runs.
+---
+
+import Video from "@site/src/Video";
+
+import videoCreateGameInstanceClassUrl from "./automatic_login/create_game_instance_class.mp4";
+import videoUseGameInstanceUrl from "./automatic_login/use_game_instance.mp4";
+import videoDefaultStartupScreenUrl from "./automatic_login/default_startup_screen.mp4";
+import videoChangeLogoUrl from "./automatic_login/change_logo.mp4";
+import videoChangeLogoPreviewUrl from "./automatic_login/change_logo_preview.mp4";
+import videoCreateStartupScreenUrl from "./automatic_login/create_startup_screen.mp4";
+import videoCustomizedStartLoginUrl from "./automatic_login/customized_start_login.mp4";
+import videoCustomizedRetryLoginUrl from "./automatic_login/customized_retry_login.mp4";
+
+Traditionally game developers had to create their own separate startup map to call [AutoLogin](../ossv1/identity/authentication.mdx) before proceeding to the main menu map, or ensure that all of their main menu map code handles not having a user signed in. This resulted in more complex code in main menus and more time spent implementing online features.
+
+To address this, Redpoint EOS Online Framework provides an optional "startup screen" feature. You can enable this by making your game instance inherit from `URedpointGameInstance`. When this feature is enabled:
+
+- Your packaged game will display the startup screen while the user is signed into Epic Online Services, before your game's configured "Startup Map" is loaded.
+- You should keep "login before play-in-editor" enabled while testing in the editor.
+
+With these scenarios in mind, you will no longer have to check if the user local user is currently signed into Epic Online Services in your game code; the player will not proceed to the main menu until they've successfully signed in.
+
+## Inheriting from the Redpoint Game Instance
+
+To create your own game instance class:
+
+- In the Content Browser, create a new Blueprint Class.
+- Under All Classes, search for `RedpointGameInstance`.
+- Click "Select" to create your new game instance, and give it a name.
+
+When you open your new game instance class, you'll find that the "Ensure Always Signed In" feature is enabled by default. You only need to change the settings here when you want to customize what your startup screen looks like.
+
+<Video url={videoCreateGameInstanceClassUrl} />
+
+## Use your new game instance
+
+To use your new game instance:
+
+- Open "Project Settings".
+- Search for "game instance".
+- Select your created game instance class as the game instance.
+
+<Video url={videoUseGameInstanceUrl} />
+
+## What does it look like by default?
+
+Without configuring any startup screen settings, this is what your game will look like when it starts up. A loading indicator will be displayed, along with a placeholder image. If there's an error and the user can't be signed in, the error message will be displayed with a button that allows the user to retry sign in.
+
+<Video url={videoDefaultStartupScreenUrl} />
+
+## Set the startup screen logo
+
+For simple games or early playtesting, you can set a startup screen logo on your game instance:
+
+- Open your game instance class.
+- Change the "Startup Screen Logo" to the texture you want to use.
+- Set the "Startup Screen Logo Size" to match the size of the texture.
+
+<Video url={videoChangeLogoUrl} />
+
+With the startup logo set, the default startup screen will now display like this when your game launches:
+
+<Video url={videoChangeLogoPreviewUrl} />
+
+## Completely customize the startup screen
+
+You can fully replace the default startup screen by creating your own UMG widget that implements the "Redpoint Startup Screen" interface:
+
+- In the Content Browser, create a new Widget Blueprint asset.
+- Select "User Widget" as the base class.
+- In the top-right, select "Graph".
+- In the toolbar, select "Class Settings".
+- Under "Implemented Interfaces", click "Add" and add the "Redpoint Startup Screen" interface.
+- Implement the functions it requires, including `OnStartupScreenDisplayed`, `UpdateProgressMessage` and `OnLoginFailed`.
+
+:::info
+For a more comprehensive example of how to implement a custom startup screen, download the [Minute of Mayhem example project](../example_project.mdx#minute-of-mayhem).
+:::
+
+<Video url={videoCreateStartupScreenUrl} />
+
+### Implementing OnStartupScreenDisplayed
+
+This function is called by the game instance immediately after the widget has been displayed on the screen. It passes a "On Start Login" delegate that you need to store somewhere; you then call the stored delegate when you want login to start or be retried.
+
+For PC games, you'll typically call "On Start Login" immediately, but on console platforms where you need to identify the controller the player is using, you can defer login from starting until the user presses a button on the controller.
+
+Because blueprints do not have comprehensive support for delegates, you'll need to invoke "On Start Login" in the following way:
+
+- Create a new Event Dispatcher in your widget, with no parameters (the default).
+- When `OnStartupScreenDisplayed` is called, store the "On Start Login" in the event dispatcher.
+- When you want login to start or be retried, call the event dispatcher.
+- Since we'll use the same event dispatcher when login fails, we'll also unbind all existing delegates from the event dispatcher before we bind to it.
+
+<Video url={videoCustomizedStartLoginUrl} />
+
+### Implementing UpdateProgressMessage
+
+This function is called by the login process when the progress message should be updated. Typically you'll just assign this to the text value of a text widget in your UMG.
+
+### Implementing OnLoginFailed
+
+This function is called by the game instance when the login process fails. This can happen if the user doesn't own a license to the game, if they cancelled Epic Games interactive sign-in, so on and so forth.
+
+It is up to you on how you want to handle this in your game, but typically you'll show the error message and allow the user to retry login:
+
+- Assign the error message to a text widget in your UMG, such that it is displayed to the user.
+- Assign "On Retry Login" to the event dispatcher in the same way that we assigned "On Start Login".
+- When the user presses a button or interacts in some way, call the event dispatcher.
+
+<Video url={videoCustomizedRetryLoginUrl} />

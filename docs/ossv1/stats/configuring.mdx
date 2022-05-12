@@ -1,0 +1,65 @@
+---
+title: Configuring statistics
+description: How to configure the EOS stats system.
+---
+
+The EOS backend only supports storing 32-bit integers as stats. However, many games need to store floating-point values. The EOS Online Framework plugin can serialize your floating-point stats as 32-bit integers so they can be stored in the EOS backend.
+
+## Aggregation types in the EOS Developer Portal
+
+When defining your stats in the EOS Developer Portal, you'll be asked for an "Aggregation Type". This controls how the EOS backend treats incoming values when you call `UpdateStats`. The `FOnlineStatUpdate::EOnlineStatModificationType` setting is ignored when calling `UpdateStats`, since the aggregation type is configured in the EOS Developer Portal instead.
+
+The available options are:
+
+- `SUM`: If the current value is 5, and you send 4, the new value will be 9.
+- `LATEST`: If the current value is 5, and you send 4, the new value will be 4.
+- `MIN`: If the current value is 5, and you send 4, the new value will be 4.
+- `MAX`: If the current value is 5, and you send 4, the value will remain at 5.
+
+You will also need to set up stat typing rules in your Project Settings. Please note that some stat types are not compatible with `SUM`, `MIN` or `MAX` (see below).
+
+## Setting up typing rules
+
+If you try to query stats that aren't defined in the backend, the whole `QueryStats` operation will fail. Therefore EOS Online Framework can't optimistically query all type variants of a stat (for example, by using an `_f` suffix to denote a floating-point value). Instead, you have to define the type of each stat in Project Settings ahead of time so that the plugin knows how to deserialize each stat when it's read from the backend.
+
+When setting up stat rules, you specify a name like `my_stat_name` or `stat_prefix_*` or `any_*_wildcard_*location*_permitted`. Rules are evaluated in order, and the first rule that matches the name of the stat defines the type for the stat. If no rules match, the stat is expected to be a 32-bit integer.
+
+The available types for stats are detailed below.
+
+### Int32
+
+The stat is stored as a 32-bit signed integer. This is the native stat format for EOS, and is compatible
+with achievements and leaderboards.
+
+On the EOS backend, the stat can be configured as LATEST, SUM, MIN or MAX.
+
+### Boolean
+
+The boolean value is converted to a 32-bit signed integer (either a 0 or a 1). Because this value can be entirely contained within a 32-bit signed integer, this stat is compatible with achievements and leaderboards.
+
+When configuring achievements, remember that the values for this stat can be either 0 or 1, so you'll typically want to unlock the achievement on a value of 1.
+
+On the EOS backend, the stat can be configured as LATEST, SUM, MIN or MAX.
+
+### Float (Truncated)
+
+The floating point value is multiplied by 10,000,000, truncated and stored as an int32. This preserves ordering and permits it's use in leaderboards, at the cost of range. The maximum range for a stat using truncated floats is -214.7483648 to 214.7483647.
+
+When using this stat with achievements and leaderboards, you must remember that the values will be stored with the multipler, and set achievement thresholds appropriately, and divide by 10,000,000 when displaying leaderboard values.
+
+On the EOS backend, the stat can be configured as LATEST, SUM, MIN or MAX.
+
+### Float (Encoded)
+
+The bits that make up the floating point number are treated as an int32, and this value is stored. This preserves the precision of the floating point number, and allows you to store the full range of values, at the cost of ordering (making it unsuitable for achievements and leaderboards). You should only read these kinds of stats through QueryStats.
+
+On the EOS backend, the stat must be configured as LATEST.
+
+### Double (Encoded)
+
+The bits that make up the double floating point number are split into two int32 values, and these are independently stored in EOS with the name `<stat>_upper` and `<stat>_lower`.
+
+This preserves the precision of the double floating point number, and allows you to store the full range of values, but does not preserve ordering and you can't use the values in any other system (achievements
+or leaderboards), as the value is split over two underlying stats.
+
+On the EOS backend, both the `<stat>_upper` and `<stat>_lower` stats must be configured as LATEST.

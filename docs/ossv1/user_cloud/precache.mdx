@@ -1,0 +1,34 @@
+---
+title: Pre-cache files from Player Data Storage on login
+description: Learn how to configure files for pre-caching so you can call 'Get File Contents' immediately.
+---
+
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+import Blueprint from "@site/src/Blueprint";
+
+import bpPrecache from "./bp/precache.bp";
+
+You can configure the plugin to automatically download and pre-cache files from Player Data Storage as part of the login process. This makes it much easier to use Player Data Storage for things like player preferences, since you don't need to manually call 'Read User File', and there's no period of time after login where the file data isn't yet downloaded.
+
+## Configure the files to pre-cache
+
+In your `DefaultEngine.ini`, add the following lines under the `[EpicOnlineServices]` section:
+
+```ini
+!PrecachePlayerDataStorageFiles=ClearArray
++PrecachePlayerDataStorageFiles=Filename1
++PrecachePlayerDataStorageFiles=Filename2
+```
+
+You add a `+PrecachePlayerDataStorageFiles=` line for each file you want to have pre-cached. Files are downloaded in parallel during login, so you can add multiple files here with minimal impact on login time.
+
+## Using pre-cached files
+
+After the user has signed in, you can [call 'Get File Contents' immediately](./reading.mdx#reading-a-file-from-player-data-storage) to access the contents of pre-cached files. For example, to get the file contents of `Filename1` and read it as a Save Game object, you could do the following after login:
+
+<Blueprint height="450px" blueprint={bpPrecache} />
+
+:::note
+The example above uses 'Begin Play', assuming that this actor only exists after login or that you're using [startup screens](../../framework/automatic_login.mdx) to ensure the player is already signed in when your startup map starts.
+:::

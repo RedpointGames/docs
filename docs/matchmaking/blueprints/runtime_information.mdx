@@ -1,0 +1,23 @@
+---
+title: Retrieve a player's team and slot during the game
+description: Learn how to get the player's team and slot information during the game.
+---
+
+import Blueprint from "@site/src/Blueprint";
+
+import bpLegacyTeamAndSlot from "./bp/legacy_team_and_slot.bp";
+import bpLegacyTeamAndSlotServer from "./bp/legacy_team_and_slot_server.bp";
+
+There's two ways to retrieve the team and slot information during the game, and it depends on whether the code is running on a client, listen server or dedicated server.
+
+:::info
+These blueprint nodes only work if you started matchmaking via the blueprint-based Matchmaker class. If you're queuing via C++, you'll need to store the match results somewhere in your own code and access it that way instead.
+:::
+
+If you need to access the team and slot information for a player on the client or a listen server, use the "Get Team and Slot" blueprint node on the Matchmaker Subsystem:
+
+<Blueprint height="200px" blueprint={bpLegacyTeamAndSlot} />
+
+If you need to access the team and slot information for a player on a listen server or dedicated server, use the "Get Team and Slot for Player on Server" blueprint node on the Matchmaker Subsystem. You would typically use this in your implementation of "Choose Player Start" in the game mode:
+
+<Blueprint height="300px" blueprint={bpLegacyTeamAndSlotServer} />

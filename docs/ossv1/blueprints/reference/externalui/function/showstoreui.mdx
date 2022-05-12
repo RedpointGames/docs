@@ -1,0 +1,61 @@
+---
+id: showstoreui
+title: Show Store UI
+description: The ShowStoreUI function of the ExternalUI subsystem.
+---
+
+import TypeRenderer from '@site/src/TypeRenderer';
+import FunctionRenderer from '@site/src/FunctionRenderer';
+
+This is an asynchronous latent blueprint node.
+
+The C++ documentation for this function is available on [the Unreal Engine documentation website](https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Plugins/OnlineSubsystem/Interfaces/IOnlineExternalUI/).
+
+## Example
+
+<FunctionRenderer subsystemName="ExternalUI" func={{"Identifier":"ShowStoreUI","Supported":false,"Async":true,"AsyncPins":["OnCallFailed","OnShowStoreUIClosed"],"Pure":false,"Parameters":[{"Position":0,"Identifier":"LocalUserNum","Type":{"Type":"Simple","Identifier":"int32"}},{"Position":1,"Identifier":"ShowParams","Type":{"Type":"Wrapped","Identifier":"FShowStoreParameters","Out":false}},{"Position":2,"Identifier":"bPurchased","Type":{"Type":"Simple","Identifier":"bool","Out":true}}],"ReturnType":null}} />
+
+## Inputs
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Input Name</th>
+      <th>Input Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td>Local User Num</td>
+      <td><TypeRenderer typeInfo={{"Type":"Simple","Identifier":"int32"}} /></td>
+    </tr>
+    <tr>
+      <td>Show Params</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"FShowStoreParameters","Out":false}} /></td>
+    </tr>
+  </tbody>
+</table>
+
+
+## Outputs
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Output Name</th>
+      <th>Output Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td>Purchased</td>
+      <td><TypeRenderer typeInfo={{"Type":"Simple","Identifier":"bool","Out":true}} /></td>
+    </tr>
+  </tbody>
+</table>
+
+

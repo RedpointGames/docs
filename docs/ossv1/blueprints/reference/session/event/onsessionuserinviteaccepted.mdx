@@ -1,0 +1,49 @@
+---
+id: onsessionuserinviteaccepted
+title: On Session User Invite Accepted
+description: The OnSessionUserInviteAccepted event of the Session subsystem.
+---
+
+import TypeRenderer from '@site/src/TypeRenderer';
+import EventRenderer from '@site/src/EventRenderer';
+
+This is a bindable event.
+
+The C++ documentation for this event is available on [the Unreal Engine documentation website](https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Plugins/OnlineSubsystem/Interfaces/IOnlineSession/).
+
+## Example
+
+<EventRenderer subsystemName="Session" event={{"Identifier":"OnSessionUserInviteAccepted","Parameters":[{"Position":0,"Identifier":"bWasSuccessful","Type":{"Type":"Simple","Identifier":"bool","Out":false}},{"Position":1,"Identifier":"ControllerId","Type":{"Type":"Simple","Identifier":"int32","Out":false}},{"Position":2,"Identifier":"UserId","Type":{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl"}},{"Position":3,"Identifier":"InviteResult","Type":{"Type":"Wrapped","Identifier":"FOnlineSessionSearchResultBP","Out":false}}]}} />
+
+## Outputs
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Output Name</th>
+      <th>Output Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td>bWasSuccessful</td>
+      <td><TypeRenderer typeInfo={{"Type":"Simple","Identifier":"bool","Out":false}} /></td>
+    </tr>
+    <tr>
+      <td>ControllerId</td>
+      <td><TypeRenderer typeInfo={{"Type":"Simple","Identifier":"int32","Out":false}} /></td>
+    </tr>
+    <tr>
+      <td>UserId</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl"}} /></td>
+    </tr>
+    <tr>
+      <td>InviteResult</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"FOnlineSessionSearchResultBP","Out":false}} /></td>
+    </tr>
+  </tbody>
+</table>
+
+

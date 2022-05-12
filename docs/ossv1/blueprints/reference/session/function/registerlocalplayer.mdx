@@ -1,0 +1,65 @@
+---
+id: registerlocalplayer
+title: Register Local Player
+description: The RegisterLocalPlayer function of the Session subsystem.
+---
+
+import TypeRenderer from '@site/src/TypeRenderer';
+import FunctionRenderer from '@site/src/FunctionRenderer';
+
+This is an asynchronous latent blueprint node.
+
+The C++ documentation for this function is available on [the Unreal Engine documentation website](https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Plugins/OnlineSubsystem/Interfaces/IOnlineSession/).
+
+## Example
+
+<FunctionRenderer subsystemName="Session" func={{"Identifier":"RegisterLocalPlayer","Supported":false,"Async":true,"AsyncPins":["OnCallFailed","OnRegisterLocalPlayerComplete"],"Pure":false,"Parameters":[{"Position":0,"Identifier":"PlayerId","Type":{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl","Out":false}},{"Position":1,"Identifier":"SessionName","Type":{"Type":"Simple","Identifier":"FName"}},{"Position":2,"Identifier":null,"Type":{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl","Out":true}},{"Position":3,"Identifier":null,"Type":{"Type":"Wrapped","Identifier":"EOnJoinSessionCompleteResult_","Out":true}}],"ReturnType":null}} />
+
+## Inputs
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Input Name</th>
+      <th>Input Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td>Player Id</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl","Out":false}} /></td>
+    </tr>
+    <tr>
+      <td>Session Name</td>
+      <td><TypeRenderer typeInfo={{"Type":"Simple","Identifier":"FName"}} /></td>
+    </tr>
+  </tbody>
+</table>
+
+
+## Outputs
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Output Name</th>
+      <th>Output Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td><em>Not Specified</em></td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl","Out":true}} /></td>
+    </tr>
+    <tr>
+      <td><em>Not Specified</em></td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"EOnJoinSessionCompleteResult_","Out":true}} /></td>
+    </tr>
+  </tbody>
+</table>
+
+

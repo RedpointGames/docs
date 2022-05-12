@@ -1,0 +1,45 @@
+---
+id: showprofileui
+title: Show Profile UI
+description: The ShowProfileUI function of the ExternalUI subsystem.
+---
+
+import TypeRenderer from '@site/src/TypeRenderer';
+import FunctionRenderer from '@site/src/FunctionRenderer';
+
+This is an asynchronous latent blueprint node.
+
+The C++ documentation for this function is available on [the Unreal Engine documentation website](https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Plugins/OnlineSubsystem/Interfaces/IOnlineExternalUI/).
+
+## Example
+
+<FunctionRenderer subsystemName="ExternalUI" func={{"Identifier":"ShowProfileUI","Supported":false,"Async":true,"AsyncPins":["OnCallFailed","OnProfileUIClosed"],"Pure":false,"Parameters":[{"Position":0,"Identifier":"Requestor","Type":{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl","Out":false}},{"Position":1,"Identifier":"Requestee","Type":{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl","Out":false}}],"ReturnType":null}} />
+
+## Inputs
+
+
+<table>
+  <thead>
+    <tr>
+      <th>Input Name</th>
+      <th>Input Type</th>
+    </tr>
+  </thead>
+  <tbody>
+    
+    <tr>
+      <td>Requestor</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl","Out":false}} /></td>
+    </tr>
+    <tr>
+      <td>Requestee</td>
+      <td><TypeRenderer typeInfo={{"Type":"Wrapped","Identifier":"FUniqueNetIdRepl","Out":false}} /></td>
+    </tr>
+  </tbody>
+</table>
+
+
+## Outputs
+
+This function has no outputs.
+

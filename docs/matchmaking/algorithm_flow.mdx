@@ -1,0 +1,99 @@
+---
+title: Matchmaking step names and algorithm flow
+description: An extensive document covering all the step names you can encounter during matchmaking and how the algorithm flows through steps.
+---
+
+import Mermaid from "@site/src/Mermaid";
+
+This document describes all of the steps that the matchmaking algorithm can be in, and how it moves between each of these steps. The step names shown in each node will match the step name given to you by the progress event. The set of steps related to abandonment are shown in a separate graph since the matchmaking algorithm can enter the abandonment sequence at any time.
+
+## Matchmaking
+
+This is the algorithm used by the matchmaking plugin to match players. The primary mechanism by which matchmaking takes place is the searching and follow request concepts, where hosts search for suitable matches they'd like to have merged into their match. They then send the follow request to the target match, and the target either accepts (and merges) or rejects it.
+
+Once the match is full, the matchmaking algorithm then also takes care of starting a listen server or finding a dedicated server, and then notifying the other players of the session ID or connection string depending on the matchmaking request configuration.
+
+<Mermaid
+  chart={`
+graph TD
+    ValidateRequest --> |If the request is invalid|Error --> OnErrorEvent["OnError Event"]
+    ValidateRequest --> |If you're queuing as the host|LockParty
+    ValidateRequest --> |If you're queuing<br/>as a client|WaitForPartyLeader
+    WaitForPartyLeader --> |Once the host tells us the<br/>matchmaking lobby ID to join,<br/>and we've joined it|FollowHost
+    LockParty --> |After locking the party or if you're not in a party,<br />and after fetching skill stats|CreateMatchmakingFollowRequestLobby
+    CreateMatchmakingFollowRequestLobby --> |After the follow lobby is created|CreateMatchmakingLobby
+    CreateMatchmakingLobby --> |If you're in a party|NotifyExistingParty
+    NotifyExistingParty --> |Once players have been notified<br/>of matchmaking lobby ID|WaitingForPlayersToJoin
+    CreateMatchmakingLobby --> |If you're not in a party|WaitingForPlayersToJoin
+    WaitingForPlayersToJoin --> |Once all players have joined<br/>the matchmaking lobby|Searching
+    Searching --> |"After waiting a delay"|SearchingMoveToSearchingStatus
+    Searching -.-> IncomingFollowRequestVerifyPre
+    SearchingMoveToSearchingStatus --> |After we've updated our<br/>lobby status attribute|SearchingPerformSearch
+    SearchingMoveToSearchingStatus -.-> IncomingFollowRequestVerifyPre
+    SearchingPerformSearch --> |We encounter a temporary error,<br/>have no suitable results, or<br/>time out in WaitUntilFull mode|Searching
+    SearchingPerformSearch --> |We time out in CompletePartiallyFilled<br/>or CompleteFillWithAI mode|SearchingMoveToSearchingStatusPost
+    SearchingMoveToSearchingStatus --> |If the match is complete|SearchingMoveToSearchingStatusPost
+    SearchingPerformSearch --> |We find a suitable result|SearchingSendFollowRequest
+    SearchingPerformSearch -.-> IncomingFollowRequestVerifyPre
+    SearchingMoveToSearchingStatusPost(("•")) --> CompleteMatch
+    SearchingSendFollowRequest --> SearchingSendFollowRequestMoveToWaitingStatus
+    SearchingSendFollowRequestMoveToWaitingStatus --> |After we've updated our<br/>lobby status attribute|SearchingSendFollowRequestDoRequest
+    SearchingSendFollowRequestDoRequest --> |If the target lobby does<br/>not respond within a time out,<br />we time out waiting for players, <br/>or the lobby rejects the request|Searching
+    SearchingSendFollowRequestDoRequest --> |If accepted, after all target<br/>players have joined our lobby|SearchingSendFollowRequestDoRequestPost
+    SearchingSendFollowRequestDoRequestPost(("•")) --> |If the match is full|CompleteMatch
+    SearchingSendFollowRequestDoRequestPost --> |If we need more players|Searching
+    IncomingFollowRequestVerifyPre(("•")) -.->|Interrupted with a follow request|IncomingFollowRequestVerify
+    IncomingFollowRequestVerify --> |If we can't join the requesting lobby|IncomingFollowRequestReject
+    IncomingFollowRequestVerify --> |If we can connect<br/>to the requesting lobby|IncomingFollowRequestAccept
+    IncomingFollowRequestReject --> Searching
+    IncomingFollowRequestAccept --> |If we can't tell existing<br/>members the new lobby ID|Searching
+    IncomingFollowRequestAccept --> |After notifying other members<br/>and disconnecting from our lobby|FollowHost
+    FollowHost -.-> |Notified our host moved to a new lobby|ChainFollowOntoNewHost
+    FollowHost -.-> |Notified the match is complete|CompleteMatchAsClient
+    ChainFollowOntoNewHost --> |After joining the new lobby|FollowHost
+    CompleteMatchAsClient --> |If we are in return results mode|OnCompleteEvent["OnComplete Event"]
+    CompleteMatchAsClient --> |If we are in start listen server<br/>or join dedicated server mode|WaitForSessionIdOrConnectionString
+    WaitForSessionIdOrConnectionString -.-> |If we get a session ID|JoinServerSession
+    JoinServerSession --> |Once we've joined the session|ConnectToGameServer
+    WaitForSessionIdOrConnectionString -.-> |If we get a connection string|ConnectToGameServer
+    ConnectToGameServer --> |Once we've connected to the game server|OnCompleteEvent["OnComplete Event"]
+    CompleteMatch --> |It does not exist|CompleteMatchComputeResult
+    CompleteMatch --> |The follow request lobby still exists|DeleteMatchmakingFollowRequestLobby
+    DeleteMatchmakingFollowRequestLobby --> CompleteMatchComputeResult
+    CompleteMatchComputeResult -->|After computing the final results and notifying clients|ComputeMatchFinalizeLobby
+    ComputeMatchFinalizeLobby -->|After finalizing the party|CompleteUnlockParty
+    CompleteUnlockParty -->|After the party is unlocked|CompleteMatchAsHost
+    CompleteMatchAsHost -->|If we are in return results mode|OnCompleteEvent["OnComplete Event"]
+    CompleteMatchAsHost -->|If we are in start listen server mode|StartListenServer
+    StartListenServer -->|Once the listen server is started|CreateSessionForListenServer
+    CreateSessionForListenServer -->|Once the session is created|SendSessionIdOrConnectionStringForListenServer
+    SendSessionIdOrConnectionStringForListenServer -->|Once the other players have been notified|OnCompleteEvent["OnComplete Event"]
+    CompleteMatchAsHost -->|If we are in find dedicated server mode|FindDedicatedServerSession
+    FindDedicatedServerSession -->|Once we find a suitable dedicated server|ReserveDedicatedServerForMatch
+    ReserveDedicatedServerForMatch -->|If we could not reserve it|FindDedicatedServerSession
+    ReserveDedicatedServerForMatch -->|If we could reserve it,<br/>we've notified other players<br/>and we're joining by session ID|JoinServerSession
+    ReserveDedicatedServerForMatch -->|If we could reserve it,<br/>we've notified other players<br/>and we're joining by connection string|ConnectToGameServer
+`}
+/>
+
+## Abandonment
+
+Abandonment is used by the matchmaking algorithm when something goes wrong or one of the members of the match cancels matchmaking. When abandonment happens, all of the members that are currently in the match unwind their state to the way it was when they initially queued, and then they either restart matchmaking (if it was a temporary error or a cancellation by some other party), or they fire the `OnCancelled` event.
+
+<Mermaid
+  chart={`
+graph TD
+    AbandonStart --> |If you're in a party|AbandonNotifyParty
+    AbandonStart --> |If you're not in a party|AbandonNotifyMatch
+    AbandonNotifyParty --> |If we're the leader, after notifying party|AbandonUnlockParty
+    AbandonNotifyParty --> |If we're not the leader|AbandonWaitForPartyLeader
+    AbandonNotifyParty --> |Various error states|AbandonUnlockParty
+    AbandonUnlockParty --> |After unlocking party|AbandonNotifyMatch
+    AbandonNotifyParty --> |After notifying party|AbandonNotifyMatch
+    AbandonWaitForPartyLeader --> |Once the party leader has been notified,<br />and has notified everyone else|AbandonNotifyMatch
+    AbandonNotifyMatch --> |If we're not in a matchmaking lobby|AbandonFinish
+    AbandonNotifyMatch --> |If we can't notify the matchmaking lobby|AbandonFinish
+    AbandonNotifyMatch --> |After we've notified other match members,<br />disconnected from the matchmaking lobby<br />and cleaned everything up|AbandonFinish
+    AbandonFinish --> |"If we're restarting: someone else abandoned or<br />we had a recoverable error"|ValidateRequest
+    AbandonFinish --> |"If we're cancelling: user cancelled or<br />unrecoverable error"|OnCancelledEvent["OnCancelled Event"]`}
+/>
