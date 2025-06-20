@@ -284,8 +284,8 @@ function Home() {
                   <p>
                     With namespaced functions and classes, C++20{" "}
                     <code>co_await</code> support and modern design principles,
-                    our modern APIs make integrating Epic Online Services in C++
-                    a pleasant experience.
+                    our APIs make integrating Epic Online Services in C++ a
+                    pleasant experience.
                   </p>
                 </Feature.Describer>
                 <Feature.Visual>
