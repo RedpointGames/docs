@@ -13,6 +13,8 @@ import bpActionCheck from "./bind_friends_list/action_check.bp";
 import bpActionPerform from "./bind_friends_list/action_perform.bp";
 import bpAccessExternal1 from "./bind_friends_list/access_external_1.bp";
 import bpAccessExternal2 from "./bind_friends_list/access_external_2.bp";
+import bpShowLocalPlayer from "./bind_friends_list/show_local_player.bp";
+import bpIncludeCachedFriends from "./bind_friends_list/include_cached_friends.bp";
 import videoPreview from "./bind_friends_list/preview.mp4";
 
 Traditionally to display friend lists or list of party members in-game, you had to listen for events and manually synchronise the player list when things changed.
@@ -127,3 +129,24 @@ You can access the current selected item on the tree view through `Get Selected 
 Alternatively, you can store last selected friend entry when the `On Item Selection Changed` event fires:
 
 <Blueprint height="240px" blueprint={bpAccessExternal2} />
+
+## Show the local player in the party section of the friend list
+
+If you want the local player to appear under the "In-Party" section of the friend list, you need to explicitly turn the option on:
+
+<Blueprint height="300px" blueprint={bpShowLocalPlayer} />
+
+## Show cached, offline friends in the friend list
+
+When a user plays on a desktop platform, the plugin caches their platform friends in Player Data Storage. When the player later plays on a different platform or store, we can read those cached friends to de-duplicate friends across platforms.
+
+By default, cached friends that are offline are not included in the friend list. This is because the user can not perform any meaningful action with them:
+
+- They are not in-game, so we can't send them invites over Epic Online Services.
+- They aren't friends on the current platform, so there's no way to send an invite to them over the local platform.
+
+For example, if we cache a Meta Quest friend and then the user is later playing on Steam, if the Meta Quest friend is not in-game, we can't send them an invite by any means because you can't send an invite to a Meta user from Steam.
+
+If you want to include cached friends that the local player can't perform any action on, you need to explicitly opt-in to showing them:
+
+<Blueprint height="300px" blueprint={bpIncludeCachedFriends} />
