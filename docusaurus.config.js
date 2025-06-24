@@ -4,9 +4,6 @@ const configCommon = {
       appId: "FIOCNMBFH4",
       apiKey: "4346d272d46def333bebaf4f3ffd05ec",
       indexName: "redpointgames",
-      searchParameters: {
-        facetFilters: [`tags:${facet}`],
-      },
     };
   },
   getFooter: function () {
