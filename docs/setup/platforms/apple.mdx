@@ -4,22 +4,7 @@ sidebar_label: Apple iOS
 description: How to set up your game for Apple iOS.
 ---
 
-To publish your game on Apple iOS, you'll need to enable "Sign in with Apple" authentication, use a source-based version of the plugin and a source-based version of Unreal Engine, compile it with SIWA support, and then configure your application for Apple authentication.
-
-## Switch to using source code
-
-If you have not done so already, [switch to using a source-based version](../index.mdx#source-code-access) of the plugin by following the instructions on the Welcome page.
-
-## Compile the engine with "Sign in with Apple" support
-
-Unreal Engine does not enable "Sign in with Apple" support by default, and it must be enabled when the engine's `OnlineSubsystemApple` module is compiled. Therefore, you must build the engine from source after enabling this option.
-
-Locate the `Engine/Config/BaseEngine.ini` file for the source-based version of Unreal Engine you are using, and at the end of this file, add:
-
-```ini
-[/Script/IOSRuntimeSettings.IOSRuntimeSettings]
-bEnableSignInWithAppleSupport=True
-```
+To publish your game on Apple iOS, you'll need to enable "Sign in with Apple" authentication and then configure your application for Apple authentication.
 
 ## Set up your application in the Apple Developer portal
 
@@ -44,14 +29,16 @@ It is assumed that you already have an identifier set up for your application in
 9. Under the "Environments" tab, click "Identity Providers" next to the Live sandbox.
 10. For Apple, select the new credential you just made.
 
-## Enable the Apple online subsystem in your game
+## Enable Sign in with Apple in your project
 
-In your `IOSEngine.ini` file, you need to add the following settings:
+In your `DefaultEngine.ini` file, add:
 
 ```ini
-[OnlineSubsystemApple]
-bEnabled=True
+[/Script/IOSRuntimeSettings.IOSRuntimeSettings]
+bEnableSignInWithAppleSupport=True
 ```
+
+You no longer need to build the engine from source for "Sign in with Apple" support to work. You only need to add this setting so that the appropriate entitlement is added when your game is packaged.
 
 ## Use Apple authentication at runtime
 
