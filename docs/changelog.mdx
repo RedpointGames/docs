@@ -28,7 +28,7 @@ The changes in EOS Online Framework 2025.06.24 are as follows:
 - [Team matchmaking](./matchmaking/index.md) is now included in EOS Online Framework.
 - [Blueprint support](./ossv1/index.mdx) is now included in EOS Online Framework, for both Paid and Free Edition users.
 - We've overhauled our documentation to make it easier to find what you're looking for depending on how you're integrating Epic Online Services. [Our documentation is now also on GitHub](https://github.com/RedpointGames/docs) and we accept pull requests for contributions.
-- We've released a [brand new example project "Minute of Mayhem"](./example_project.mdx), which demonstrates how to use EOS parties, team matchmaking, player preferences and synchronising those preferences to other party members, first-person gameplay and more.
+- We've released a [brand new example project "Minute of Mayhem"](./examples/minute/index.mdx), which demonstrates how to use EOS parties, team matchmaking, player preferences and synchronising those preferences to other party members, first-person gameplay and more.
 - Added support for Unreal Engine 5.6.
 - Added support for EOS SDK 41373641-v1.17.0.
 - Added a "Get Party Configuration" blueprint node on the online party type.
@@ -339,7 +339,7 @@ This release continues our [room system and refactoring work](https://redpoint.g
   - To resolve a friend code to a user ID, call [`IOnlineUser::QueryUserIdMapping`](/ossv1/user/displayname.mdx#query-a-user-by-their-friend-code) and pass `FriendCode:<Friend Code>` as the `DisplayNameOrEmail` parameter, or call [`IPresenceSystem::FindByFriendCode`](/systems/presence.md#resolve-a-friend-code-into-a-user-id).
   - Friend codes are generated on login and are not persisted.
   - When resolving friend codes to user IDs, multiple users may match in extremely popular games. It is recommended you use `IPresenceSystem::FindByFriendCode` in these cases as it can return multiple user IDs for the player to pick from, whereas `IOnlineUser::QueryUserIdMapping` will only return the first matching user.
-- The [example projects for the Redpoint EOS Online Framework and Online Subsystem Blueprint plugins](./example_project.mdx) have been fully replaced with modern versions.
+- The [example projects for the Redpoint EOS Online Framework and Online Subsystem Blueprint plugins](./examples/index.mdx) have been fully replaced with modern versions.
   - These new example projects remove the complexity of the "task" system that was present in previous versions, making it much clearer what code is relevant for accessing online subsystems.
   - Because the task system has been removed, it is now safe to copy the example project code and blueprint assets into your own projects.
   - To use these new example projects, you must also install the free [Online API Explorer](https://www.fab.com/listings/c8f408b5-ae61-4465-bb6f-a51f587b809b) plugin from Fab or [download it from our GitLab instance](https://src.redpoint.games/redpointgames/online-api-explorer).
@@ -828,7 +828,7 @@ This release introduces automatic hints and suggestions, and fixes several issue
 
 This release fixes a few critical issues:
 
-- Fixed the issue that prevented some developers from using the Developer Authentication Tool. You can now authorize accounts for use with the Developer Authentication Tool by clicking "Authorize Epic Games Account" under the "Epic Online Services" toolbar item. Refer to [the authentication documentation](/auth/dev_auth_tool_usage.mdx#authorize-all-the-accounts-you-want-to-use) for more information on how to do this.
+- Fixed the issue that prevented some developers from using the Developer Authentication Tool. You can now authorize accounts for use with the Developer Authentication Tool by clicking "Authorize Epic Games Account" under the "Epic Online Services" toolbar item. Refer to [the authentication documentation](/auth/dev_auth_tool_usage.mdx) for more information on how to do this.
 - Fixed an issue that prevented packaging games on Unreal Engine 4.27 and earlier if you had the EOS SDK installed directly on the `C:\` drive.
 - Fixed a crash that would occur if you manually unloaded the EOS online subsystem module (instead of allowing the engine to do it at the appropriate time).
 - Replaced the web browser widget with a text version of the EULA for Free Edition users. This removes the web browser widget dependency for both Free Edition and Paid Edition users.
@@ -933,7 +933,7 @@ This release fixes several issues:
 
 - Fixed an issue that prevented Epic from publishing a macOS build of the plugin for Unreal Engine 5.0. Once Epic publishes this update, the plugin should be downloadable in the Epic Games Launcher on macOS again.
 - Fixed a crash that could occur on consoles in Unreal Engine 4.26 and 4.27, due to new Unreal Engine 5.0 compatibility code that was added.
-- Added documentation on how to access the [new Lyra example for Redpoint's EOS Online Framework](example_project.mdx#accessing-the-lyra-example-project). This is a preconfigured version of Lyra set up to use the Redpoint EOS Online Framework plugin instead of Epic's implementation.
+- Added documentation on how to access the [new Lyra example for Redpoint's EOS Online Framework](./examples/lyra.mdx#accessing-the-lyra-example-project). This is a preconfigured version of Lyra set up to use the Redpoint EOS Online Framework plugin instead of Epic's implementation.
 - Fixed a compatibility issue with Lyra when it uses long bucket IDs for sessions. Bucket IDs are now automatically limited to 60 characters to match the backend limits, and a warning is printed if the provided bucket ID is too long and cut to 60 characters.
 - Fixed a compatibility issue with Lyra to permit float attributes when updating or creating sessions. They will still be read as doubles when reading session data, but this allows you to submit them as floats.
 - Fixed a compatibility issue with Lyra where it would attempt a session search with the magic `SEARCH_PRESENCE` and `SEARCH_LOBBIES` filters, where it does not also specify attributes with those names. These special search filters are only used by the Steam and Epic EOS implementations, so the fix in the Redpoint plugin is to simply ignore these search filter when they are provided.
@@ -1267,14 +1267,14 @@ This release adds full support for Anti-Cheat and network authentication:
 This is our biggest release to date and it overhauls authentication, adds support for new consoles and adds support for EOS SDK 1.13. Due to upcoming changes in Unreal Engine 4.27 and 5.0, you must read through the upgrade guide when upgrading to this release.
 
 - Authentication has received a major overhaul in this release:
-  - The default login flow now automatically picks the best way to sign in based on what platform or store your game is launched from. If you are updating to this release, you will need to [set your API version to 2021-05-31 or later](/support/advanced_configuration.mdx#2021-05-31) to get this new behaviour.
+  - The default login flow now automatically picks the best way to sign in based on what platform or store your game is launched from. If you are updating to this release, you will need to [set your API version to 2021-05-31 or later](/support/advanced_configuration.mdx) to get this new behaviour.
   - The default login flow has now been simplified for all platforms. Players will only be prompted to "sign in or create account" if you have turned on cross-platform accounts and not made them required. In all other circumstances, players will be signed in without extra steps.
   - We've added [in-depth documentation on how to set up authentication](/setup/platforms/steam.mdx) for every platform and store that EOS supports.
   - You can [change how players are signed into your game](auth/configuration.mdx) with a ton of new built-in login flows, making it easy to tailor authentication to your game.
   - You can also [fully customize the login flow in C++ to suite your game](auth/write_your_own_authentication_graph.mdx) for maximum flexibility.
   - You can [use your own cross-platform account system](auth/write_your_own_cross_platform_account_provider.mdx) instead of Epic Games, and leverage all of the platform integration code that the plugin already does in order to support implicit sign in. This allows you to connect with players regardless of what platform they are playing on, and collect information such as email addresses for direct communication.
   - [Customize where UMG widgets appear](auth/custom_ui.mdx#customizing-how-widgets-are-displayed) in order to support VR games where the UI must be placed in 3D space.
-  - We added a ["simple first-party" cross-platform account provider](auth/configuration.mdx#using-the-simple-first-party-account-provider) which you can use to do username + password authentication in your game.
+  - We added a ["simple first-party" cross-platform account provider](auth/configuration.mdx) which you can use to do username + password authentication in your game.
 - The plugin now supports all authentication platforms that EOS supports, including:
   - [Steam](/setup/platforms/steam.mdx) (already supported)
   - [Epic Games Store](/setup/platforms/epic.mdx) (already supported)
@@ -1494,7 +1494,7 @@ This _optional_ update for the Free Edition is intended for users who can now on
 This release fixes a compatibility issue with Online Subsystem Blueprints, and includes the release of a blueprint-only example project:
 
 - Fix `IOnlineSession::DestroySession` so that it calls its local completion delegate, in addition to the global event.
-- Released a new [blueprint-only example project](./example_project.mdx) for EOS Online Framework that uses Online Subsystem Blueprints.
+- Released a new [blueprint-only example project](./examples/index.mdx) for EOS Online Framework that uses Online Subsystem Blueprints.
 
 ### 2020.12.10
 
@@ -1508,8 +1508,8 @@ This release adds support for Unreal Engine 4.26, adds new features and fixes a 
 - Added support for creating and updating sessions before the listen or dedicated server has started accepting connections. Now, when a listen server or dedicated server is started, it will automatically update any sessions you are the owner of when it is ready for receive connections.
 - Added the concept of "API versions", which allow you to keep the same functionality behaviour even when you upgrade the plugin to a later release to receive fixes.
   - **Important:** If you are an existing user of EOS Online Framework, you will need to [set your API version](/support/advanced_configuration.mdx#upgrading-your-api-version) depending on the behaviour you want after upgrading to this release.
-- In API version 2020-12-02 and later, the `JoinSessionAccepted` event fired from the EOS SDK is mapped onto `OnSessionUserInviteAccepted` instead of automatically joining the session for you. See [API versions](/support/advanced_configuration.mdx#2020-12-02) for more details.
-- In API version 2020-12-09 and later, sessions that are not ready to accept client connections will no longer be returned in search results by default. This means that clients will only find sessions they can actually connect to. If you want to retrieve all sessions or non-listening sessions, refer to [API versions](/support/advanced_configuration.mdx#2020-12-09) on how to do this.
+- In API version 2020-12-02 and later, the `JoinSessionAccepted` event fired from the EOS SDK is mapped onto `OnSessionUserInviteAccepted` instead of automatically joining the session for you. See [API versions](/support/advanced_configuration.mdx) for more details.
+- In API version 2020-12-09 and later, sessions that are not ready to accept client connections will no longer be returned in search results by default. This means that clients will only find sessions they can actually connect to. If you want to retrieve all sessions or non-listening sessions, refer to [API versions](/support/advanced_configuration.mdx) on how to do this.
 - Fixed an issue where `IOnlineIdentity::GetUserPrivilege` would fire the provided delegate more than once.
 - Fixed an issue where the Developer Tool could not be extracted due to the invocation not using absolute paths. It's likely this occurred when the EOS SDK was located on a different drive to Unreal Engine.
 - Fixed an issue where the `OnPartyInviteReceived` event would not fire if the user was a member of _any_ party, rather than the check being only for the party the invite was sent for.

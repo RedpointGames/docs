@@ -3,9 +3,9 @@ title: Inviting players and joining parties
 description: How to invite other players, including friends, to a party.
 ---
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
-import Blueprint from '@site/src/Blueprint';
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+import Blueprint from "@site/src/Blueprint";
 
 To join a party, you first need an invite. Invites can be sent by members of a party.
 
@@ -30,8 +30,9 @@ IOnlinePartyPtr Party = Subsystem->GetPartyInterface();
 ```
 
 Then send the invitation to the target player:
+
 ```cpp
-// In this example, Friend is an FOnlineFriend retrieved from 
+// In this example, Friend is an FOnlineFriend retrieved from
 // the friends interface, but you can send invites to any unique net ID.
 FPartyInvitationRecipient Recipient = FPartyInvitationRecipient(Friend->Friend->GetUserId());
 
@@ -45,7 +46,7 @@ if (!Party->SendInvitation(
                         const FOnlinePartyId &PartyId,
                         const FUniqueNetId &RecipientId,
                         const ESendPartyInvitationCompletionResult Result) {
-            // If Result == ESendPartyInvitationCompletionResult::Succeeded, 
+            // If Result == ESendPartyInvitationCompletionResult::Succeeded,
             // the invitation was sent successfully.
         })))
 {
@@ -107,17 +108,16 @@ End Object
 </TabItem>
 </Tabs>
 
-
 ## Listening for invites
+
+### Invitation list
 
 <Tabs lazy groupId="code-format" defaultValue="c++" values={[ { label: 'C++', value: 'c++' }, { label: 'Blueprints', value: 'blueprints' } ]}>
 <TabItem value="c++">
 
 On the receiving side, you need to be listening for when invites are sent to you. There are two events for doing this: `OnPartyInvitesChanged` and `OnPartyInviteReceived`. Which one you use depends on what you're doing in response to the event.
 
-### Invitation list
-
-If you're showing a persistent list of invitations with `GetPendingInvites`, you'll want to listen for `OnPartyInvitesChanged`, as this event will fire whenever an invite is added *or* removed.
+If you're showing a persistent list of invitations with `GetPendingInvites`, you'll want to listen for `OnPartyInvitesChanged`, as this event will fire whenever an invite is added _or_ removed.
 
 You can listen to this event like so:
 
@@ -137,16 +137,12 @@ void UMyClass::OnPartyInvitesChanged(const FUniqueNetId &LocalUserId)
 }
 ```
 
-
 </TabItem>
 <TabItem value="blueprints">
     
-On the receiving side, you need to be listening for when invites are sent to you. There are two events for doing this: "On Party Invites Changed" and "On Party Invite Received". Which one you use depends on what you're doing in response to the event. 
+On the receiving side, you need to be listening for when invites are sent to you. There are two events for doing this: "On Party Invites Changed" and "On Party Invite Received". Which one you use depends on what you're doing in response to the event.
 
-### 
-### Invitation list
-
-If you're showing a persistent list of invitations with "Get Pending Invites", you'll want to listen for "On Party Invites Changed", as this event will fire whenever an invite is added *or* removed.
+If you're showing a persistent list of invitations with "Get Pending Invites", you'll want to listen for "On Party Invites Changed", as this event will fire whenever an invite is added _or_ removed.
 
 You can listen to this event like so:
 
@@ -193,7 +189,6 @@ End Object
 </TabItem>
 </Tabs>
 
-
 ### Pop-up notifications
 
 <Tabs lazy groupId="code-format" defaultValue="c++" values={[ { label: 'C++', value: 'c++' }, { label: 'Blueprints', value: 'blueprints' } ]}>
@@ -214,7 +209,7 @@ Party->AddOnPartyInviteReceivedExDelegate_Handle(
 // ...
 
 void UMyClass::OnPartyInviteReceived(
-    const FUniqueNetId &LocalUserId, 
+    const FUniqueNetId &LocalUserId,
     const IOnlinePartyJoinInfo &Invitation)
 {
     // Access invitation data through 'Invitation'.
@@ -222,7 +217,7 @@ void UMyClass::OnPartyInviteReceived(
 ```
 
 </TabItem>
-<TabItem value="blueprints">    
+<TabItem value="blueprints">
 
 If you're showing pop-up notifications in your game, you'll want to bind an event to "On Party Invite Received" and show the pop-up in response to this event.
 
@@ -264,7 +259,6 @@ End Object
 </TabItem>
 </Tabs>
 
-
 ## Joining a party
 
 <Tabs lazy groupId="code-format" defaultValue="c++" values={[ { label: 'C++', value: 'c++' }, { label: 'Blueprints', value: 'blueprints' } ]}>
@@ -285,14 +279,15 @@ if (!Party->JoinParty(
                                                    const FOnlinePartyId &PartyId,
                                                    const EJoinPartyCompletionResult Result,
                                                    const int32 NotApprovedReason) {
-                // If Result == EJoinPartyCompletionResult::Succeeded, the party 
-                // was joined successfully, and you can now access the party with 
+                // If Result == EJoinPartyCompletionResult::Succeeded, the party
+                // was joined successfully, and you can now access the party with
                 // the GetParty and GetJoinedParties functions.
             })))
 {
     // Call didn't start, return error.
 }
 ```
+
 </TabItem>
 <TabItem value="blueprints">
 
@@ -369,7 +364,7 @@ Party->AddOnPartyJoinedDelegate_Handle(
     ) {
         // Handle the party being joined.
     }));
-    
+
 Party->AddOnPartyExitedDelegate_Handle(
     FOnPartyExitedDelegate::CreateLambda([](
         const FUniqueNetId& LocalUserId, // The local player that left the party.

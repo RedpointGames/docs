@@ -29,6 +29,10 @@ module.exports = {
   favicon: "favicon.ico",
   organizationName: "redpointgames",
   projectName: "docs",
+  onBrokenLinks: "throw",
+  onBrokenAnchors: "throw",
+  onBrokenMarkdownLinks: "throw",
+  onDuplicateRoutes: "throw",
   plugins: [
     () => ({
       name: "Raw Loader",
@@ -130,7 +134,7 @@ module.exports = {
         },
         {
           type: "doc",
-          docId: "example_project",
+          docId: "examples/index",
           label: "🎮 Example Projects",
           position: "left",
         },

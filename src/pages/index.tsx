@@ -619,7 +619,7 @@ Identity->Login(
                         </li>
                         <li>
                           Complete{" "}
-                          <Link href="/docs/example_project">
+                          <Link href="/docs/examples/minute/">
                             example project
                           </Link>{" "}
                           using blueprints, with parties, invites, team-based

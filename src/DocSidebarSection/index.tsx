@@ -33,9 +33,12 @@ Available doc ids are:
 
 export default function DocSidebarSection(props: { activePath: string }) {
   const items = useThemeConfig().navbar.items as NavbarItemConfig[];
-  const categories = items.filter(
-    (x) => x.label.indexOf("Documentation") !== -1
-  )[0].items;
+  const categories = [
+    ...items.filter((x) => x.label.indexOf("Documentation") !== -1)[0].items,
+  ];
+  categories.push(
+    items.filter((x) => x.label.indexOf("Example Projects") !== -1)[0]
+  );
 
   const { activeDoc } = useActiveDocContext(undefined);
   const versions = useDocsVersionCandidates(undefined);

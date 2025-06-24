@@ -3,16 +3,16 @@ title: Creating a session
 description: How to create a new online session.
 ---
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
-import Blueprint from '@site/src/Blueprint';
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+import Blueprint from "@site/src/Blueprint";
 
 To start a multiplayer game, you'll need to have your dedicated server or hosting player create a session that other players can join.
 
 ## Prerequisites
 
 If you are using peer-to-peer networking and you're having players host games, you'll need to make sure your game client has the "Game Server" role in the Developer Portal. Only client IDs with the "Game Server" role have permission to create sessions.
-    
+
 ## Create the session
 
 Before you can create a session, you should ensure Unreal Engine has started listening for connections on the map you want to play on. You can do this by executing the console command:
@@ -161,7 +161,6 @@ End Object
 </TabItem>
 </Tabs>
 
-
 ## Register players
 
 When players connect to your dedicated or listen server, you need to register those incoming players so that Epic Online Services is aware of how many players are currently connected, and how many free slots there are on the server.
@@ -188,10 +187,7 @@ private:
 };
 ```
 
-
 Ensure that `bAllExistingPlayersRegistered` is set to false when the game mode is constructed.
-
-### Registering players that are already connected to the server
 
 After you create the session, you need to iterate through all of the local player controllers and register them:
 
@@ -201,7 +197,7 @@ void AMyGameMode::RegisterExistingPlayers()
     for (auto It = this->GetWorld()->GetPlayerControllerIterator(); It; ++It)
     {
         APlayerController* PlayerController = It->Get();
-        
+
         FUniqueNetIdRepl UniqueNetIdRepl;
         if (PlayerController->IsLocalPlayerController())
         {
@@ -245,7 +241,6 @@ void AMyGameMode::RegisterExistingPlayers()
 
 Then, in the `HandleCreateSessionComplete` function from above, call `RegisterExistingPlayers`.
 
-
 </TabItem>
 <TabItem value="blueprints">
 
@@ -254,10 +249,6 @@ There are three steps to registering players when the game session is first crea
 - Registering players that had already joined the server when the session was created (e.g. local players for a listen server),
 - Create a "UniqueNetIdRepl" variable in your Player Controller, we'll use this to unregister connected players later. In this documentation, ours is called "UniqNetId", and
 - Handling new players in "Post Login" so they are registered as they join the server
-
-
-
-### Registering players that are already connected to the server
 
 After you create the session, you need to iterate through all of the local player controllers and register them, saving their UniqNetId variable we created earlier:
 
@@ -403,7 +394,6 @@ void AMyGameMode::PostLogin(APlayerController* InPlayerController)
 }
 ```
 
-
 </TabItem>
 <TabItem value="blueprints">
 
@@ -489,7 +479,6 @@ End Object
 </TabItem>
 </Tabs>
 
-
 ## Unregister players
 
 When a player disconnects from your server, you need to unregister the player so that Epic Online Services can be aware that there is a new free slot on the server.
@@ -497,7 +486,7 @@ When a player disconnects from your server, you need to unregister the player so
 <Tabs lazy groupId="code-format" defaultValue="c++" values={[ { label: 'C++', value: 'c++' }, { label: 'Blueprints', value: 'blueprints' } ]}>
 <TabItem value="c++">
 
-This is a little more complicated than registering players, as the `Logout` function on `GameMode` gets called *after* the player controller has cleared it's net connection. 
+This is a little more complicated than registering players, as the `Logout` function on `GameMode` gets called _after_ the player controller has cleared it's net connection.
 
 We'll create a custom `PreLogout` function on our custom game mode, and override `APlayerController::OnNetCleanup` to call it before the net connection is cleared.
 
@@ -570,7 +559,6 @@ void AMyGameModeBase::PreLogout(APlayerController *InPlayerController)
     }
 }
 ```
-
 
 </TabItem>
 <TabItem value="blueprints">

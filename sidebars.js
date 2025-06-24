@@ -1,4 +1,14 @@
 module.exports = {
+  examples: [
+    "examples/index",
+    {
+      type: "category",
+      label: "Minute of Mayhem",
+      link: { type: "doc", id: "examples/minute/index" },
+      items: ["examples/minute/configure"],
+    },
+    "examples/lyra",
+  ],
   framework: [
     "framework/index",
     "framework/automatic_login",

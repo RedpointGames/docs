@@ -1,0 +1,25 @@
+---
+title: Configure Minute of Mayhem to use your own EOS product ID
+sidebar_label: Configuring your own product ID
+description: Learn how to update Minute of Mayhem to use your own product on the Epic Online Services backend.
+---
+
+Minute of Mayhem comes preconfigured with a product ID that we've already set up. However, if you want to change settings in the EOS Developer Portal, you'll need to create your own product and update Minute of Mayhem to use it.
+
+## Set up a new product in the EOS Developer Portal
+
+Follow our [getting started guide](../../setup/index.mdx#create-an-eos-product-in-the-developer-portal) to create a new EOS product in the developer portal, and continue following the guide until you have IDs to copy.
+
+## Update the project with new credentials
+
+On the "Product Settings" -> "SDK Download & Credentials" page, copy the values specified in the getting started guide and paste them into Project Settings:
+
+- Product ID
+- Client ID
+- Client Secret (use the copy button to copy the value)
+- Sandbox ID
+- Deployment ID
+
+## Download new Anti-Cheat integrity keys
+
+If you want to set up Anti-Cheat in Minute of Mayhem, you'll need to [download new integrity keys for your new product](../../setup/networking/anticheat.mdx) and add them to the project.

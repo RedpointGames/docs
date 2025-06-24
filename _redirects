@@ -19,3 +19,5 @@
 /matchmaking/docs/*                                 /docs/matchmaking/:splat
 /game-management-framework                          https://github.com/RedpointArchive/game-management-framework
 /game-management-framework/*                        https://github.com/RedpointArchive/game-management-framework
+/example_project                                    /docs/examples/
+/example_project/*                                  /docs/examples/:splat

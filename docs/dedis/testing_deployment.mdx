@@ -25,34 +25,34 @@ spec:
     periodSeconds: 10
     failureThreshold: 10
   ports:
-  - name: game
-    portPolicy: Dynamic
-    containerPort: 7777
-  # Example on defining beacon ports. If your game doesn't use beacons
-  # you can remove this port definition.
-  - name: beacon
-    portPolicy: Dynamic
-    containerPort: 12345
+    - name: game
+      portPolicy: Dynamic
+      containerPort: 7777
+    # Example on defining beacon ports. If your game doesn't use beacons
+    # you can remove this port definition.
+    - name: beacon
+      portPolicy: Dynamic
+      containerPort: 12345
   template:
     spec:
       # Don't forget to use your GitLab pull secret.
       imagePullSecrets:
         - name: gitlab
       containers:
-      - name: eos-dedicated-server
-        # Update the image to the URL you pushed your packaged game server to.
-        image: registry.gitlab.com/redpointgames/internal/eos-game-server:latest
-        resources:
-          requests:
-            # Adjust these values for your game server.
-            # 1GB of RAM
-            memory: "1Gi"
-            # 1.5 vCPU
-            cpu: "1500m"
-          limits:
-            # These should be the same settings as requests.
-            memory: "1Gi"
-            cpu: "1500m"
+        - name: eos-dedicated-server
+          # Update the image to the URL you pushed your packaged game server to.
+          image: registry.gitlab.com/redpointgames/internal/eos-game-server:latest
+          resources:
+            requests:
+              # Adjust these values for your game server.
+              # 1GB of RAM
+              memory: "1Gi"
+              # 1.5 vCPU
+              cpu: "1500m"
+            limits:
+              # These should be the same settings as requests.
+              memory: "1Gi"
+              cpu: "1500m"
 ```
 
 Then:
@@ -79,12 +79,6 @@ root@west-europe-01:/home/jrhodes# kubectl get gameserver
 NAME                         STATE       ADDRESS           PORT   NODE             AGE
 eos-dedicated-server-x9ddb   Ready       126.118.159.102   7554   west-europe-03   91s
 ```
-
-:::caution
-Make sure the game server container state changes to `Ready`. If the game server container is `Unhealthy`, Agones will try to restart it. If it's not changing to a `Ready` state, check that you've implemented [the Agones health checks correctly](/dedis/preparing_your_game_server.mdx#implementing-agones-health-checks) and you've implemented [the Agones ready call correctly](/dedis/preparing_your_game_server.mdx#marking-the-game-server-container-as-ready).
-
-If it's still not becoming ready, try increasing the initial period delay for health checking in the configuration above.
-:::
 
 ## Testing the session is visible in the EOS backend
 
