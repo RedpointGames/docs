@@ -1,22 +1,3 @@
-const configCommon = {
-  getAlgoliaConfig: function (facet) {
-    return {
-      appId: "FIOCNMBFH4",
-      apiKey: "4346d272d46def333bebaf4f3ffd05ec",
-      indexName: "redpointgames",
-    };
-  },
-  getFooter: function () {
-    return {
-      style: "dark",
-      copyright: `Copyright © ${new Date().getFullYear()} Redpoint Games.`,
-    };
-  },
-  gtag: {
-    trackingID: "G-7KSDT31VDX",
-  },
-};
-
 module.exports = {
   title: "EOS Online Framework",
   tagline:
@@ -155,8 +136,15 @@ module.exports = {
         },
       ],
     },
-    footer: configCommon.getFooter(),
-    algolia: configCommon.getAlgoliaConfig("eos-online-subsystem"),
+    footer: {
+      style: "dark",
+      copyright: `Copyright © ${new Date().getFullYear()} Redpoint Games.`,
+    },
+    algolia: {
+      appId: "FIOCNMBFH4",
+      apiKey: "4346d272d46def333bebaf4f3ffd05ec",
+      indexName: "redpointgames",
+    },
   },
   presets: [
     [
