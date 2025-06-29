@@ -1,0 +1,68 @@
+---
+title: Storing Player Data in User Cloud
+sidebar_label: Storing Player Data in User Cloud
+description: Learn how player data 
+---
+
+import Video from "@site/src/Video";
+import Blueprint from "@site/src/Blueprint";
+
+import changingRobotColorUrl from "./video/changing_robot_color.mp4";
+import bpMainMenuPlayerPreview from "./blueprints/main_menu_player_preview.bp";
+import bpPlayerPreferencesScreen from "./blueprints/player_preferences_screen.bp";
+import bpMGIChangePlayerColor_Event from "./blueprints/minute_game_instance_ChangePlayerColor_Event.bp";
+
+
+<Video url={changingRobotColorUrl} />
+
+This documentation will explain how we save, load and change player's color in Minute of Mayhem, starting with collecting player input through to how their choice is saved and loaded with User Cloud and finally how that color is sent to other players via the party system.
+
+### Overview
+- Saving and loading is done with [User Cloud](./../../ossv1/user_cloud/reading.mdx)
+- Colors are sent to other players as [party data](./../../ossv1/parties/data.mdx) using the party system
+- Player preferences are stored in a `USaveGame` object from Unreal Engine's [Save Game](https://dev.epicgames.com/documentation/en-us/unreal-engine/saving-and-loading-your-game-in-unreal-engine) system
+- The `PlayerPreferences` object is stored in a variable on `MinuteGameInstance` which is a `UGameInstance` from Unreal Engine's [Game Instance](https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Runtime/Engine/Engine/UGameInstance) system
+
+
+## Storing player color
+
+When a player chooses a color they expect the game to keep track of that color, in this example we created a blueprint called `PlayerPreferences` which inherits from `USaveGame` to store that data in a format that is easy to save and load.
+
+**PlayerPreferences:** `Content\Redpoint\Game\Player\PlayerPreferences.uasset`
+
+In order for `PlayerPreferences` to persist between maps it will need to be stored somewhere that it won't be unloaded as part of changing maps and we can do that with `MinuteGameInstance` which inherits from `UGameInstance`.
+
+**MinuteGameInstance:** `Content\Redpoint\MinuteGameInstance.uasset`
+
+## Updating player color
+
+![A screenshot of a session](./img/color-choices.png)
+
+The red, green and blue buttons are located in `PlayerPreferencesScreen` and they each call `ChangePlayerColor_Event` on `MinuteGameInstance` with their respective colors.
+
+**PlayerPreferencesScreen:** `Content\Redpoint\MainMenu\Screens\PlayerPreferences\PlayerPreferencesScreen.uasset`
+
+<Blueprint height="400px" blueprint={bpPlayerPreferencesScreen} />
+
+On the `MinuteGameInstance` side we when `ChangePlayerColor_Event` is called it will:
+1. Update `PlayerPreferences` with the new robot color
+2. Call `Save Player Preferences to Cloud in Background` to save the new player preferences to User Cloud
+3. Call `Send Player Color To Party` to send the updated color to all party members
+
+<Blueprint height="400px" blueprint={bpMGIChangePlayerColor_Event} />
+
+Player data and preferences can be stored with [User Cloud](./../../ossv1/user_cloud/reading.mdx) which is done 
+
+In Minute of Mayhem user data  LinearColor
+
+Before you start storing data you need to understand what type of data 
+All\Content\Redpoint\MainMenu\MainMenuPlayerPreview
+
+[User Cloud](./../../ossv1/user_cloud/reading.mdx)
+Player data and preferences can be stored in Player Preferences 
+
+
+
+<Blueprint height="340px" blueprint={bpMainMenuPlayerPreview} />
+
+## Hello World ##
