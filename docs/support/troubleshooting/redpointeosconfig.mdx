@@ -9,6 +9,10 @@ If you encounter the error message `failed to load because module 'RedpointEOSCo
 The `RedpointEOSConfig` and `RedpointEOSShared` modules are configured to load very early in the engine lifecycle. We have to do this to handle compatibility with Fab which uses Epic Online Services for authentication. Unfortunately, when modules are marked to load `EarliestPossible`, they attempt to load prior to the engine's out-of-date module check and this is why you get an error instead of the "do you want to rebuild out-of-date modules?" prompt you'd normally get.
 :::
 
+:::warning
+If you are adding plugin binaries into source control, don't forget to also add the `.modules` files that the Unreal build system places in the `Binaries/<Platform>` folder. If you only add the `.dll` files and don't add the `.modules` files, that will cause the "module not found" error message for other members of your team.
+:::
+
 ## Add a Source directory to your project if you don't already have one
 
 If you don't already have a `Source` directory in your project, you'll need to add one. If you can't load the editor to add the first C++ class due to the module load error, you'll need to manually create this directory and the default files that need to be in it.
