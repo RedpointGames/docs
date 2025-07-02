@@ -1611,7 +1611,8 @@
       (this.startPinLink = null),
       (this.currentZoom = 0),
       (this.lastUpdateCalled = null),
-      (this.frameSize = e.height || INIT_FRAME_SIZE);
+      (this.frameSize = e.height || INIT_FRAME_SIZE),
+      e.scale !== undefined ? this.setScale(e.scale) : 0;
   }
   (Interactor.prototype.startAllBinding = function () {
     var t,
