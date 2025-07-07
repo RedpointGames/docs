@@ -32,8 +32,8 @@ module.exports = {
     announcementBar: {
       id: "framework_migration",
       content:
-        "🕙 EOS Online Framework will be available on Fab in the coming weeks. This documentation includes features that are not yet released on Fab.",
-      backgroundColor: "rgb(200, 230, 255)",
+        '🎉 EOS Online Framework is <a href="https://www.fab.com/listings/b900b244-0ff6-49e3-8562-5fc630ba9515" target="_blank">now out on Fab!</a>',
+      backgroundColor: "rgb(175, 255, 172)",
       textColor: "#000",
       isCloseable: false,
     },
