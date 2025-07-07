@@ -21,3 +21,5 @@
 /game-management-framework/*                        https://github.com/RedpointArchive/game-management-framework
 /example_project                                    /docs/examples/
 /example_project/*                                  /docs/examples/:splat
+/docs/platforms/google                              /docs/setup/platforms/google
+/docs/core_getting_started                          /docs/
