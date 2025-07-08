@@ -48,6 +48,7 @@ module.exports = {
     "support/console_commands",
     "support/console_variables",
     "support/profiling",
+    "support/attribution",
     "support/uninstall",
   ],
   matchmaking: [
