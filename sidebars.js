@@ -41,6 +41,7 @@ module.exports = {
         "support/troubleshooting/unrealbuildtool",
         "support/troubleshooting/windows",
         "support/troubleshooting/macos",
+        "support/troubleshooting/dynamicconfiglayer",
       ],
     },
     "support/advanced_configuration",

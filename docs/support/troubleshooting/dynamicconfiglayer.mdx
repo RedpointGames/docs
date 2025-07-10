@@ -1,0 +1,8 @@
+---
+title: "Dynamic config layer 'EngineInterface' applies to unknown INI file"
+description: Learn how to fix dynamic config layer errors.
+---
+
+If you encounter the error message `Dynamic config layer 'EngineInterface' applies to unknown INI file or the INI file couldn't be loaded, so the dynamic config layer won't be loaded.`, please ensure that you are not passing the `-makebinaryconfig` flag when building your game or server.
+
+The dynamic configuration layer code that we use to configure the game at runtime is not compatible with the `-makebinaryconfig` flag.
