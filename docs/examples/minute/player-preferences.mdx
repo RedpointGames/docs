@@ -19,9 +19,9 @@ import bpMainMenuLobbySlot from "./blueprints/main_menu_lobby_slot.bp";
 
 <Video url={changingRobotColorUrl} />
 
-This documentation will explain how we save, load and change player color in Minute of Mayhem, starting with collecting player input through to how their choice is saved and loaded with User Cloud and finally how that color is sent to other players via the party system.
+This documentation will explain how we save, load and change player color in Minute of Mayhem, starting with how player preferences are stored at run time and then made persistent by saving and loading them with User Cloud and finally how that color is sent to other players via the party system.
 
-It is designed as a reference to use while you have the Minute of Mayhem example project open.
+It is designed to read while you have the Minute of Mayhem example project open as are reference.
 
 ## Overview
 The documentation below refers to the following assets and systems
@@ -42,11 +42,11 @@ The documentation below refers to the following assets and systems
 ## Storing player color at runtime
 When a player chooses a color they expect the game to keep track of that color, in this example we created a blueprint called **player preferences** which inherits from `USaveGame` to store that data in a format that is easy to save and load.
 
-In order for **player preferences** to persist between maps it will need to be stored somewhere that it won't be unloaded as part of changing maps and we can do that with **minute game instance** which inherits from `UGameInstance`.
+In order for **player preferences** to persist between maps it will need to be stored somewhere that it won't be unloaded as part of changing maps and do that with **minute game instance** which inherits from `UGameInstance`.
 
 ## Loading player color at login
 
-**User Cloud** allows for data to be saved by file name, which can be used for logically separating data for example save slots or storing different types of data in different file names. In this example we serialized **player preferences** and save it in a file called 'PlayerCharacterDataFileName'.
+**User cloud** allows for data to be saved by file name, which can be used for logically separating data for example save slots or storing different types of data in different file names. In this example we serialized **player preferences** and save it in a file called 'PlayerCharacterDataFileName'.
 
 For more info see the [user cloud](./../../ossv1/user_cloud/reading.mdx) documentation and [Saving User Cloud data files](#saving-user-cloud-data-files) below for more details about how **player preferences** is serialized.
 
@@ -59,29 +59,34 @@ Usually you will need to run `Enumerate User File` to load / open the latest ver
 
 However preloading **user cloud** data files allows us to skip the `Enumerate User File` and `Read User File` step as that will be done as part of preloading. 
 
-Preloading can be configured by editing DefaultEngine.ini and adding `!PrecachePlayerDataStorageFiles` to the `[EpicOnlineServices]` section, repeat **line 140** below for as many file names as you would like to preload (eg change `PlayerCharacterDataFileName to the file name that you would like to preload)
+Preloading can be configured by editing DefaultEngine.ini and adding `!PrecachePlayerDataStorageFiles` to the `[EpicOnlineServices]` section, repeat **line 140** below for as many file names as you would like to preload (for example change 'PlayerCharacterDataFileName' to the file name that you would like to preload).
 
-**DefaultEngine.ini** `Redpoint\MinuteOfMayhem\Config\DefaultEngine.ini` ![A screenshot of DefaultEngine.ini showing how PrecachePlayerDataStorageFiles can be used to precache User Cloud player data files](./img/precache-player-data-storage-files.png)
+**DefaultEngine.ini** `Redpoint\MinuteOfMayhem\Config\DefaultEngine.ini` ![A screenshot of DefaultEngine.ini showing how PrecachePlayerDataStorageFiles can be used to precache user cloud player data files](./img/precache-player-data-storage-files.png)
 
 ### Initialize Minute Game Instance
-Minute game instance has an initialize step triggered by `Event Init` which sets up the following
-1. A new instance of **player preferences** needs to be created and stored in **Minute Game Instance's** player preferences variable
-2. `On Login Complete` needs to be bound to the `online identity system's` OnLoginComplete event.
-3. If the player is already logged in (When playing in-editor with Login before play-in-editor enable) then `On Login Complete` should be called as the player is already logged in when `On Login Complete` was bound so it won't be executed unless we call it now
+Minute game instance has an initialize step triggered by `Event Init` which sets up the following:
+
+1. A new instance of **player preferences** is created and stored in **Minute Game Instance's** player preferences variable
+2. `On Login Complete` is bound to the `online identity system's` OnLoginComplete event
+3. `On Login Complete` should be called if the player is already logged in as playing in-editor with Login before play-in-editor enable means the player is already logged in and `On Login Complete` will not be triggered
 
 **Minute Game Instance** `Event Init` <Blueprint height="400px" blueprint={bpMGIInitialise} />
 
 ### Reading Player Preferences from User Cloud data files
 
-The initialization logic above should guarantee that `On Login Complete` is triggered exactly once after the player is logged and their cloud data files are ready to read (since we [preloaded their cloud data files in the previous step](#preloading-user-cloud-data-files))
+The initialization logic above should guarantee that `On Login Complete` is triggered exactly once after the player is logged and the cloud data files contents.
 
-This step gets the file contents of the 
+We then use `Get File Contents` and `Read File Data As Save Game` to read **player preferences**. This leaves us with a `USaveGame` object which we cast to a `Player Preferences` object and set to the **player preferences** variable on **Minute Game Instance** .
+
+**Note:** The `Enumerate User File` and `Read User File` steps are skipped as we have ([preloaded the player's cloud data files in the previous step](#preloading-user-cloud-data-files)).
+
+We then send the player's color to their party now that **player preferences** is ready to use. 
 
 **Minute Game Instance** `On Login Complete` <Blueprint height="400px" blueprint={bpMGIOnLoginComplete} />
 
 ### Saving User Cloud data files
 
-Serialize **player preferences** with `Create File Data from Save Game` and then save it into a file called 'PlayerCharacterDataFileName' using the asynchronous task `WriteUserFile`.
+**Player preferences** are serialized with `Create File Data from Save Game` and then save it into a file called 'PlayerCharacterDataFileName' using the asynchronous task `WriteUserFile`.
 
 **Minute Game Instance** `Save Player Preferences to Cloud in Background` <Blueprint height="400px" blueprint={bpMGISavePlayerPreferencesToCloudInBackground} />
 
@@ -95,41 +100,43 @@ The red, green and blue buttons are located in the **player preferences screen**
 
 ## Handling Change Player Color events
 
-Heading over to `Change Player Color` in **minute game instance** you can see that the `Robot Color` variable in **player preferences** is set the new player color and then `Save Player Preferences to Cloud in Background` is invoked to save the change to User Cloud followed by `Send Player Color To Party` to send the updated color to all party members.
+The player's color is changed with `Change Player Color` in **minute game instance**. First the `Robot Color` variable in **player preferences** is set the new player color and then `Save Player Preferences to Cloud in Background` is executed to save the new color to **user cloud** followed by `Send Player Color To Party` to send the new color to party members.
 
 **Minute Game Instance** `Change Player Color` <Blueprint height="400px" blueprint={bpMGIChangePlayerColor} />
 
 ## Sending player color to party
-Player color needs to be sent to the party whenever a player joins a new party, and we do that with `Send Player Color To Party` event. Red green and blue color data is stored in **party member data** using the **party system**. See [managing party data](./../../ossv1/parties/data.mdx) documentation for more info.
+`Send Player Color To Party` uses the **party system** to send data to party member as **party member data**. 
+
+See [managing party data](./../../ossv1/parties/data.mdx) documentation for more info.
 
 ### Overview
 
 There are three logical steps to `Send Player Color To Party`.
 1. Get a reference to the player's party member data
 2. Update the player's party data with the new color
-3. Send the updated party member data to the party
+3. Send the updated **party member data** to the party
 
 ### Get party member data
 
-Starting with a reference to the player controller from `Get Player Controller` which is then used to get a reference to the Local Player Subsystem, with that we can use `Get Primary Party` to get a reference to the player's primary party.
+`Get Player Controller` is used to get a reference to the player controller which is then used to get a reference to the **local player subsystem**, which then uses `Get Primary Party` to get a reference to the player's primary party.
 
-The party ID can then be used to get the player's member data using `Get Party Member Data` and then finally a modifiable version of party data can be created with `Create Modifiable Party Data`.
+The party ID is then used to get the player's member data using `Get Party Member Data` and then finally a modifiable version of party data can be created with `Create Modifiable Party Data` which we will use in the next step to modify the player's **party member data**.
 
 ![A screenshot of blueprint nodes that are used to get a modifiable version of party data](./img/mod-party-data.png)
 
 ### Update party member data
 
-Party member data is stored as key / value pairs with a `string` as the key, and `variant data` as the value. `Variant data` can only store **Boolean** (true/false), **Double** (a decimal number with double as many decimal places as a float), **Int64** (a very large whole number), or a **String** (text) values.
+**Party member data** is stored as key / value pairs with a `string` as the key, and `variant data` as the value. `Variant data` can only store **Boolean** (true/false), **Double** (a decimal number with double as many decimal places as a float), **Int64** (a very large whole number), or a **String** (text) values.
 
 ![A screenshot of valid data types that can be set with party member data](./img/varient-data.png)
 
-A `Linear Color` variable can not be directly sent via party member data, but we can send the red, green and blue values as separate `variant data` variables. First we convert the colors from floats to double and we save those to the player's party data with **PlayerColorR**, **PlayerColorG**, and **PlayerColorB** string keys.
+Since the `Linear Color` variable can not be directly sent via **party member data** we must instead send the red, green and blue values as separate `variant data` variables. First we convert the red, green and blue color channels from the `Linear Color` to floats and then to doubles so that they can be stored in the player's party data as **PlayerColorR**, **PlayerColorG**, and **PlayerColorB** string keys.
 
 ![A screenshot of blueprint nodes that are used to modify the player's party member data](./img/change-color.png)
 
 ### Send party member data
 
-And the final step is to execute `Update Party Member Data` to send the updated party member data to the party. See the very last node in the full blueprint below.
+Now that the player's **party member data** has been modified it is sent to the party by executing `Update Party Member Data`, you can see where that happens at the very last node in the full blueprint below.
 
 ### Full Blueprint
 
@@ -137,39 +144,39 @@ And the final step is to execute `Update Party Member Data` to send the updated 
 
 ## Receiving player color
 
-This section covers reading player color from party member data and updating the player preview with that color.
+This section covers reading player color from **party member data** and updating the player preview with that color.
 
 ### Lobby Slot & Player Preview structure
 
 Lobby players are represented by **Main Menu Player Preview** which are child blueprint actors of **Main Menu Lobby Slot** and allow for player models to be set as visible or hidden as players leave and join the player's party.
 
-Note: **Main Menu Lobby Slot** blueprint actors inherit from `ARedpointPartyMember` to receive events when the party member changes
+Note: **Main Menu Lobby Slot** blueprint actors inherit from `ARedpointPartyMember` to receive events when party member changes.
 
 ![A screenshot of the outliner that shows the structure of lobby slots and player previews to represent players in the party](./img/main-menu-lobby-slot-and-player-preview.png)
 
 ### Party Member Changed event
 
-A party member changed event is triggered whenever a member of the player's party joins, leaves or when their party member data changes. For instance this event is triggered each time any party member executes `Update Party Member Data` from the [Sending player color to party](#sending-player-color-to-party) step above.
+Party member changed events are triggered whenever a member of the player's party joins, leaves or when their **party member data** changes. For instance it is triggered each time any party member executes `Update Party Member Data` from the [Sending player color to party](#sending-player-color-to-party) step above.
 
 ### Set Player Preview to visible or hidden as required
 
-This section of **Main Menu Player Preview** sets the player model to visible or hidden depending on if there is party member data for that party slot (eg if there is a person in that slot) see [managing party data](./../../ossv1/parties/data.mdx)
+The first section of **Main Menu Player Preview's** `Event PartyMemberChanged` sets the player model to visible or hidden depending on if there is **party member data** for that party slot (for example if there is a player in that slot).
 ![A screenshot of the Main Menu Player Preview blueprint which shows changing player model visibility](./img/set-player-visibility.png)
 
 ### Set Players to ready or not ready
-Next we set if the player is ready or the party leader
+If the player is visible we then set if the player is ready or not and if they are the party leader
 ![A screenshot of the Main Menu Player Preview blueprint which shows leader and ready information being set](./img/set-player-ready-state.png)
 
 ### Deserialize player color
-The red, green and blue party data is then turned back into a linear color ready to be used to be used on the player preview model  
+After that we turn the red, green and blue doubles from **party member data** are turned back into a linear color ready to be used to be used on the player preview model  
 ![A screenshot of the Main Menu Player Preview blueprint which shows red green and blue variables being reconstructed into a linear color variable](./img/set-player-color-if-a-color-exists.png)
 
 ### Set the model color
-And the very last step is to set the color of the player preview model
+And finally the last step is to set the color of the player preview model
 
 **Main Menu Player Preview** `Set Color` <Blueprint height="340px" blueprint={bpMainMenuPlayerPreview} />
 
 ### Full Blueprint
 **Main Menu Lobby Slot** `Event PartyMemberChanged` <Blueprint height="600px" blueprint={bpMainMenuLobbySlot} />
 
-Thanks for following along!
+Thanks for following along and let us know if this was helpful!
