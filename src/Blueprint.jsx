@@ -12,6 +12,7 @@ export default class Blueprint extends React.Component {
       this.bpRef.current,
       {
         height: this.props.height || "643px",
+        scale: this.props.scale,
       }
     ).start();
   }

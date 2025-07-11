@@ -5,7 +5,10 @@ module.exports = {
       type: "category",
       label: "Minute of Mayhem",
       link: { type: "doc", id: "examples/minute/index" },
-      items: ["examples/minute/configure"],
+      items: [
+        "examples/minute/configure",
+        "examples/minute/player-preferences",
+      ],
     },
     "examples/lyra",
   ],
