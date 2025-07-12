@@ -211,7 +211,7 @@ module.exports = {
     {
       type: "category",
       label: "Achievements",
-      items: ["ossv1/achievements/querying"],
+      items: ["ossv1/achievements/querying", "ossv1/achievements/notifying"],
     },
     {
       type: "category",
