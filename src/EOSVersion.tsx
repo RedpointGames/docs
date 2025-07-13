@@ -11,7 +11,7 @@ export function EOSVersionResolver(props) {
     const fetchData = async () => {
       setStatus("fetching");
       const response = await fetch(
-        "https://licensing.redpoint.games/api/dependency-version/eos-online-subsystem-free"
+        "https://licensing-api.redpoint.games/api/dependency-version/eos-online-subsystem-free"
       );
       const data = await response.text();
       setData(data.trim());
