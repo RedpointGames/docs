@@ -1,0 +1,39 @@
+---
+title: Startup crash in Shipping builds running on Steam
+description: If you're experiencing crashes at startup when your game is running on Steam, read this document.
+---
+
+There is a known bug in Epic's implementation of Steam, which causes Steam events to fire on a separate thread before the online subsystem infrastructure has fully initialized. This causes a crash because the online subsystem infrastructure attempts to initialize Steam again while it is already initializing.
+
+To resolve this issue, you currently need to patch the engine source code. At the plugin level, we plan on re-implementing Steam ourselves and no longer relying on the engine's implementation, but this is a large undertaking. The issue which tracks that body of work can be [found on GitLab](https://src.redpoint.games/redpointgames/eos-online-framework/-/issues/906) (sign in required).
+
+## Patch `OnlineSubsystemSteam.cpp`
+
+Locate `Engine\Plugins\Online\OnlineSubsystemSteam\Source\Private\OnlineSubsystemSteam.cpp` in the engine installation.
+
+Within this file, locate the `FOnlineSubsystemSteam::Init` function and then replace the following lines of code:
+
+```cpp
+// Create the online async task thread
+OnlineAsyncTaskThreadRunnable = new FOnlineAsyncTaskManagerSteam(this);
+check(OnlineAsyncTaskThreadRunnable);
+OnlineAsyncTaskThread = FRunnableThread::Create(OnlineAsyncTaskThreadRunnable, *FString::Printf(TEXT("OnlineAsyncTaskThreadSteam %s"), *InstanceName.ToString()), 128 * 1024, TPri_Normal);
+check(OnlineAsyncTaskThread);
+UE_LOG_ONLINE(Verbose, TEXT("Created thread (ID:%d)."), OnlineAsyncTaskThread->GetThreadID() );
+```
+
+with the fixed version:
+
+```cpp
+// Create the online async task thread
+OnlineAsyncTaskThreadRunnable = new FOnlineAsyncTaskManagerSteam(this);
+check(OnlineAsyncTaskThreadRunnable);
+FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda([this](float) -> bool {
+    OnlineAsyncTaskThread = FRunnableThread::Create(OnlineAsyncTaskThreadRunnable, *FString::Printf(TEXT("OnlineAsyncTaskThreadSteam %s"), *InstanceName.ToString()), 128 * 1024, TPri_Normal);
+    check(OnlineAsyncTaskThread);
+    UE_LOG_ONLINE(Verbose, TEXT("Created thread (ID:%d)."), OnlineAsyncTaskThread->GetThreadID());
+    return false;
+}), 0.0f);
+```
+
+This will delay the dispatch of any Steam events by one frame, which ensures that Steam is fully initialized before any events are dispatched.

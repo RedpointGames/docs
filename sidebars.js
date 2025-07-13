@@ -45,6 +45,7 @@ module.exports = {
         "support/troubleshooting/windows",
         "support/troubleshooting/macos",
         "support/troubleshooting/dynamicconfiglayer",
+        "support/troubleshooting/steamcrash",
       ],
     },
     "support/advanced_configuration",
