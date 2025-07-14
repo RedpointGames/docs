@@ -10,6 +10,32 @@ import Image_20250214_EarlyPreview2 from "./changelog/2025.02.14/early_preview_2
 
 This document describes the changes made in each release.
 
+### 2025.07.14
+
+This release improves support for Google Play on Android and fixes several issues:
+
+- [Minute of Mayhem](./examples/minute/index.mdx) now includes an example of e-commerce on Google Play. We'll expand the "in-game store" of Minute of Mayhem to support e-commerce on other platforms in the future.
+- [Lyra](./examples/lyra.mdx) has been updated for Unreal Engine 5.6.
+- Updated the Google Play billing library to 8.0.0, and added support for non-consumable purchases on Android.
+  - To consume a purchase on Android, pass `consume` as the "Receipt Info" argument when finalizing the receipt.
+  - To acknowledge a purchase without consuming it on Android, pass `acknowledge` as the "Receipt Info" argument when finalizing the receipt.
+- Added the "On Party Request to Join Received" blueprint event for games that want to intercept "Join Game" requests coming from the Epic Games overlay.
+- Added experimental support for the `SessionId` and `bIsJoinable` properties on `FOnlineUserPresence`.
+- Added logs when a network connection is about to close due to an anti-cheat error.
+- Added support for Iris networking.
+- Fixed a crash that occurred if you were using [automatic startup screens](./framework/automatic_login.mdx), but specified None as the widget class (instead of leaving it as the default or specifying your own implementation).
+- Fixed an issue where Android builds would incorrectly request the `READ_EXTERNAL_STORAGE` permission. This is no longer necessary on Unreal Engine 5.6, so we have removed it. For earlier engine versions, you may need to explicitly request the `READ_EXTERNAL_STORAGE` permission in your Project Settings.
+- Fixed an issue where Google Play receipts could be duplicated when calling "Get Receipts" due to an incorrect transaction ID.
+- Fixed an issue where "Purchase Receipt" objects in blueprints would never retain their purchase information due to incorrect shared pointer lifetimes.
+- Fixed an issue where `JoinParty` did not return correct error codes on failure.
+- Fixed the parameter names for the "On Achievement Unlocked" blueprint node, and [documented how to get notified of unlocked achievements](./ossv1/achievements/notifying.mdx).
+- Fixed the experimental matchmaking component `URedpointMatchmakerTeamComponent` not detecting match results. Games must now use `ARedpointGameSession` as the game session implementation or implement the `IRedpointNotifyUniqueIdInterface` on their game session implementation to use this component.
+- Fixed an issue where clients would not disconnect from listen servers if they failed to verify the anti-cheat integrity of the listen server.
+- Fixed an issue where a friend on the friends list would not be updated correctly if they were becoming only a recent player.
+- Fixed an issue where an anti-cheat protected listen server would incorrectly register itself as a peer player.
+- Lobbies that are created through the [online lobby interface](./ossv1/lobbies/creating.mdx) now default to 64 players instead of 4 players. This is to avoid unexpected player limits when you don't explicitly call "Set Capacity" when creating a lobby.
+- Moved classes and types that are only for the Minute of Mayhem example project to their own `RedpointEOSFrameworkExtra` module, which is turned off by default. This is to avoid polluting class, widget and attribute lists in games that are not using these features specific to the example project. If you are upgrading to this plugin version and have used Minute of Mayhem as a base for your project, you'll need to add the `EnableFrameworkExtraModule=True` option to your configuration, as per the latest Minute of Mayhem example project.
+
 ### 2025.06.24
 
 EOS Online Framework is now available and brings team matchmaking and blueprint support into the EOS plugin, along with many more features, improvements and bug fixes.
