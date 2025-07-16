@@ -161,24 +161,58 @@ function EOSSDKInstallWithDefault(props: { freeSdkVersion?: string }) {
           <ul>
             <li>
               <code>EOS</code>:{" "}
-              <strong>Install the Redpoint EOS Online Framework here</strong>
+              <strong>Install the Redpoint EOS Online Framework here</strong>;
+              the following subdirectories and files should exist:
+              <ul>
+                <li>
+                  <code>OnlineSubsystemRedpointEOS</code>:{" "}
+                  <em>
+                    For now, if you are installing the Free Edition, you'll need
+                    to create this extra subdirectory and extract the ZIP inside
+                    it
+                  </em>
+                  <ul>
+                    <li>
+                      <code>OnlineSubsystemRedpointEOS.uplugin</code>
+                    </li>
+                    <li>
+                      <code>Config</code>
+                    </li>
+                    <li>
+                      <code>Resources</code>
+                    </li>
+                    <li>
+                      <code>Source</code>
+                    </li>
+                  </ul>
+                </li>
+              </ul>
             </li>
             <li>
               <code>{`EOS-SDK-${targetVersion}`}</code>:{" "}
-              <strong>Extract the EOS SDK ZIP here</strong>
+              <strong>Extract the EOS SDK ZIP here</strong>; the following
+              subdirectories and files should exist:
+              <ul>
+                <li>
+                  <code>Samples</code>
+                </li>
+                <li>
+                  <code>SDK</code>
+                </li>
+                <li>
+                  <code>ThirdPartyNotices</code>
+                </li>
+              </ul>
             </li>
             <li>
               <code>{`EOS-SDK-Android-${targetVersion}`}</code>:{" "}
-              <strong>
-                Extract the Android ZIP here, if you also downloaded the SDK for
-                Android
-              </strong>
+              <strong>Extract the SDK for Android ZIP here</strong>; if you also
+              downloaded the SDK for Android
             </li>
             <li>
               <code>{`EOS-SDK-iOS-${targetVersion}`}</code>:{" "}
-              <strong>
-                Extract the iOS ZIP here, if you also downloaded the SDK for iOS
-              </strong>
+              <strong>Extract the SDK for iOS ZIP here</strong>; if you also
+              downloaded the SDK for iOS
             </li>
           </ul>
         </li>
@@ -197,10 +231,10 @@ function EOSSDKInstallWithDefault(props: { freeSdkVersion?: string }) {
       </p>
       <p>
         If that file doesn't exist, or the path is slightly different, you've
-        installed the EOS SDK into the wrong place. Make sure you don't copy the{" "}
-        <code>SDK</code> folder out of the extracted ZIP - it needs to be a
-        subdirectory of {`EOS-SDK-${targetVersion}`} and sit alongside{" "}
-        <code>Tools</code>, otherwise the plugin won't work correctly.
+        installed the EOS SDK into the wrong place. Make sure that{" "}
+        <code>SDK</code> exists as a subdirectory of the{" "}
+        <code>{`EOS-SDK-${targetVersion}`}</code> folder, otherwise the plugin
+        won't work correctly.
       </p>
       <Admonition type="danger" title="Verify Before Continuing">
         <p>
