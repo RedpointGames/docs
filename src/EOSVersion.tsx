@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useState, useEffect } from "react";
 
-const EOSContext = React.createContext("...");
+export const EOSContext = React.createContext("...");
 
 export function EOSVersionResolver(props) {
   const [status, setStatus] = useState("fetching");

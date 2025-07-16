@@ -4,7 +4,8 @@ description: Getting started with the EOS Online Framework plugin for Unreal Eng
 slug: /
 ---
 
-import { DownloadPlugin, InstallSdk } from "@site/src/Welcome.tsx";
+import { DownloadPlugin } from "@site/src/Welcome.tsx";
+import { InstallSdk } from "@site/src/components/InstallSdk";
 
 This guide will walk you through the process of installing the EOS Online Framework plugin, and configuring your project for Epic Online Services.
 
@@ -16,53 +17,23 @@ If you want to use precompiled versions of the plugin, or you want to use the pl
 
 <DownloadPlugin />
 
-### Installing from GitLab (optional)
+## Create a product in the Epic Games Developer Portal
 
-If you would like early access to fixes and features before they're released on Fab, you can download the Paid Edition of the plugin from [the Redpoint Games GitLab instance](https://src.redpoint.games). You must install from GitLab if you are developing for console platforms.
-
-1. Verify your license on the [License Manager](https://licensing.redpoint.games/).
-2. Once your license has been verified, you'll be able to access the [EOS Online Framework](https://src.redpoint.games/redpointgames/eos-online-framework/) repository.
-3. Add your [SSH key](https://src.redpoint.games/-/user_settings/ssh_keys) or [create an access token for accessing Git over HTTPS](https://src.redpoint.games/-/user_settings/personal_access_tokens).
-4. Clone the plugin with Git to the `Plugins/EOS` directory underneath your project folder:
-   - Via SSH: `git clone git@src.redpoint.games:redpointgames/eos-online-framework.git Plugins/EOS`
-   - Via HTTPS: `git clone https://src.redpoint.games/redpointgames/eos-online-framework/ Plugins/EOS`
-
-If you have installed the plugin from GitLab, it is recommended that you uninstall the version installed via Fab.
-
-If you are unfamiliar with Git, a [more in-depth guide can be found here](../support/clone_from_gitlab.mdx).
-
-## Installing the EOS SDK
-
-:::info
-Skip this step if you installed the plugin via Fab.
-:::
-
-<InstallSdk />
-
-## Enter your license key (Free Edition only)
-
-If you are using the Free Edition, you will be provided with a license key from the [Redpoint Games License Manager](https://licensing.redpoint.games). When you've installed the plugin in your project, you'll need to set the license key. You can do that either by setting the license key in the `DefaultEngine.ini` file, or by changing it through "Project Settings".
-
-This does not apply to Paid Edition users.
-
-```ini
-[EpicOnlineServices]
-FreeEditionLicenseKey=...
-```
-
-## Using the example projects
-
-This guide can be used to set up your own new or existing Unreal Engine project, or to set up the [example project](../examples/minute/index.mdx) with your own EOS product ID.
-
-## Create an EOS product in the Developer Portal
-
-Before you can use EOS Online Framework, you need to create a product in the Epic Games Developer Portal. This will provide you with the various IDs and secrets you need to enter into Project Settings.
+Before you can download the EOS SDK or use EOS Online Framework in your game, you'll need to create a product in the Epic Games Developer Portal. This will also provide you with the various IDs and secrets you need to later enter into Project Settings.
 
 1. Sign into the [Epic Games Developer Portal](https://dev.epicgames.com/portal). If prompted, select the organisation that your game should be created under.
 1. On the sidebar, click **Create Product**.
 1. Give your product a name. You can change this later, so don't feel like you need to pick a final name right now.
 1. When prompted, skip adding a cover image for your product. You can add one later.
 1. You'll now see your new product in the sidebar and on the main screen.
+
+## Installing the EOS SDK
+
+<InstallSdk />
+
+## Using the example projects
+
+This guide can be used to set up your own new or existing Unreal Engine project, or to set up the [example project](../examples/minute/index.mdx) with your own EOS product ID.
 
 ## Create the client ID and secret for your product
 

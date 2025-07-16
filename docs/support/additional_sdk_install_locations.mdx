@@ -1,0 +1,17 @@
+---
+title: Additional search locations for the EOS SDK
+description: A list of additional locations that the Redpoint EOS Online Framework plugin will look in to find the EOS SDK.
+---
+
+In addition to the [recommended installation location for the EOS SDK](../setup/index.mdx#installing-the-eos-sdk) mentioned in the getting started guide, the plugin will also search the following locations:
+
+- `C:\Users\<username>\Downloads\EOS-SDK-(Version)`
+- `C:\ProgramData\EOS-SDK-(Version)`
+- `C:\EOS-SDK-(Version)`
+- `/Users/<username>/Downloads/EOS-SDK-(Version)`
+
+A full list of search locations can be found in the `Source\RedpointEOSSDK\RedpointEOSSDKInfo.json` file included in the plugin.
+
+:::danger
+We don't recommend using the locations above, as it will mean each team member needs to install the EOS SDK locally. You should place the EOS SDK in your project's `Plugins` directory as recommended by the setup guide, and check the EOS SDK into your source control system.
+:::

@@ -49,6 +49,7 @@ module.exports = {
       ],
     },
     "support/advanced_configuration",
+    "support/additional_sdk_install_locations",
     "support/gameplay_debugger",
     "support/console_commands",
     "support/console_variables",
