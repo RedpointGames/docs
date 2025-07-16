@@ -3,6 +3,8 @@ title: Next steps
 description: How to get started on your integration after configuring your project.
 ---
 
+import Button from "@site/src/Button";
+
 Now that you've gone through the [getting started guide](./index.mdx) and configured your project, you're ready to begin your integration.
 
 The Redpoint EOS Online Framework offers multiple ways to integrate Epic Online Services into your project, from high-level components that you can drop into your project using blueprints, to low-level C++ APIs that provide you a high degree of control.
@@ -11,14 +13,26 @@ The Redpoint EOS Online Framework offers multiple ways to integrate Epic Online 
 
 Our [high-level framework components](../framework/index.mdx) are a great way to get started with Epic Online Services, especially if you're in the prototyping stage. **We recommend all new users to Epic Online Services start by using framework components.**
 
+<Button
+  type="success"
+  href="../framework/"
+  text="View framework component documentation"
+/>
+
 ## Using online subsystem APIs
 
 If you're looking to do something not covered by the framework components, or the framework components aren't a great fit for your game, you can use the [online subsystem APIs](../ossv1/index.mdx) from blueprints or C++.
+
+<Button href="../ossv1/" text="View online subsystem documentation" />
 
 ## Using modern C++
 
 If you're a C++ developer and would prefer to use modern C++ APIs for accessing Epic Online Services, we provide [an improved C++ API](../systems/index.md) compared with the online subsystem APIs. The online subsystem APIs are constrained to the API design that Epic has put in place; our modern C++ APIs are much nicer to work with and more closely represent plugin and EOS features.
 
+<Button href="../systems/" text="View modern C++ documentation" />
+
 ## Using team-based matchmaking
 
 If you're looking to use team-based matchmaking in your game, please refer to the [matchmaking guide](../matchmaking/index.md). Team-based matchmaking can be used from blueprints or C++, but is only available to users of the Paid Edition.
+
+<Button href="../matchmaking/" text="View matchmaking documentation" />
