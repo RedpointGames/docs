@@ -81,7 +81,13 @@ ProjectDefinitions.Add("ONLINE_SUBSYSTEM_EOS_ENABLE_STEAM=1");
 
 When deploying your game to Steam, you'll need to create VDF files that describe how your game should be packaged and launched on the player's computer. Below is an example of VDF files that install the Unreal Engine prerequisites, the EOS bootstrapper (for Epic Games accounts) and the Easy Anti-Cheat service. You should omit entries if you're not using a particular feature (e.g. skip the Anti-Cheat sections if you haven't got Anti-Cheat enabled).
 
-Make sure you replace `REPLACE_WITH_YOUR_APP_ID`, `REPLACE_WITH_YOUR_DEPOT_ID` and `REPLACE_WITH_PATH_TO_YOUR_BUILD_GAME` with the correct values for your game.
+Make sure you replace the following with the correct values for your game:
+
+- `REPLACE_WITH_YOUR_APP_ID`: Your Steam app ID.
+- `REPLACE_WITH_YOUR_DEPOT_ID`: Your Steam product ID.
+- `REPLACE_WITH_YOUR_EOS_PRODUCT_ID`: Your EOS product ID.
+- `REPLACE_WITH_PATH_TO_YOUR_BUILD_GAME`: The path to your staged/packaged game.
+- `REPLACE_WITH_YOUR_GAME_NAME`: The name of your game executable, such as `MinuteOfMayhem`.
 
 ```txt title="steam_app.vdf"
 "appbuild"
@@ -118,51 +124,53 @@ Make sure you replace `REPLACE_WITH_YOUR_APP_ID`, `REPLACE_WITH_YOUR_DEPOT_ID` a
 
 Unlike the first two files, which can reside anywhere you on your machine, the `steam_install_prereqs.vdf` file needs to be created inside your package game directory, under the `Engine/Extras` folder, so that the relative path matches the `InstallScript` directive inside `steam_depot.vdf`.
 
+:::note
+You should omit the `Epic Online Services` entry from `Run Process` and `Run Process on Uninstall` sections if you have selected `None` as the cross-platform account provider (i.e. you are not using Epic Games accounts in your game).
+
+You should omit the `Easy Anti-Cheat` entry from `Run Process` and `Run Process on Uninstall` sections if you do not have Anti-Cheat enabled in your game.
+:::
+
 ```txt title="<ProjectRoot>\Engine\Extras\steam_install_prereqs.vdf"
 "InstallScript"
 {
     "Firewall"
     {
-        "Game - REPLACE_WITH_YOUR_DEPOT_ID"       "%INSTALLDIR%\\$PackageTarget.exe"
+        "Game - REPLACE_WITH_YOUR_DEPOT_ID"       "%INSTALLDIR%\\REPLACE_WITH_YOUR_GAME_NAME.exe"
+        "Game - REPLACE_WITH_YOUR_DEPOT_ID"       "%INSTALLDIR%\\REPLACE_WITH_YOUR_GAME_NAME\\Binaries\\Win64\\REPLACE_WITH_YOUR_GAME_NAME.exe"
     }
     "Run Process"
     {
         "Unreal Engine Prerequisites"
         {
-            "HasRunKey"     "HKEY_CLASSES_ROOT\\Installer\\Dependencies\\{4e242cc8-5e3c-4b08-9d55-dbc62ddd1208}"
-            "Process 1"     "%INSTALLDIR%\\Engine\\Extras\\Redist\\en-us\\UEPrereqSetup_x64.exe"
-            "Command 1"     "/quiet /norestart"
-            "NoCleanUp"     "1"
+            "HasRunKey"        "HKEY_LOCAL_MACHINE\\Software\\Valve\\Steam\\Apps\\REPLACE_WITH_YOUR_APP_ID"
+            "process 1"        "%INSTALLDIR%\\Engine\\Extras\\Redist\\en-us\\vc_redist.x64.exe"
+            "command 1"        "/quiet /norestart"
+            "NoCleanUp"        "1"
         }
-    }
-    "Run Process"
-    {
-        "EpicOnlineServices"
+        "Epic Online Services"
         {
-            "HasRunKey"     "HKEY_LOCAL_MACHINE\\Software\\Valve\\Steam\\Apps\\REPLACE_WITH_YOUR_APP_ID\\EOS"
-            "Process 1"     "%INSTALLDIR%\\InstallEOSServices.bat"
+            "HasRunKey"        "HKEY_LOCAL_MACHINE\\Software\\Valve\\Steam\\Apps\\REPLACE_WITH_YOUR_APP_ID"
+            "process 1"        "%INSTALLDIR%\\EpicOnlineServicesInstaller.exe"
+            "command 1"        "/install productId=REPLACE_WITH_YOUR_EOS_PRODUCT_ID /quiet"
         }
-    }
-    "Run Process On Uninstall"
-    {
-        "EpicOnlineServices"
+        "Easy Anti-Cheat"
         {
-            "Process 1"     "%INSTALLDIR%\\UninstallEOSServices.bat"
-        }
-    }
-    "Run Process"
-    {
-        "EpicOnlineServices"
-        {
-            "HasRunKey"     "HKEY_LOCAL_MACHINE\\Software\\Valve\\Steam\\Apps\\REPLACE_WITH_YOUR_APP_ID\\AntiCheat"
-            "Process 1"     "%INSTALLDIR%\\InstallAntiCheat.bat"
+            "HasRunKey"        "HKEY_LOCAL_MACHINE\\Software\\Valve\\Steam\\Apps\\REPLACE_WITH_YOUR_APP_ID"
+            "process 1"        "%INSTALLDIR%\\EasyAntiCheat\\EasyAntiCheat_EOS_Setup.exe"
+            "command 1"        "install REPLACE_WITH_YOUR_EOS_PRODUCT_ID"
         }
     }
     "Run Process On Uninstall"
     {
-        "EpicOnlineServices"
+        "Epic Online Services"
         {
-            "Process 1"     "%INSTALLDIR%\\UninstallAntiCheat.bat"
+            "process 1"        "%INSTALLDIR%\\EpicOnlineServicesInstaller.exe"
+            "command 1"        "/uninstall productId=REPLACE_WITH_YOUR_EOS_PRODUCT_ID /quiet"
+        }
+        "Easy Anti-Cheat"
+        {
+            "process 1"        "%INSTALLDIR%\\EasyAntiCheat\\EasyAntiCheat_EOS_Setup.exe"
+            "command 1"        "uninstall REPLACE_WITH_YOUR_EOS_PRODUCT_ID"
         }
     }
 }
