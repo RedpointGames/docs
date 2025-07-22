@@ -1,0 +1,26 @@
+---
+title: EOS session or party not found when accepting Steam invite
+description: You will need to patch the engine source code to ensure that Steam sessions can be found worldwide.
+---
+
+There is a known bug in Epic's implementation of Steam, which causes session searches to only return geographically close results. This means if you have two players on opposite sides of the world, and one sends an invite to the other for an EOS session or party, or one clicks the 'Join Game' button in the overlay, the plugin is unable to locate the Steam session that the invite was for and thus unable to get the player into the EOS session or party.
+
+To resolve this issue, you currently need to patch the engine source code. At the plugin level, we plan on re-implementing Steam ourselves and no longer relying on the engine's implementation, but this is a large undertaking. The issue which tracks that body of work can be [found on GitLab](https://src.redpoint.games/redpointgames/eos-online-framework/-/issues/906) (sign in required).
+
+## Patch `OnlineSessionAsyncLobbySteam.cpp`
+
+Locate `Engine\Plugins\Online\OnlineSubsystemSteam\Source\Private\OnlineSessionAsyncLobbySteam.cpp` in the engine installation.
+
+Within this file, locate the `FOnlineAsyncTaskSteamFindLobbiesBase::CreateQuery` function and then replace the following line of code:
+
+```cpp
+SteamMatchmakingPtr->AddRequestLobbyListDistanceFilter(k_ELobbyDistanceFilterDefault);
+```
+
+with the fixed version:
+
+```cpp
+SteamMatchmakingPtr->AddRequestLobbyListDistanceFilter(k_ELobbyDistanceFilterWorldwide);
+```
+
+This will ensure that results are returned regardless of geographic distance, allowing the plugin to correctly resolve invites and joins on Steam.
