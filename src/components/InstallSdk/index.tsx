@@ -165,26 +165,16 @@ function EOSSDKInstallWithDefault(props: { freeSdkVersion?: string }) {
               the following subdirectories and files should exist:
               <ul>
                 <li>
-                  <code>OnlineSubsystemRedpointEOS</code>:{" "}
-                  <em>
-                    For now, if you are installing the Free Edition, you'll need
-                    to create this extra subdirectory and extract the ZIP inside
-                    it
-                  </em>
-                  <ul>
-                    <li>
-                      <code>OnlineSubsystemRedpointEOS.uplugin</code>
-                    </li>
-                    <li>
-                      <code>Config</code>
-                    </li>
-                    <li>
-                      <code>Resources</code>
-                    </li>
-                    <li>
-                      <code>Source</code>
-                    </li>
-                  </ul>
+                  <code>OnlineSubsystemRedpointEOS.uplugin</code>
+                </li>
+                <li>
+                  <code>Config</code>
+                </li>
+                <li>
+                  <code>Resources</code>
+                </li>
+                <li>
+                  <code>Source</code>
                 </li>
               </ul>
             </li>
