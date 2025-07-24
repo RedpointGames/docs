@@ -47,6 +47,7 @@ module.exports = {
         "support/troubleshooting/dynamicconfiglayer",
         "support/troubleshooting/steamcrash",
         "support/troubleshooting/steaminvite",
+        "support/troubleshooting/anticheat",
       ],
     },
     "support/advanced_configuration",

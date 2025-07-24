@@ -1,0 +1,16 @@
+---
+title: Unable to begin game session and other Anti-Cheat issues
+description: Learn how to fix issues with Anti-Cheat.
+---
+
+If you are experiencing issues with Anti-Cheat, see the troubleshooting guidance below.
+
+## Unable to begin game session (got result EOS_NoConnection)
+
+If you receive this error, it's because the Anti-Cheat module you have selected in the developer portal is too old for the version of the EOS SDK you are using. You should go to the Anti-Cheat section of the developer portal for your product and update to a newer version.
+
+## Using Anti-Cheat on Steam Deck with Proton/WINE
+
+If you have built your Windows game with Anti-Cheat enabled, and are attempting to run it on the Steam Deck under the Proton/WINE compatibility layer, you need to make sure you've enabled an Anti-Cheat module for Linux in the developer portal for your game. Even though your game is built for Windows, when it runs under Proton/WINE on the Steam Deck, it will automatically use the selected Linux module for Anti-Cheat support.
+
+If you don't have a Linux module enabled, your Anti-Cheat protected game will not run on Steam Deck.
