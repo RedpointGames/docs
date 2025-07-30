@@ -13,10 +13,7 @@ You first need to create the two stats in the [Epic Games Developer Portal](http
 
 ![A screenshot of the Epic Games Developer Portal](./skill_configuration/backend_config.png)
 
-Then in your game's Project Settings, you need to configure two things:
-
-- Tell the EOS Online Framework plugin to encode the stats as "Float (Encoded)", based on the prefix you are using.
-- Enable the "Accept Stat Write Requests from Servers".
+Then in your game's Project Settings, you need to tell how the EOS Online Framework plugin to encode the stats as "Float (Encoded)", based on the prefix you are using.
 
 ![A screenshot of the plugin configuration](./skill_configuration/plugin_configuration.png)
 
