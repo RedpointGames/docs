@@ -1,6 +1,6 @@
 ---
 title: Using the memory safe EOS SDK APIs provided by the Redpoint plugin
-sidebar_label: Calling the EOS SDK directly
+sidebar_label: Using the memory safe EOS SDK APIs
 description: How to call the EOS SDK directly, using the memory safe API wrappers provided by the Redpoint plugin.
 ---
 
@@ -97,18 +97,7 @@ FGetRTCRoomName::Execute(
 
 In addition to simplifying calls to the EOS SDK, the API wrappers provided by the `RedpointEOSAPI` module also trace function call times to Unreal Insights and log all EOS SDK calls at a `VeryVerbose` log level, providing additional diagnostics to track down any issues related to the EOS SDK.
 
-## Updating your game module dependencies
-
-Before you can use the API wrappers, you need to update your game module's `.Build.cs` file to depend on the `RedpointEOSAPI` module, like so:
-
-```csharp
-PrivateDependencyModuleNames.AddRange(new string[]
-{
-    "RedpointEOSAPI",
-});
-```
-
-## Calling the EOS SDK API
+## Locating the RedpointEOSAPI wrapper function for an EOS SDK call
 
 The `RedpointEOSAPI` module exposes a single header file for each EOS SDK function call, and each API wrapper is namespaced. This allows you to include only what you need, and prevents conflicts with type names.
 
@@ -120,3 +109,21 @@ Each EOS SDK function call maps to a wrapper with a consistent naming convention
 - Type on which `Execute` is provided: `FGetRTCRoomName`
 
 A full list of API wrappers is not listed in the documentation, as more API wrappers are being added in new versions of the plugin are released. Instead, refer to the `RedpointEOSAPI/Public/RedpointEOSAPI` folder inside the Visual Studio Solution Explorer or file browser to see what headers and API calls are available.
+
+## Calling an RedpointEOSAPI wrapper
+
+Please refer to [Obtaining a platform handle](index.md#obtaining-a-platform-handle) to get a platform handle that you can pass to functions in `RedpointEOSAPI`. You can pass the obtained `FPlatformHandle` as the first parameter to most functions.
+
+## Calling the EOS SDK directly
+
+If you need to invoke an EOS SDK function, and we don't yet provide an API wrapper for it, you can get the interface handle directly from the EOS SDK by calling the `Get<>` function on the `FPlatformHandle` like so:
+
+```cpp
+FPlatformHandle PlatformHandle = /* ... */;
+
+EOS_HConnect Connect = PlatformHandle->Get<EOS_HConnect>();
+if (Connect != nullptr)
+{
+    // Invoke EOS_Connect_* SDK functions directly.
+}
+```
