@@ -40,6 +40,21 @@ bEnableSignInWithAppleSupport=True
 
 You no longer need to build the engine from source for "Sign in with Apple" support to work. You only need to add this setting so that the appropriate entitlement is added when your game is packaged.
 
+## Enable voice chat support
+
+If you plan on using voice chat in your game, you need to change the "Additional Plist Data" under "Project Settings -> iOS" to describe what the microphone will be used for.
+
+In your `DefaultEngine.ini` file, add:
+
+```ini
+[/Script/IOSRuntimeSettings.IOSRuntimeSettings]
+AdditionalPlistData=<key>NSMicrophoneUsageDescription</key>\n<string>The microphone is used for in-game voice chat.</string>\n
+```
+
+:::warning
+If you attempt to use voice chat on iOS without setting `AdditionalPlistData` to include the microphone usage description, the game will crash.
+:::
+
 ## Use Apple authentication at runtime
 
 The default authentication graph will automatically use Apple authentication if the game is launched on iOS.
