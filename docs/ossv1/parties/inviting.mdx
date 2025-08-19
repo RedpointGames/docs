@@ -9,6 +9,14 @@ import Blueprint from "@site/src/Blueprint";
 
 To join a party, you first need an invite. Invites can be sent by members of a party.
 
+:::warning
+If an invite is successfully sent from one player to another over the local platform (such as a Steam player sending an invite to another Steam player), the invite will not _also_ be sent over Epic Online Services.
+
+This is to prevent the receiving user from receiving duplicate invite notifications.
+
+Some platforms such as Steam do not provide an API for implementing `OnPartyInviteReceivedEx`. Therefore, when a Steam player sends a party invite to another Steam player, and the invite is successfully sent over Steam, your game will not see the `OnPartyInviteReceivedEx` event nor will the invite be visible through `GetPendingInvites`. On Steam, you will only receive party invitation events in-game when the invite was sent from a non-Steam player, such as someone playing on the Epic Games Store or console.
+:::
+
 ## Sending an invitation
 
 To send an invite to a player, you need their unique net ID. You can retrieve such IDs from [the friends list](/ossv1/friends/retrieving.mdx).
