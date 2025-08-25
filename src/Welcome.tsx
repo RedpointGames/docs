@@ -31,6 +31,14 @@ export function DownloadPlugin() {
             </a>
             <a
               className="button button--secondary button--block"
+              href="https://licensing.redpoint.games/download"
+              target="_blank"
+              style={{ marginTop: "0.5em" }}
+            >
+              Install via Redpoint License Manager
+            </a>
+            <a
+              className="button button--secondary button--block"
               href="/docs/support/clone_from_gitlab"
               target="_blank"
               style={{ marginTop: "0.5em" }}
@@ -59,7 +67,7 @@ export function DownloadPlugin() {
               className="button button--secondary button--block"
               href="https://licensing.redpoint.games/get/eos-online-subsystem-free/"
               target="_blank"
-              style={{ minHeight: "5.5em", paddingTop: "2em" }}
+              style={{ minHeight: "8.5em", paddingTop: "3.5em" }}
             >
               Download now
             </a>
