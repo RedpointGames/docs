@@ -11,6 +11,7 @@ type Install =
   | "redpoint-license-manager";
 
 const eosSdkVersions = [
+  "44532354-Release-v1.17.1.3",
   "41373641-v1.17.0",
   "39599718-v1.17.0",
   "36651368-v1.16.4",
