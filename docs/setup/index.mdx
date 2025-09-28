@@ -30,17 +30,12 @@ Before you can download the EOS SDK or use EOS Online Framework in your game, yo
 ## Installing the EOS SDK
 
 :::danger
-We have been made aware of a regression in EOS SDK 1.17.1.3 that can prevent login from completing if the player has any friends on the local platform (e.g. Steam). This is not a bug in the plugin.
+EOS SDK 1.17.1.3 and EOS SDK 1.18.0.4 are impacted by a regression that prevents games from querying game profiles of Steam friends if game profiles of Epic Games friends have previously been queried. For games using cross-platform Epic Games accounts, this results in the login process never completing and players being unable to progress past the login step.
 
-We have updated the latest "Bleeding Edge" build on [the License Manager](https://licensing.redpoint.games/download) to target EOS SDK 1.17.0 instead. There is no workaround known at this point in time, other than downgrading the EOS SDK.
+For this reason, the Redpoint EOS Online Framework plugin is continuing to target EOS SDK 1.17.0 until a fix has been issued by Epic Games for EOS SDK 1.18.
 
-We have reported this regression to Epic Games and are awaiting a new release of the EOS SDK.
-
-- If you are downloading the "Bleeding Edge" version from [the License Manager](https://licensing.redpoint.games/download), make sure you install EOS SDK 1.17.0 and not EOS SDK 1.17.1.3.
-- If you are building the plugin from source code, the latest commit on `main` on GitLab is configured to prefer 1.17.0 over 1.17.1.3 if both are installed.
-- We are not pushing an update to Fab at this time. If you have installed the version from Fab, you can install the EOS SDK 1.17.0 locally, remove the `ThirdParty` folder from the plugin in the engine, and it should rebuild the plugin against 1.17.0 instead.
-- We are not pushing an update to the Free Edition at this time. Until the next stable release, please make sure you test without Steam running. Alternatively, you can purchase on Fab and follow the instructions above.
-  :::
+When downloading the EOS SDK from the Developer Portal, please ensure you download version `1.17.0-CL41373641`. Since newer versions of the EOS SDK are known not to work due to the above regression, they will be ignored when the Redpoint EOS Online Framework searches for an installed EOS SDK.
+:::
 
 <InstallSdk />
 
