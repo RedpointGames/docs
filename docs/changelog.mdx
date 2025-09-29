@@ -36,6 +36,7 @@ This release removes EOS SDK 1.17.1.3 from the supported version list due to a r
 - Added new blueprint nodes that can automatically convert between data values (string, 64-bit integers, boolean and double values) and the "Online Session Setting" blueprint type. This makes blueprint graphs that interact with session settings much cleaner.
 - Added support for overriding the assigned teams for party members when initially queuing into matchmaking. This allows you to intentionally split the party to different teams.
 - Added the "Presence Status Text" property to the "Redpoint Friend List Entry" object, allowing you to display a friend's custom presence text in bound friend lists.
+- Added the `IgnoreCommandLineSandboxAndDeployment` configuration option. When turned on, builds launched from the Epic Games store will always use the Live sandbox, even when launched on the Dev or Stage channels.
 - Fixed an issue where the cross-platform fallback authentication graph was not selected when testing in the editor.
 - Fixed an issue where local platform accounts would not be linked to the product user ID upon the first login when Epic Games is selected as the cross-platform account provider.
 - Fixed indentation used when the plugin applies post-staging hooks to the engine.
