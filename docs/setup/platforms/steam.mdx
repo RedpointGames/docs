@@ -154,20 +154,20 @@ You should omit the `Easy Anti-Cheat` entry from `Run Process` and `Run Process 
     {
         "Unreal Engine Prerequisites"
         {
-            "HasRunKey"        "HKEY_LOCAL_MACHINE\\Software\\Valve\\Steam\\Apps\\REPLACE_WITH_YOUR_APP_ID"
+            "HasRunKey"        "HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Valve\\Steam\\Apps\\REPLACE_WITH_YOUR_APP_ID"
             "process 1"        "%INSTALLDIR%\\Engine\\Extras\\Redist\\en-us\\vc_redist.x64.exe"
             "command 1"        "/quiet /norestart"
             "NoCleanUp"        "1"
         }
         "Epic Online Services"
         {
-            "HasRunKey"        "HKEY_LOCAL_MACHINE\\Software\\Valve\\Steam\\Apps\\REPLACE_WITH_YOUR_APP_ID"
+            "HasRunKey"        "HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Valve\\Steam\\Apps\\REPLACE_WITH_YOUR_APP_ID"
             "process 1"        "%INSTALLDIR%\\EpicOnlineServicesInstaller.exe"
             "command 1"        "/install productId=REPLACE_WITH_YOUR_EOS_PRODUCT_ID /quiet"
         }
         "Easy Anti-Cheat"
         {
-            "HasRunKey"        "HKEY_LOCAL_MACHINE\\Software\\Valve\\Steam\\Apps\\REPLACE_WITH_YOUR_APP_ID"
+            "HasRunKey"        "HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Valve\\Steam\\Apps\\REPLACE_WITH_YOUR_APP_ID"
             "process 1"        "%INSTALLDIR%\\EasyAntiCheat\\EasyAntiCheat_EOS_Setup.exe"
             "command 1"        "install REPLACE_WITH_YOUR_EOS_PRODUCT_ID"
         }
