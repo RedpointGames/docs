@@ -1,7 +1,13 @@
 import { useCallback, useState } from "react";
-import { EOSContext, EOSVersionResolver } from "../../EOSVersion";
 import Admonition from "@theme/Admonition";
 import LicenseKeyGuidance from "./license_key.mdx";
+import EosSdkVersionProvider, {
+  CodeWithEosSdkVersionSuffix,
+  ConditionalEosSdkVersion,
+  EosSdkVersionContext,
+  EosSdkVersionInfo,
+  PendingEosSdkVersion,
+} from "../../EosSdkVersionProvider";
 
 type Edition = "not-set" | "paid" | "free";
 type Install =
@@ -9,19 +15,6 @@ type Install =
   | "epic-games-launcher"
   | "redpoint-gitlab"
   | "redpoint-license-manager";
-
-const eosSdkVersions = [
-  "44532354-Release-v1.17.1.3",
-  "41373641-v1.17.0",
-  "39599718-v1.17.0",
-  "36651368-v1.16.4",
-  "35276460-v1.16.3",
-  "32303053-v1.16.3",
-  "32273396-v1.16.2",
-  "30020700-v1.16.1-new",
-  "27379709-v1.16.1",
-  "27024038-v1.16",
-];
 
 const promptStyle: React.CSSProperties = { marginBottom: "0.5em" };
 const selectStyle: React.CSSProperties = {
@@ -40,12 +33,14 @@ function tryGetLocalStorage(key: string, def: string) {
   }
 }
 
-function EOSSDKInstallWithDefault(props: { freeSdkVersion?: string }) {
+function EOSSDKInstallWithDefault(props: {
+  eosSdkVersionInfo?: EosSdkVersionInfo;
+}) {
   let localEdition = tryGetLocalStorage("plugin-edition", "not-set");
   let localInstall = tryGetLocalStorage("plugin-install", "not-set");
   let localSdkVersion = tryGetLocalStorage(
     "plugin-sdk-version",
-    eosSdkVersions[0]
+    props.eosSdkVersionInfo?.availableVersions[0] ?? "not-set"
   );
 
   const [edition, setEdition] = useState<Edition>(
@@ -60,11 +55,19 @@ function EOSSDKInstallWithDefault(props: { freeSdkVersion?: string }) {
       ? localInstall
       : "not-set"
   );
-  const [sdkVersion, setSdkVersion] = useState<string>(
-    localSdkVersion !== null && eosSdkVersions.includes(localSdkVersion)
+  let [sdkVersion, setSdkVersion] = useState<string | undefined>(
+    localSdkVersion !== null && localSdkVersion !== "not-set"
       ? localSdkVersion
-      : eosSdkVersions[0]
+      : undefined
   );
+
+  if (
+    props.eosSdkVersionInfo !== undefined &&
+    (sdkVersion === undefined ||
+      !props.eosSdkVersionInfo.availableVersions.includes(sdkVersion))
+  ) {
+    sdkVersion = props.eosSdkVersionInfo.availableVersions[0];
+  }
 
   const changeEdition = useCallback(
     (ev: React.ChangeEvent<HTMLSelectElement>) => {
@@ -98,14 +101,18 @@ function EOSSDKInstallWithDefault(props: { freeSdkVersion?: string }) {
   );
 
   let targetVersion =
-    (edition === "free" ? props.freeSdkVersion : sdkVersion) ??
-    eosSdkVersions[0];
-  let components = /^(.+)-v([^-]+)/.exec(targetVersion);
-  let adjustedVersion = `${components![2]}-CL${components![1]}`;
-  if (parseInt(components![1]) <= 27379709) {
-    adjustedVersion = `${components![2]}`;
-    if (adjustedVersion === "1.16") {
-      adjustedVersion = "1.16.0";
+    edition === "free"
+      ? props.eosSdkVersionInfo?.freeEditionVersion
+      : sdkVersion;
+  let adjustedVersion: string | undefined = undefined;
+  if (targetVersion !== undefined) {
+    let components = /^(.+)-v([^-]+)/.exec(targetVersion);
+    adjustedVersion = `${components![2]}-CL${components![1]}`;
+    if (parseInt(components![1]) <= 27379709) {
+      adjustedVersion = `${components![2]}`;
+      if (adjustedVersion === "1.16") {
+        adjustedVersion = "1.16.0";
+      }
     }
   }
 
@@ -137,7 +144,8 @@ function EOSSDKInstallWithDefault(props: { freeSdkVersion?: string }) {
           </ul>
         </li>
         <li>
-          Select <strong>{adjustedVersion}</strong> as the SDK Version.
+          Select <ConditionalEosSdkVersion version={adjustedVersion} /> as the
+          SDK Version.
         </li>
         <li>
           Click <strong>Download EOS SDK</strong>. Repeat this process for
@@ -180,8 +188,15 @@ function EOSSDKInstallWithDefault(props: { freeSdkVersion?: string }) {
               </ul>
             </li>
             <li>
-              <code>{`EOS-SDK-${targetVersion}`}</code>:{" "}
-              <strong>Extract the EOS SDK ZIP here</strong>; the following
+              {targetVersion === undefined ? (
+                <code>
+                  EOS-SDK-
+                  <PendingEosSdkVersion />
+                </code>
+              ) : (
+                <code>EOS-SDK-{targetVersion}</code>
+              )}
+              : <strong>Extract the EOS SDK ZIP here</strong>; the following
               subdirectories and files should exist:
               <ul>
                 <li>
@@ -196,13 +211,27 @@ function EOSSDKInstallWithDefault(props: { freeSdkVersion?: string }) {
               </ul>
             </li>
             <li>
-              <code>{`EOS-SDK-Android-${targetVersion}`}</code>:{" "}
-              <strong>Extract the SDK for Android ZIP here</strong>; if you also
-              downloaded the SDK for Android
+              {targetVersion === undefined ? (
+                <code>
+                  EOS-SDK-Android-
+                  <PendingEosSdkVersion />
+                </code>
+              ) : (
+                <code>EOS-SDK-Android-{targetVersion}</code>
+              )}
+              : <strong>Extract the SDK for Android ZIP here</strong>; if you
+              also downloaded the SDK for Android
             </li>
             <li>
-              <code>{`EOS-SDK-iOS-${targetVersion}`}</code>:{" "}
-              <strong>Extract the SDK for iOS ZIP here</strong>; if you also
+              {targetVersion === undefined ? (
+                <code>
+                  EOS-SDK-IOS-
+                  <PendingEosSdkVersion />
+                </code>
+              ) : (
+                <code>EOS-SDK-IOS-{targetVersion}</code>
+              )}
+              : <strong>Extract the SDK for iOS ZIP here</strong>; if you also
               downloaded the SDK for iOS
             </li>
           </ul>
@@ -214,18 +243,33 @@ function EOSSDKInstallWithDefault(props: { freeSdkVersion?: string }) {
         following file exists at exactly this path:
         <br />
         <strong>
-          <code>
-            (Project Directory)\Plugins\{`EOS-SDK-${targetVersion}`}
-            \SDK\Include\eos_version.h
-          </code>
+          {targetVersion === undefined ? (
+            <code>
+              (Project Directory)\Plugins\EOS-SDK-
+              <PendingEosSdkVersion />
+              \SDK\Include\eos_version.h
+            </code>
+          ) : (
+            <code>
+              (Project Directory)\Plugins\EOS-SDK-{targetVersion}
+              \SDK\Include\eos_version.h
+            </code>
+          )}
         </strong>
       </p>
       <p>
         If that file doesn't exist, or the path is slightly different, you've
         installed the EOS SDK into the wrong place. Make sure that{" "}
         <code>SDK</code> exists as a subdirectory of the{" "}
-        <code>{`EOS-SDK-${targetVersion}`}</code> folder, otherwise the plugin
-        won't work correctly.
+        {targetVersion === undefined ? (
+          <code>
+            EOS-SDK-
+            <PendingEosSdkVersion />
+          </code>
+        ) : (
+          <code>EOS-SDK-{targetVersion}</code>
+        )}{" "}
+        folder, otherwise the plugin won't work correctly.
       </p>
       <Admonition type="danger" title="Verify Before Continuing">
         <p>
@@ -264,7 +308,7 @@ function EOSSDKInstallWithDefault(props: { freeSdkVersion?: string }) {
       </div>
     );
   } else if (edition === "free") {
-    if (props.freeSdkVersion === undefined) {
+    if (props.eosSdkVersionInfo === undefined) {
       resultContent = (
         <div style={{ marginTop: "var(--ifm-paragraph-margin-bottom)" }}>
           <Admonition type="warning" title="Please Wait">
@@ -283,9 +327,11 @@ function EOSSDKInstallWithDefault(props: { freeSdkVersion?: string }) {
             <Admonition type="warning" title="Exact Version Required">
               <p>
                 You must download exactly{" "}
-                <strong>{props.freeSdkVersion}</strong>. The Free Edition is
-                built to work with exactly that version, and won't run with a
-                different version installed.
+                <ConditionalEosSdkVersion
+                  version={props.eosSdkVersionInfo?.freeEditionVersion}
+                />
+                . The Free Edition is built to work with exactly that version,
+                and won't run with a different version installed.
               </p>
               <p>
                 If this version of the EOS SDK is no longer available in the
@@ -382,9 +428,9 @@ function EOSSDKInstallWithDefault(props: { freeSdkVersion?: string }) {
               disabled={true}
             >
               <option>
-                {props.freeSdkVersion === undefined
-                  ? "Please wait while determine the EOS SDK version needed for the Free Edition..."
-                  : props.freeSdkVersion}
+                {props.eosSdkVersionInfo === undefined
+                  ? "Please wait while determine the supported EOS SDK versions..."
+                  : props.eosSdkVersionInfo.freeEditionVersion}
               </option>
             </select>
           ) : (
@@ -393,12 +439,19 @@ function EOSSDKInstallWithDefault(props: { freeSdkVersion?: string }) {
               style={selectStyle}
               onChange={changeSdkVersion}
               value={sdkVersion}
+              disabled={props.eosSdkVersionInfo === undefined}
             >
-              {eosSdkVersions.map((x) => (
-                <option value={x} key={x}>
-                  {x}
+              {props.eosSdkVersionInfo === undefined ? (
+                <option>
+                  Please wait while determine the supported EOS SDK versions...
                 </option>
-              ))}
+              ) : (
+                props.eosSdkVersionInfo.availableVersions.map((x) => (
+                  <option value={x} key={x}>
+                    {x}
+                  </option>
+                ))
+              )}
             </select>
           )}
         </div>
@@ -410,16 +463,12 @@ function EOSSDKInstallWithDefault(props: { freeSdkVersion?: string }) {
 
 export function InstallSdk() {
   return (
-    <EOSVersionResolver>
-      <EOSContext.Consumer>
+    <EosSdkVersionProvider>
+      <EosSdkVersionContext.Consumer>
         {(value) => {
-          if (value === "...") {
-            return <EOSSDKInstallWithDefault />;
-          } else {
-            return <EOSSDKInstallWithDefault freeSdkVersion={value} />;
-          }
+          return <EOSSDKInstallWithDefault eosSdkVersionInfo={value} />;
         }}
-      </EOSContext.Consumer>
-    </EOSVersionResolver>
+      </EosSdkVersionContext.Consumer>
+    </EosSdkVersionProvider>
   );
 }
