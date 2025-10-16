@@ -1,0 +1,49 @@
+---
+id: blueprints_only
+title: Using Online Subsystem Blueprints without EOS
+description: Learn how to switch the plugin into "No EOS" mode to use blueprints with the local platform.
+---
+
+If you are only using the plugin to access the local platform's online APIs in Unreal Engine, and you do not want to use EOS, follow the instructions below.
+
+:::danger
+"Online Subsystem Blueprints only" mode is not an officially supported configuration. Epic Games is no longer maintaining the OSSv1 implementations to the quality level that we can support, and we recommend all games use EOS going forward to ensure a consistent baseline across platforms.
+
+We can not provide support for games that are using the plugin in "Online Subsystem Blueprints only" mode.
+:::
+
+1. You must be using a source build of the plugin. This process is not compatible when installing the plugin from the Epic Games launcher or Fab.
+2. Do not download the EOS SDK, or the platform-specific EOS SDKs. You do not need them.
+3. Do not download any console ports of EOS Online Framework. You do not need it, as "Online Subsystem Blueprints only" mode does not have any platform-specific functionality.
+4. Clone/download the [main EOS Online Framework repository](https://src.redpoint.games/redpointgames/eos-online-framework) under your project's `Plugins` folder as the `EOS` folder. If you don't have a `Plugins` folder, you'll need to create it. After doing this, `Plugins/EOS/OnlineSubsystemRedpointEOS/OnlineSubsystemBlueprintsOnly.uplugin.off` should exist. If it doesn't, you probably need to rename the folder that was cloned to `EOS`.
+5. Delete the `Plugins/EOS/OnlineSubsystemRedpointEOS/OnlineSubsystemRedpointEOS.uplugin` file.
+6. Rename the `Plugins/EOS/OnlineSubsystemRedpointEOS/OnlineSubsystemBlueprintsOnly.uplugin.off` file to `Plugins/EOS/OnlineSubsystemRedpointEOS/OnlineSubsystemBlueprintsOnly.uplugin`.
+7. Open `Plugins/EOS/OnlineSubsystemRedpointEOS/Source/RedpointEOSBuild/RedpointEOSCPlusPlusModuleRules.Build.cs` and replace the following code:
+
+```csharp
+// Detect if we're being built in "No EOS" mode.
+try
+{
+    var pluginInfo = (PluginInfo)this.GetType()
+        .GetProperty("Plugin", BindingFlags.Instance | BindingFlags.NonPublic)
+        .GetValue(this);
+    if (pluginInfo?.Name == "OnlineSubsystemBlueprintsOnly")
+    {
+        bIsNoEOS = true;
+    }
+}
+catch
+{
+}
+```
+
+with:
+
+```csharp
+bIsNoEOS = true;
+```
+
+8. Launch the editor and enable the "EOS Online Framework (No EOS)" plugin. You should not see an "EOS Online Framework" plugin in the list - if you do, you have the EOS Online Framework plugin installed at the engine level and **you must remove it before continuing** (e.g. uninstall it via the Epic Games Launcher).
+9. Restart the editor and let it rebuild.
+   - If you get "Try rebuilding from source manually", generate Visual Studio project files for your project and launch the editor from Visual Studio.
+10. If you see errors relating to the EOS SDK not being found, then you have not completed the steps above correctly. When you have enabled "OSB only" / "(No EOS)" mode, the plugin will not require the EOS SDK and will build without it.

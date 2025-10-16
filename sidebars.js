@@ -50,6 +50,7 @@ module.exports = {
         "support/troubleshooting/anticheat",
       ],
     },
+    "support/blueprints_only",
     "support/advanced_configuration",
     "support/additional_sdk_install_locations",
     "support/gameplay_debugger",
