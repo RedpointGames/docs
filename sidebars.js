@@ -20,6 +20,7 @@ module.exports = {
     "framework/party_members",
     "framework/displaying_avatars",
     "framework/bind_friends_list",
+    "framework/player_registration",
   ],
   systems: [
     "systems/index",

@@ -1,0 +1,61 @@
+---
+title: Automatically manage player registration for sessions
+description: Use the Redpoint Game Session class to automatically manage player registrations.
+---
+
+import Video from "@site/src/Video";
+import Blueprint from "@site/src/Blueprint";
+
+import bpHoldAndReleasePlayer from "./player_registration/hold_and_release_player.bp";
+
+import videoUseRedpointGameSessionDirectly from "./player_registration/use_redpoint_game_session_directly.mp4";
+import videoCreateRedpointGameSessionBlueprint from "./player_registration/create_redpoint_game_session_blueprint.mp4";
+import videoAnonymousPlayerTracking from "./player_registration/anonymous_player_tracking.mp4";
+
+To ensure that multiplayer sessions correctly reflect the number of players on the game server, game servers must call the "Register Players" and "Unregister Players" functions when players connect or disconnect from them. In the past, this needed to be done manually by the game developer in response to the `OnPostLogin` and `OnLogout` events in the game mode.
+
+However this approach is error prone and difficult for developers to get right, since you can't perform multiple "Register Players" and "Unregister Players" calls at the same time.
+
+To make this easier, Redpoint EOS Online Framework offers a `RedpointGameSession` class. You can set this as the game session class on your game mode, and from this point onwards, the plugin will ensure players are registered and unregistered automatically.
+
+## Using Redpoint Game Session in your game
+
+To use Redpoint Game Session with the default behaviour, select `RedpointGameSession` as the game session class in your game mode:
+
+<Video url={videoUseRedpointGameSessionDirectly} />
+
+If you have previously added blueprint or C++ code to call "Register Players" or "Unregister Players", you can now remove it. The plugin will automatically keep the player list in sync.
+
+## Customize the behaviour of Redpoint Game Session
+
+If you want to customize the behaviour of Redpoint Game Session and turn on advanced settings, you'll need to create a blueprint that inherits from Redpoint Game Session first:
+
+<Video url={videoCreateRedpointGameSessionBlueprint} />
+
+### Including anonymous players
+
+If your game supports additional split-screen players that do not sign into their own EOS accounts, then you should enable 'Include Anonymous Players'. This is only the case on platforms such as Steam where there is only one user profile at a time, and does not apply to platforms such as consoles where each controller can be signed into their own account.
+
+<Video url={videoAnonymousPlayerTracking} />
+
+When you turn on 'Include Anonymous Players', the Redpoint Game Session class will automatically update the `__RedpointEOS_AnonymousPlayerCount` session attribute with the number of players on the game server that do not have EOS product user IDs.
+
+:::warning
+This setting does not change the values reported by `NumOpenPublicConnections` or `NumPublicConnections`. If you are presenting the current player count of a session to a player, you need to use the value of `(NumPublicConnections - NumOpenPublicConnections) + __RedpointEOS_AnonymousPlayerCount` for the value to be accurate.
+:::
+
+Because anonymous players are not known to the EOS SDK, the session will still be visible in search results even when the game server is full. You can mitigate this by having Redpoint Game Session automatically start and end the session when it detects the game server is full (i.e. the anonymous player count + EOS player count >= `NumPublicConnections`).
+
+To do this, turn on the additional 'Start and End Session Automatically' option. You should only turn this option on if you're not already controlling the lifecycle of the session, and if you don't have 'Allow Join in Progress' enabled on the session.
+
+## Hold and release player IDs for reconnection support
+
+If you need to support [reconnecting players to sessions](/docs/ossv1/sessions/reconnecting) when they disconnect unexpectedly (such as a game crash or Internet outage), then you'll want to use the "Hold Player" and "Release Player" functions of Redpoint Game Session. Otherwise, when a player disconnects for any reason, they will be unregistered from the game session and unable to automatically reconnect through the process described on that page.
+
+When you call "Hold Player" on a player's unique net ID, they are not unregistered until "Release Player" is called or the session is destroyed.
+
+:::info
+If you want to prevent a player from being unregistered, you need to call "Hold Player" before the "On Logout" event fires on the game mode.
+:::
+
+<Blueprint height="400px" blueprint={bpHoldAndReleasePlayer} />

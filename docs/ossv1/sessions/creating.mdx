@@ -163,6 +163,12 @@ End Object
 
 ## Register players
 
+:::danger
+You can now automatically manage player registration using the [Redpoint Game Session](/docs/framework/player_registration.mdx) class.
+
+The implementation described below is not fault tolerant, and we now recommend that all games use Redpoint Game Session to manage player registration automatically, instead of implementing the code below.
+:::
+
 When players connect to your dedicated or listen server, you need to register those incoming players so that Epic Online Services is aware of how many players are currently connected, and how many free slots there are on the server.
 
 <Tabs lazy groupId="code-format" defaultValue="c++" values={[ { label: 'C++', value: 'c++' }, { label: 'Blueprints', value: 'blueprints' } ]}>
@@ -335,6 +341,12 @@ End Object
 
 ### Registering players for new connections via PostLogin
 
+:::danger
+You can now automatically manage player registration using the [Redpoint Game Session](/docs/framework/player_registration.mdx) class.
+
+The implementation described below is not fault tolerant, and we now recommend that all games use Redpoint Game Session to manage player registration automatically, instead of implementing the code below.
+:::
+
 <Tabs lazy groupId="code-format" defaultValue="c++" values={[ { label: 'C++', value: 'c++' }, { label: 'Blueprints', value: 'blueprints' } ]}>
 <TabItem value="c++">
 
@@ -480,6 +492,12 @@ End Object
 </Tabs>
 
 ## Unregister players
+
+:::danger
+You can now automatically manage player registration using the [Redpoint Game Session](/docs/framework/player_registration.mdx) class.
+
+The implementation described below is not fault tolerant, and we now recommend that all games use Redpoint Game Session to manage player registration automatically, instead of implementing the code below.
+:::
 
 When a player disconnects from your server, you need to unregister the player so that Epic Online Services can be aware that there is a new free slot on the server.
 
