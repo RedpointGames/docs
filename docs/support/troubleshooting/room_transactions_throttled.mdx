@@ -7,6 +7,10 @@ When you update party, lobby or session data, it takes time for that update to a
 
 By default, when you call a function that updates a room, the plugin will queue it up if there is already another update running. This reduces the coordination you need to do when writing game code. However, this only works as long as the plugin can get through updates faster than they're being added to the queue.
 
+:::danger
+This check is not enforced in Shipping builds. If you don't address this warning during Development, you'll probably see frame hitches, stuttering and lag when people play your released game.
+:::
+
 To address this warning, check your game code and make sure you're not calling any of the following functions too frequently (e.g. more than once a second):
 
 - Party system:
