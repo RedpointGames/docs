@@ -48,6 +48,7 @@ module.exports = {
         "support/troubleshooting/steamcrash",
         "support/troubleshooting/steaminvite",
         "support/troubleshooting/anticheat",
+        "support/troubleshooting/room_transactions_throttled",
       ],
     },
     "support/blueprints_only",

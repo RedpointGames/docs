@@ -1,0 +1,23 @@
+---
+title: "You are updating rooms (parties, lobbies, sessions) too frequently"
+description: Learn how to fix your game code to address this warning.
+---
+
+When you update party, lobby or session data, it takes time for that update to apply to the Epic Online Services backend. If you call certain update functions repeatedly, you'll queue up operations faster than they can be flushed to the Epic Online Services backend.
+
+By default, when you call a function that updates a room, the plugin will queue it up if there is already another update running. This reduces the coordination you need to do when writing game code. However, this only works as long as the plugin can get through updates faster than they're being added to the queue.
+
+To address this warning, check your game code and make sure you're not calling any of the following functions too frequently (e.g. more than once a second):
+
+- Party system:
+  - UpdateParty
+  - UpdatePartyData
+  - UpdatePartyMemberData
+  - Deleting and recreating parties with the same party type ID
+  - Deleting and recreating parties with presence enabled
+- Matchmaking with blueprints:
+  - "Set Ready State"
+- Lobbies:
+  - UpdateLobby
+  - UpdateMemberSelf
+  - Deleting and recreating lobbies with presence enabled
