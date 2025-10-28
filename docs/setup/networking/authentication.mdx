@@ -62,10 +62,20 @@ If your dedicated servers will only be run by you on your trusted infrastructure
 If you're running dedicated game servers on Agones, [Preparing your game server](../../dedis/preparing_your_game_server.mdx#creating-a-client-id-and-secret-for-your-game-server-binaries) has more detailed information on how to set up the client ID and secret on Kubernetes.
 :::
 
-If your dedicated servers are being run by both you and players, you'll need to provide the client ID and secret on the command line when running the dedicated servers on your own infrastructure. Locate the values you set inside Project Settings, and then provide them on the command line, like so:
+If your dedicated servers are being run by both you and players, you'll need to provide the client ID and secret either via environment variables or via the command line when running the dedicated servers on your own infrastructure.
+
+To provide the values on the command line, locate them inside Project Settings and then pass the following additional parameters:
 
 ```
 -ini:Engine:[EpicOnlineServices]:DedicatedServerClientId=__SERVER_ID__ -ini:Engine:[EpicOnlineServices]:DedicatedServerClientSecret=__SERVER_SECRET__ -ini:Engine:[EpicOnlineServices]:DedicatedServerPrivateKey=__PRIVATE_KEY__
+```
+
+To provide the values via environment variables, locate them inside Project Settings and then set the following environment variables:
+
+```
+REDPOINT_EOS_DEDICATEDSERVERCLIENTID=__SERVER_ID__
+REDPOINT_EOS_DEDICATEDSERVERCLIENTSECRET=__SERVER_SECRET__
+REDPOINT_EOS_DEDICATEDSERVERPRIVATEKEY=__PRIVATE_KEY__
 ```
 
 :::caution

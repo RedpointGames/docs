@@ -77,7 +77,7 @@ This step is only required if the distribution mode is set to "Both developers a
 
 This guide assumes your distribution mode is set to "Dedicated server binaries are only ever distributed and run by developers".
 
-If it's set to "Both developers and players will run dedicated servers", you'll also need to pass the client ID and secret on the command line when defining your `GameServer` and `GameServerFleet` resources, as demonstrated below.
+If it's set to "Both developers and players will run dedicated servers", you'll also need to pass the client ID and secret as environment variables when defining your `GameServer` and `GameServerFleet` resources, as demonstrated below.
 
 The `DedicatedServerPrivateKey` is the value of the "Dedicated Server Private Key" field in Project Settings, and you only need to provide it if "Trusted Dedicated Servers" is turned on.
 
@@ -89,24 +89,19 @@ spec:
     - name: eos-dedicated-server
       # the rest of the game server definition
       # ...
-      # override args to specify required settings
-      args:
-        - "-ini:Engine:[EpicOnlineServices]:DedicatedServerClientId=$SERVER_ID"
-        - "-ini:Engine:[EpicOnlineServices]:DedicatedServerClientSecret=$SERVER_SECRET"
-        - "-ini:Engine:[EpicOnlineServices]:DedicatedServerPrivateKey=$PRIVATE_KEY"
       # set environment variables from secret you create below
       env:
-        - name: SERVER_ID
+        - name: REDPOINT_EOS_DEDICATEDSERVERCLIENTID
           valueFrom:
             secretKeyRef:
               name: eos-server-info
               key: DedicatedServerClientId
-        - name: SERVER_SECRET
+        - name: REDPOINT_EOS_DEDICATEDSERVERCLIENTSECRET
           valueFrom:
             secretKeyRef:
               name: eos-server-info
               key: DedicatedServerClientSecret
-        - name: PRIVATE_KEY
+        - name: REDPOINT_EOS_DEDICATEDSERVERPRIVATEKEY
           valueFrom:
             secretKeyRef:
               name: eos-server-info
