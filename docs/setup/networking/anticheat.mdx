@@ -23,6 +23,14 @@ In the [Epic Online Services Portal](https://dev.epicgames.com/portal/en-US/), p
 - Extract the ZIP file it gives you.
 - Copy the `base_private.key` and `base_public.cer` files and place them under the `Build\NoRedist\` folder in your project. You might have to create this directory if it doesn't already exist.
 
+:::danger
+Make sure you activate an Anti-Cheat build in _all_ sandboxes that you're testing your game in.
+
+If your game is shipping on the Epic Games Store, you need to activate a build the Dev, Stage and Live sandboxes.
+
+If your game is shipping on another platform (such as Steam), you need to activate a build in the Live sandbox.
+:::
+
 When you open the EOS Project Settings in your project, you should now see the following:
 
 ![Screenshot of "signing keys found"](./anticheat/signing_key_found.png)
