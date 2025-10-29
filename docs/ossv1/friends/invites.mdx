@@ -11,7 +11,7 @@ With EOS Online Framework, you can send friend invites to other EOS users. You d
 
 Friends who are added to the friends list in this manner are specific to the game's product ID. They won't appear in other games owned by your organisation, because the friends list is stored in Player Data Storage, which is specific to the game.
 
-In order for a friend invite to be sent, both the sender and receiver need to be online at the same time. That's because friend invites, as well as acceptance and rejection messages, are sent over EOS P2P. The game clients directly talk to each other over P2P to communicate friend invites and other messages.
+In order for a friend invite to be sent, both the sender and receiver need to be online at the same time. That's because friend invites, as well as acceptance and rejection messages, are sent over EOS lobbies. The game clients talk to each other by setting lobby member attributes to communicate friend invites and other messages.
 
 If you send a friend invite to someone, and they're not currently online, the friend invite will be stored as a "pending invite" in Player Data Storage. The plugin automatically retries every 10 minutes to send the invite again, and will resume retrying to send it even across game launches.
 
