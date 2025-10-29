@@ -29,14 +29,6 @@ module.exports = {
     }),
   ],
   themeConfig: {
-    announcementBar: {
-      id: "framework_migration",
-      content:
-        '🎉 EOS Online Framework is <a href="https://www.fab.com/listings/b900b244-0ff6-49e3-8562-5fc630ba9515" target="_blank">now out on Fab!</a>',
-      backgroundColor: "rgb(175, 255, 172)",
-      textColor: "#000",
-      isCloseable: false,
-    },
     prism: {
       additionalLanguages: ["cpp", "csharp", "docker", "batch", "powershell"],
     },
