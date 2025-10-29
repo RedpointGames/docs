@@ -225,7 +225,11 @@ When a purchase completes on Google Play, the receipt can end up with a `Transac
 
 If a purchase ends up in the `Deferred` state, you may later see the receipt move to the `Purchased` state. When this happens, the `OnUnexpectedPurchaseReceipt` event will fire, and you can re-check the receipts via `GetReceipts` to see if any have moved from `Deferred` to `Purchased`.
 
-You *must* handle deferred purchases on Google Play. Also, you can not know when a deferred purchase fails; this is a limitation of how Google Play Billing works. Instead, you simply don't award items until the receipt moves into a `Purchased` state, so a failed deferred receipt never gets handled by the game.
+:::danger
+Do not call `QueryReceipts` from the `OnUnexpectedPurchaseReceipt` event. This will cause an infinite loop, since `QueryReceipts` will invoke the `OnUnexpectedPurchaseReceipt` event.
+:::
+
+You _must_ handle deferred purchases on Google Play. Also, you can not know when a deferred purchase fails; this is a limitation of how Google Play Billing works. Instead, you simply don't award items until the receipt moves into a `Purchased` state, so a failed deferred receipt never gets handled by the game.
 
 The `OnUnexpectedPurchaseReceipt` event fires:
 
