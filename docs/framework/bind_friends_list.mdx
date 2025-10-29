@@ -73,13 +73,16 @@ Friend list entries provide the following information as variables or functions 
 - `UserId`: The user ID.
 - `DisplayName`: The user's display name.
 - `bInParty`: This user is in the local player's current party.
-- `bIsInvitable`: If true, this user can be invited to parties or games via EOS or the local platform.
+- `bInGame`: This user is in the local player's current game.
+- `bIsInvitableToParty`: If true, this user can be invited to the local player's current party.
+- `bIsInvitableToGame`: If true, this user can be invited to the local player's current game.
 - `InviteStatus`: The user's invite status, and how they are related to the local player.
 - `PresenceStatus`: The user's presence status.
 - `bPlayingThisGame`: If true, this user is currently playing this game.
 - `bIsGameFriend`: If true, this user is a friend only at the game level, and not from the platform.
 - `bIsBeingActedUpon`: If true, the local player is currently [performing some kind of action on this friend](#acting-on-friend-list-entries) (such as inviting them to the party). This boolean value can be used to disable UI elements when the user is already doing something or to show an operation as in-progress.
 - `bInJoinableParty`: If the user is currently in a party that the local player can join.
+- `bInJoinableGame`: If the user is currently in a game that the local player can join.
 - `GetSectionType()`: Returns the section type that this entry should be displayed under.
 
 ## Acting on friend list entries
@@ -99,10 +102,8 @@ If you want to provide a list of actions that the user can take for a friend lis
 | Can Reject Friend Request        | Reject Friend Request from Friend List Entry  |
 | Can Join Party                   | Join Party of Friend List Entry               |
 | Can Leave Party                  | Leave Party of Friend List Entry              |
-
-:::note
-"Join Game of Friend List Entry" will be added in a future release.
-:::
+| Can Join Game                    | Join Game Session of Friend List Entry        |
+| Can Invite to Game               | Invite Friend List Entry to Game Session      |
 
 ### Check if an action can be performed
 
