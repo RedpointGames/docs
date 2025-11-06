@@ -56,7 +56,7 @@ If you're using dedicated servers with matchmaking, please pay attention to the 
 
 To ensure that game clients can discover the game server only at appropriate times, you need to make calls to the online session interface to manage the server's lifecycle correctly:
 
-1. Upon "Begin Play" of the default server map, you need to call ["Create Session"](../ossv1/sessions/creating.mdx#create-the-session) to list the server in the sessions list. The session needs to have the following settings set:
+1. Upon "Begin Play" of the game mode used by the default server map, you need to call ["Create Session"](../ossv1/sessions/creating.mdx#create-the-session) to list the server in the sessions list. The session needs to have the following settings set:
    - Should Advertise: true
    - Allow Join in Progress: false
    - Is Dedicated: true
