@@ -74,31 +74,7 @@ const Database = [
                 ),
               };
             },
-          },
-          {
-            id: "cloudfitters",
-            name: "Cloudfitters",
-            url: "https://cloudfitters.com/go-live-now/ashburn-dedicated-servers/",
-            regionDetail: "Ashburn",
-            calculate: function (threads, egressGb) {
-              const server = {
-                hyperthreads: 40, // two socket, 10C/20T
-                ram: 64,
-                pricePerMonth: 249,
-              };
-              const instances = Math.ceil(threads / server.hyperthreads);
-              return {
-                price: server.pricePerMonth * instances,
-                detail: (
-                  <>
-                    {instances} "Dual E5-2690V2" servers
-                    <br />
-                    Unmetered 10Gbps bandwidth
-                  </>
-                ),
-              };
-            },
-          },
+          }
         ],
       },
       {
