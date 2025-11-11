@@ -37,12 +37,11 @@ Once you've registered a domain, you can access the CloudFlare Teams dashboard b
 
 You can connect the identity provider you want to use for authentication under Settings -> Login methods -> Add new. This is where you can e.g. connect Google Workspace. The CloudFlare Teams dashboard will walk you through the information it needs for the login provider you want to use.
 
-### Set up an access group
+### Set up a policy
 
-You'll most likely want the same people to have SSH access across all of your dedicated servers. You can set up an access group in CloudFlare Teams, and then assign this group to every application. When you want to update everyone's access, you only need to modify the group.
+You'll most likely want the same people to have SSH access across all of your dedicated servers. You can set up a policy in CloudFlare Teams, and then use this policy for every application. When you want to update everyone's access, you only need to modify the policy.
 
-1. Under "My Team" -> "Groups", click "Add a group".
-1. If you're only using CloudFlare Teams for SSH access, you might want to turn on "Set as default group". You won't need to assign this group manually to applications when you set up each application in the steps below.
+1. Under "Access" -> "Policies", click "Add a policy".
 1. Set up the include and require rules to restrict access to your team members. An example set up would be:
    - Include: "Emails ending in @company.com"
    - Require: "Login methods - Google Workspace"
@@ -55,18 +54,20 @@ For each dedicated server you have, you need to create an application in the Clo
 1. Click "Select" underneath "Self-hosted".
 1. Set the "Application name" to a name that describes the specific dedicated server. For example, if this is the first dedicated server in a West Europe region, you might call it "west-europe-01". It's recommended that you also set the hostname on the dedicated server to match, and that you use this as the application subdomain as well to keep things consistent.
 1. Set the session duration to the maximum length of time you want to allow an SSH connection to be open before the user has to re-authenticate. You can lower this from 24 hours to increase security.
+1. Click "Add public hostname".
 1. Set the domain to the domain you registered (e.g. `companyinternal.dev`). Leave the path blank.
 1. Set the subdomain. As suggested above, it should be something like `west-europe-01`.
    - Ignore the warning about "No DNS record found for this domain". We'll create one later.
-1. Untick "Show this app in App Launcher". There's no need for it to be visible there.
+1. Expand "Browser rendering settings".
+1. Enable "Allow automatic Cloudflared authentication".
+1. Select "SSH" for "Browser rendering".
+1. Under "Access policies", click "Select existing policies".
+1. Tick the policy you previously created.
 1. Select the identity providers you want to use to authenticate SSH access with at the bottom of the page.
 1. Click "Next".
-1. Set a name for the policy; a suggestion would be "Internal Employee Access".
-1. If you set up an access group above, select this access group. Otherwise, manually add the access rules to only allow team member access.
+1. Untick "Show application in App Launcher".
 1. Click "Next".
-1. Underneath "Additional settings":
-   - Turn on "Enable automatic cloudflared authentication".
-   - Set "Browser rendering" to "SSH".
+1. Click "Save".
 
 ## Set up an SSH tunnel
 
