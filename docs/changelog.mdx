@@ -17,13 +17,18 @@ import Image_20250811_MatchResults2 from "./changelog/2025.08.11/match_results_2
 
 This document describes the changes made in each release.
 
-:::danger
-EOS SDK 1.17.1.3 and EOS SDK 1.18.0.4 are impacted by a regression that prevents games from querying game profiles of Steam friends if game profiles of Epic Games friends have previously been queried. For games using cross-platform Epic Games accounts, this results in the login process never completing and players being unable to progress past the login step.
+### 2025.11.16
 
-For this reason, **the Redpoint EOS Online Framework plugin is continuing to target EOS SDK 1.17.0 until a fix has been issued by Epic Games for EOS SDK 1.18**.
+This release adds support for Unreal Engine 5.7, EOS SDK 1.18.1.2, and routes voice chat audio through the engine:
 
-When downloading the EOS SDK from the Developer Portal, please ensure you download version `1.17.0-CL41373641`. Since newer versions of the EOS SDK are known not to work due to the above regression, they will be ignored when the Redpoint EOS Online Framework searches for an installed EOS SDK.
-:::
+- Added support for Unreal Engine 5.7.
+  - Free Edition users will need to update their engine version when updating to this release.
+- Added support for EOS SDK 1.17.1.3, 1.18.0.4 and 1.18.1.2.
+  - Free Edition users will need to download and install the newer EOS SDK from the Epic Games Developer Portal when upgrading to this release. If you need to use an older EOS SDK version, please use the Paid Edition instead.
+- Voice chat audio is now routed through Unreal Engine, in preparation for supporting proximity voice chat in a _future release_.
+- Added the "Voice Chat Debugger" tool in the editor, which can be accessed from the "Tools" menu. This shows you the state of all voice chat channels and participants, and allows you to easily toggle voice chat settings while testing with play-in-editor.
+- Fixed an issue where voice chat did not activate the microphone correctly on iOS.
+- Fixed an issue where packaging with Anti-Cheat would fail if the staging directory was read-only.
 
 ### 2025.10.29
 
