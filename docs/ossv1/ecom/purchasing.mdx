@@ -55,9 +55,9 @@ Refer to [Initating a purchase](#initating-a-purchase-on-any-platform) for an ex
 </TabItem>
 <TabItem value="google-play">
 
-When using Google Play Billing, in-app purchases will be available with their product IDs as the offer IDs. You can only purchase consumable items on Google Play; subscriptions and non-consumable items are not supported.
+When using Google Play Billing, in-app purchases will be available with their product IDs as the offer IDs. You can only purchase consumable and non-consumable items on Google Play; subscriptions are not supported.
 
-After a purchase completes on Google Play, you must award the player the in-app purchase and then call `FinalizePurchase` on the receipt to consume the purchase.
+After a purchase completes on Google Play, you must award the player the in-app purchase and then call `FinalizePurchase` on the receipt to consume or acknowledge the purchase.
 
 :::caution
 If you do not call `FinalizePurchase` when using Google Play, the user's purchase will be automatically refunded after 3 days.
@@ -180,7 +180,7 @@ To finalize purchases on Google Play, you need to check for outstanding receipts
 
 When the game starts up, you should query for any outstanding receipts so that you can finalize the purchases and award items.
 
-After a purchase is consumed with `FinalizePurchase`, the receipt will no longer appear when querying receipts or calling `GetReceipts`.
+After a purchase is consumed or acknowledged with `FinalizePurchase`, the receipt will no longer appear when querying receipts or calling `GetReceipts`.
 
 <Tabs lazy groupId="code-format" defaultValue="c++" values={[ { label: 'C++', value: 'c++' }, { label: 'Blueprints', value: 'blueprints' } ]}>
 <TabItem value="c++">
@@ -234,15 +234,15 @@ You _must_ handle deferred purchases on Google Play. Also, you can not know when
 The `OnUnexpectedPurchaseReceipt` event fires:
 
 - When a deferred purchase moves to the `Purchased` state.
-- When a receipt is consumed via `FinalizePurchase` and removed from the `GetReceipts` array.
+- When a receipt is consumed or acknowledged via `FinalizePurchase` and removed from the `GetReceipts` array.
 
 :::note
 The `TransactionId` field of a receipt is the `ReceiptId` to use in other functions.
 :::
 
-### Consuming a purchase via `FinalizePurchase`
+### Consuming or acknowledging a purchase via `FinalizePurchase`
 
-To acknowledge a purchase on Google Play and consume the purchase, you must call `FinalizePurchase`. If you don't call this function for a receipt, the user's purchase will automatically be refunded 3 days after it moved into the `Purchased` state.
+To acknowledge or consume a purchase on Google Play, you must call `FinalizePurchase`. If you don't call this function for a receipt, the user's purchase will automatically be refunded 3 days after it moved into the `Purchased` state.
 
 <Tabs lazy groupId="code-format" defaultValue="c++" values={[ { label: 'C++', value: 'c++' }, { label: 'Blueprints', value: 'blueprints' } ]}>
 <TabItem value="c++">
@@ -252,7 +252,8 @@ To consume a purchase, call `FinalizePurchase`:
 ```cpp
 Purchase->FinalizePurchase(
     *Identity->GetUniquePlayerId(0).Get(), // The local player to get offers for.
-    ReceiptId                             // The TransactionId field of the receipt.
+    ReceiptId,                             // The TransactionId field of the receipt.
+    TEXT("consume")                        // Or "acknowledge" to acknowledge without consuming the receipt.
 );
 ```
 

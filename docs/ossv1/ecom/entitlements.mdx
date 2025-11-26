@@ -3,9 +3,9 @@ title: Retrieving entitlements
 description: Fetching the e-commerce entitlements that the user owns.
 ---
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
-import Blueprint from '@site/src/Blueprint';
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+import Blueprint from "@site/src/Blueprint";
 
 E-commerce functionality is provided via the `IOnlineStoreV2`, `IOnlineEntitlements` and `IOnlinePurchase` interfaces. Retrieving the owned entitlements is done via the `IOnlineEntitlements` interface.
 
@@ -25,7 +25,7 @@ For Steam users, entitlements include both owned DLC and inventory items in the 
 <TabItem value="google-play">
 
 :::caution
-You can not retrieve entitlements on Google Play, because all purchases are consumable and therefore do not persist as entitlements.
+You can not retrieve entitlements on Google Play.
 :::
 
 </TabItem>
@@ -70,9 +70,9 @@ When your callback fires, you'll want to handle any errors and then deregister t
 
 ```cpp
 void UMyClass::HandleQueryEntitlementsComplete(
-    bool bWasSuccessful, 
-    const FUniqueNetId& UserId, 
-    const FString& Namespace, 
+    bool bWasSuccessful,
+    const FUniqueNetId& UserId,
+    const FString& Namespace,
     const FString& Error)
 {
     // Deregister the event handler.
@@ -100,7 +100,9 @@ void UMyClass::HandleQueryEntitlementsComplete(
 
 To retrieve the entitlements, use the "Query Entitlements" blueprint node then the "Get All Entitlements" blueprint node.
 
-<Blueprint height="500px" blueprint={`
+<Blueprint
+  height="500px"
+  blueprint={`
 Begin Object Class=/Script/BlueprintGraph.K2Node_GetSubsystem Name="K2Node_GetSubsystem_2"
    CustomClass=Class'"/Script/OnlineSubsystemBlueprints.OnlineEntitlementsSubsystem"'
    NodePosX=16
@@ -184,7 +186,8 @@ Begin Object Class=/Script/BlueprintGraph.K2Node_CallFunction Name="K2Node_CallF
    CustomProperties Pin (PinId=9A0235C349B03628CE3F5A8857EAB1E1,PinName="Namespace",PinToolTip="Namespace\\nString",PinType.PinCategory="string",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_AsyncAction_2 90BACF3749F0E979F5878489089D5413,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
    CustomProperties Pin (PinId=7A867BAA4BDD29ABD57E50AD618C3BD1,PinName="OutUserEntitlements",PinToolTip="Out User Entitlements\\nArray of Online Entitlement Object References",Direction="EGPD_Output",PinType.PinCategory="object",PinType.PinSubCategory="",PinType.PinSubCategoryObject=Class'"/Script/OnlineSubsystemBlueprints.OnlineEntitlement"',PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=Array,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
 End Object
-`} />
+`}
+/>
 
 </TabItem>
 </Tabs>

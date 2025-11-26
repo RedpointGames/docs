@@ -3,9 +3,9 @@ title: Retrieving offers
 description: Fetching the available e-commerce offers for purchase.
 ---
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
-import Blueprint from '@site/src/Blueprint';
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+import Blueprint from "@site/src/Blueprint";
 
 E-commerce functionality is provided via the `IOnlineStoreV2`, `IOnlineEntitlements` and `IOnlinePurchase` interfaces. Retrieving the available offers is done via the `IOnlineStoreV2` interface.
 
@@ -42,8 +42,7 @@ When querying offers for Google Play, there are a few things to note:
 - The `QueryCategories` operation isn't supported, because Google Play offers don't have categories.
 - The `QueryOffersByFilter` operation isn't supported, because Google Play only supports retrieving in-app purchases by product ID.
 - You must use `QueryOffersById` to fetch offers on Google Play.
-- The Google Play integration only supports consumable in-app purchases.
-- The Google Play integration does not support non-consumable in-app purchases.
+- The Google Play integration supports consumable and non-consumable in-app purchases.
 - The Google Play integration does not support subscriptions.
 
 </TabItem>
@@ -80,7 +79,7 @@ StoreV2->QueryOffersByFilter(
     FOnQueryOnlineStoreOffersComplete::CreateLambda([
         StoreV2Wk = TWeakPtr<IOnlineStoreV2, ESPMode::ThreadSafe>(StoreV2)](
         bool bWasSuccessful,
-        const TArray<FUniqueOfferId>& OfferIds, 
+        const TArray<FUniqueOfferId>& OfferIds,
         const FString& Error)
         {
             if (auto StoreV2 = StoreV2Wk.Pin())
@@ -89,7 +88,7 @@ StoreV2->QueryOffersByFilter(
                 {
                     TArray<FOnlineStoreOfferRef> Offers;
                     StoreV2->GetOffers(Offers);
-                    
+
                     // Offers now contains a list of offers. You can call
                     // GetOffers from anywhere to get the cached list of
                     // offers.
@@ -104,7 +103,9 @@ StoreV2->QueryOffersByFilter(
 
 To query for the available offers, use the "Query Offers by Filter" blueprint node followed by "Get Offers".
 
-<Blueprint height="500px" blueprint={`
+<Blueprint
+  height="500px"
+  blueprint={`
 Begin Object Class=/Script/BlueprintGraph.K2Node_GetSubsystem Name="K2Node_GetSubsystem_0"
    CustomClass=Class'"/Script/OnlineSubsystemBlueprints.OnlineStoreV2Subsystem"'
    NodePosY=-175
@@ -182,7 +183,8 @@ Begin Object Class=/Script/BlueprintGraph.K2Node_IfThenElse Name="K2Node_IfThenE
    CustomProperties Pin (PinId=5443BFB64039F236E187E796A3BB5571,PinName="then",PinFriendlyName=NSLOCTEXT("K2Node", "true", "true"),Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_CallFunction_2 BBAD002F48A01855476AA1BA94459D5F,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
    CustomProperties Pin (PinId=F450808447C8D03E27EB9582DF78D443,PinName="else",PinFriendlyName=NSLOCTEXT("K2Node", "false", "false"),Direction="EGPD_Output",PinType.PinCategory="exec",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
 End Object
-`} />
+`}
+/>
 
 </TabItem>
 </Tabs>
@@ -220,7 +222,7 @@ StoreV2->QueryOffersById(
     FOnQueryOnlineStoreOffersComplete::CreateLambda([
         StoreV2Wk = TWeakPtr<IOnlineStoreV2, ESPMode::ThreadSafe>(StoreV2)](
         bool bWasSuccessful,
-        const TArray<FUniqueOfferId>& OfferIds, 
+        const TArray<FUniqueOfferId>& OfferIds,
         const FString& Error)
         {
             if (auto StoreV2 = StoreV2Wk.Pin())
@@ -229,7 +231,7 @@ StoreV2->QueryOffersById(
                 {
                     TArray<FOnlineStoreOfferRef> Offers;
                     StoreV2->GetOffers(Offers);
-                    
+
                     // Offers now contains a list of offers. You can call
                     // GetOffers from anywhere to get the cached list of
                     // offers.
@@ -244,7 +246,9 @@ StoreV2->QueryOffersById(
 
 To query for the available offers, use the "Query Offers by ID" blueprint node followed by "Get Offers".
 
-<Blueprint height="500px" blueprint={`
+<Blueprint
+  height="500px"
+  blueprint={`
 Begin Object Class=/Script/BlueprintGraph.K2Node_GetSubsystem Name="K2Node_GetSubsystem_0"
    CustomClass=/Script/CoreUObject.Class'"/Script/OnlineSubsystemBlueprints.OnlineStoreV2Subsystem"'
    NodePosX=624
@@ -330,7 +334,8 @@ Begin Object Class=/Script/BlueprintGraph.K2Node_MakeArray Name="K2Node_MakeArra
    CustomProperties Pin (PinId=22F5D1DF42B0296013404FAC236185F6,PinName="Array",Direction="EGPD_Output",PinType.PinCategory="string",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=Array,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,LinkedTo=(K2Node_AsyncAction_1 FBDBD07F4FBD9DB441389297AFD14044,),PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
    CustomProperties Pin (PinId=EAB5F5D04198F8602191B894FD0BF6AA,PinName="[0]",PinType.PinCategory="string",PinType.PinSubCategory="",PinType.PinSubCategoryObject=None,PinType.PinSubCategoryMemberReference=(),PinType.PinValueType=(),PinType.ContainerType=None,PinType.bIsReference=False,PinType.bIsConst=False,PinType.bIsWeakPointer=False,PinType.bIsUObjectWrapper=False,PinType.bSerializeAsSinglePrecisionFloat=False,DefaultValue="test_iap",PersistentGuid=00000000000000000000000000000000,bHidden=False,bNotConnectable=False,bDefaultValueIsReadOnly=False,bDefaultValueIsIgnored=False,bAdvancedView=False,bOrphanedPin=False,)
 End Object
-`} />
+`}
+/>
 
 </TabItem>
 </Tabs>
