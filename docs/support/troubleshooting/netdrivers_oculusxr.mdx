@@ -1,0 +1,25 @@
+---
+title: Networking drivers incorrect when using the Meta XR (Oculus XR) plugin
+description: Learn how to mitigate the "networking drivers incorrect" assert when enabling the Meta XR plugin.
+---
+
+The Meta XR plugin uses the `UpdateSinglePropertyInConfigFile` function during startup and when saving Oculus XR project settings. Unfortunately this function is buggy in the engine, and causes all dynamic configuration layers to be removed. The Redpoint EOS Online Framework plugin uses dynamic configuration layers to automatically set up networking drivers so that EOS P2P and network encryption works correctly.
+
+To mitigate this, you need to find all calls to `UpdateSinglePropertyInConfigFile` in the Meta XR plugin's `Source` folder, and comment these lines out. For example, the final call inside `UOculusXRHMDRuntimeSettings::PostInitProperties()` should change from:
+
+```cpp
+UpdateSinglePropertyInConfigFile(GetClass()->FindPropertyByName(GET_MEMBER_NAME_CHECKED(UOculusXRHMDRuntimeSettings, SBCPath)), GetDefaultConfigFilename());
+```
+
+to:
+
+```cpp
+// UpdateSinglePropertyInConfigFile(GetClass()->FindPropertyByName(GET_MEMBER_NAME_CHECKED(UOculusXRHMDRuntimeSettings, SBCPath)), GetDefaultConfigFilename());
+```
+
+You will need to do this for all calls to `UpdateSinglePropertyInConfigFile` in the Meta XR plugin.
+
+We can't automatically workaround this for you in the Redpoint EOS Online Framework plugin. You will need to apply this fix until either:
+
+- The Meta XR plugin is updated to no longer call `UpdateSinglePropertyInConfigFile`.
+- Unreal Engine's implementation of `UpdateSinglePropertyInConfigFile` is fixed to no longer remove dynamic configuration layers.

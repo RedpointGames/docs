@@ -50,6 +50,7 @@ module.exports = {
         "support/troubleshooting/steaminvite",
         "support/troubleshooting/anticheat",
         "support/troubleshooting/room_transactions_throttled",
+        "support/troubleshooting/netdrivers_oculusxr",
       ],
     },
     "support/blueprints_only",
