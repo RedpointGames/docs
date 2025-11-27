@@ -234,7 +234,8 @@ You _must_ handle deferred purchases on Google Play. Also, you can not know when
 The `OnUnexpectedPurchaseReceipt` event fires:
 
 - When a deferred purchase moves to the `Purchased` state.
-- When a receipt is consumed or acknowledged via `FinalizePurchase` and removed from the `GetReceipts` array.
+- When a receipt is consumed via `FinalizePurchase` and removed from the `GetReceipts` array.
+- When a receipt is acknowledged via `FinalizePurchase` and moves to the `Restored` state.
 
 :::note
 The `TransactionId` field of a receipt is the `ReceiptId` to use in other functions.
@@ -264,7 +265,7 @@ There is no callback to pass into `FinalizePurchase`. You can know when the purc
 </TabItem>
 <TabItem value="blueprints">
 
-To consume a purchase, use the "Finalize Purchase" blueprint node.
+To acknowledge or consume a purchase, use the "Finalize Purchase" blueprint node. To acknowledge a purchase instead of consuming it, pass `acknowledge` as the Receipt Info.
 
 :::caution
 This function is not an asynchronous blueprint node, and it returns immediately even before the purchase has been consumed.
