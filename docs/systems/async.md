@@ -80,7 +80,7 @@ TTask<void> Delay(float Seconds)
 }
 ```
 
-With this function, developers can use `co_await` to wait some amount of time:
+With this function, callers can use `co_await` to wait some amount of time:
 
 ```cpp
 co_await Delay(1.0f); // Wait 1 second.
