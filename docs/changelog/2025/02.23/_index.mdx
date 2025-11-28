@@ -1,0 +1,29 @@
+### 2025.02.23
+
+This release continues our refactoring work, modernizing our networking code in preparation for OSSv2 support, and fixes several issues:
+
+- Fixed an issue where inbound P2P connections would continue to fail on console platforms even after Internet connectivity was restored.
+- Fixed an issue where MSVC could not compile the `RedpointEOSAsync` module on some compiler versions.
+- Fixed an issue that prevented Linux ARM64 dedicated servers from loading the EOS SDK.
+- Fixed an issue where the user's display name would use "Anonymous" on Meta Quest, instead of falling back to the user's Oculus ID.
+- Fixed a crash that could occur when the editor exits due to in-flight SDK requests from the Fab plugin.
+- Added an editor hint that tells you to install the external Meta XR plugin if you connect a Meta Quest device to Unreal Engine, but don't have the Meta XR plugin installed.
+- Moved networking code and related classes, including the `UNetDriver` implementation for EOS, to a separate `RedpointEOSNetworking` module to support OSSv2 in the future.
+
+If you are using the plugin on Unreal Engine 5.5 or later, or have "Automatically Configure Project for EOS" turned on in the Editor Preferences (this is the default), you don't need to make any changes when upgrading to this release.
+
+If you are using the plugin on Unreal Engine 5.4 or earlier and have "Automatically Configure Project for EOS" turned off in the Editor Preferences, you will need to manually update your INI files for the new networking driver paths:
+
+```ini
+[/Script/Engine.Engine]
+!NetDriverDefinitions=ClearArray
++NetDriverDefinitions=(DefName="GameNetDriver",DriverClassName="/Script/RedpointEOSNetworking.RedpointEOSNetDriver",DriverClassNameFallback="/Script/OnlineSubsystemUtils.IpNetDriver")
++NetDriverDefinitions=(DefName="BeaconNetDriver",DriverClassName="/Script/RedpointEOSNetworking.RedpointEOSNetDriver",DriverClassNameFallback="/Script/OnlineSubsystemUtils.IpNetDriver")
++NetDriverDefinitions=(DefName="DemoNetDriver",DriverClassName="/Script/Engine.DemoNetDriver",DriverClassNameFallback="/Script/Engine.DemoNetDriver")
+
+[/Script/Engine.GameEngine]
+!NetDriverDefinitions=ClearArray
++NetDriverDefinitions=(DefName="GameNetDriver",DriverClassName="/Script/RedpointEOSNetworking.RedpointEOSNetDriver",DriverClassNameFallback="/Script/OnlineSubsystemUtils.IpNetDriver")
++NetDriverDefinitions=(DefName="BeaconNetDriver",DriverClassName="/Script/RedpointEOSNetworking.RedpointEOSNetDriver",DriverClassNameFallback="/Script/OnlineSubsystemUtils.IpNetDriver")
++NetDriverDefinitions=(DefName="DemoNetDriver",DriverClassName="/Script/Engine.DemoNetDriver",DriverClassNameFallback="/Script/Engine.DemoNetDriver")
+```

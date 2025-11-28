@@ -46,12 +46,28 @@ export default function ImageFlicking({
   while (imageRows.length < 6) {
     for (const entry of images) {
       imageRows.push(
-        <img
-          src={entry.url}
-          key={imageRows.length}
+        <div
           className="flicking-item"
-          alt={entry.altText}
-        />
+          style={{ position: "relative", width: "100%" }}
+        >
+          <img src={entry.url} key={imageRows.length} alt={entry.altText} />
+          <div
+            style={{
+              position: "absolute",
+              bottom: "10px",
+              left: "10px",
+              backgroundColor: "rgba(0, 0, 0, 0.8)",
+              color: "white",
+              borderRadius: "10px",
+              maxWidth: "calc(100% - 20px)",
+              padding: "4px 10px",
+              backdropFilter: "blur(4px)",
+              boxShadow: "2px 2px 10px #000",
+            }}
+          >
+            {entry.altText}
+          </div>
+        </div>
       );
     }
   }

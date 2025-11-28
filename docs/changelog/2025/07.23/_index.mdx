@@ -1,0 +1,12 @@
+### 2025.07.23
+
+This release fixes several issues:
+
+- The plugin now automatically ensures that it is the default online subsystem.
+- Fixed a critical issue in the cross-platform friends database which resulted in saves occurring every 2 minutes, instead of only when there are active changes in the cross-platform friends database.
+- Fixed an issue where "recent player" entries would override unified friend entries, resulting in cross-platform invites failing to send.
+- Fixed an issue where the plugin would look in the incorrect folder when the EOS SDK has been placed under the project's `Plugins/` folder.
+- Fixed deprecation warnings emitted when building in Unreal Engine 5.6.
+- Fixed a crash that could occur when sessions were updating during game shutdown.
+- Added a 'source' attribute to friend entries for diagnostics. This attribute indicates whether the friend object is sourced from friend unification or the cross-platform friends database.
+- C++20 is now required.

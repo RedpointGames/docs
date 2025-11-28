@@ -1,0 +1,47 @@
+import ImageFlicking from "@site/src/ImageFlicking";
+
+import Image_20250729_FriendCode1 from "./friend_code_1.png";
+import Image_20250729_FriendCode2 from "./friend_code_2.png";
+import Image_20250729_FriendCode3 from "./friend_code_3.png";
+import Image_20250729_FriendCode4 from "./friend_code_4.png";
+import Image_20250729_FriendCode5 from "./friend_code_5.png";
+
+### 2025.07.29
+
+This release updates the "Minute of Mayhem" example project to demonstrate the "Add Friend by Friend Code" flow, and fixes several issues:
+
+<ImageFlicking
+  images={[
+    {
+      url: Image_20250729_FriendCode1,
+      altText:
+        "A screenshot of entering a friend code in the new 'Add Friend' section of the example project.",
+    },
+    {
+      url: Image_20250729_FriendCode2,
+      altText:
+        "A screenshot showing a friend having been located via a friend code, and a button to send a friend request.",
+    },
+    {
+      url: Image_20250729_FriendCode3,
+      altText:
+        "A screenshot showing the progress indicator when a friend request is being sent.",
+    },
+    {
+      url: Image_20250729_FriendCode4,
+      altText:
+        "A screenshot of the friend list showing an entry where the remote player is yet to accept the friend request.",
+    },
+    {
+      url: Image_20250729_FriendCode5,
+      altText:
+        "A screenshot of the friend list showing an incoming friend request, and the actions a player can take to respond to the friend request.",
+    },
+  ]}
+/>
+
+- The ["Minute of Mayhem" example project](/docs/examples/minute/index.mdx) now demonstrates how to implement "Add Friend by Friend Code" flow with cross-platform friends.
+- Fixed an issue where several functions for the friend list widget binding did not correctly indicate whether the action was appropriate for the friend list entry.
+- Fixed an issue where console clients could not join an Anti-Cheat protected dedicated server.
+- Fixed an issue where the Paid Edition download from the License Manager would not rebuild under Visual Studio if the build environment or SDK was different than the pre-built binaries.
+- Fixed an issue where post-staging hooks did not locate the EOS SDK correctly if it was placed in the project's Plugins folder.

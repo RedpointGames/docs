@@ -1,0 +1,12 @@
+### 2025.11.16
+
+This release adds support for Unreal Engine 5.7, EOS SDK 1.18.1.2, and routes voice chat audio through the engine:
+
+- Added support for Unreal Engine 5.7.
+  - Free Edition users will need to update their engine version when updating to this release.
+- Added support for EOS SDK 1.17.1.3, 1.18.0.4 and 1.18.1.2.
+  - Free Edition users will need to download and install the newer EOS SDK from the Epic Games Developer Portal when upgrading to this release. If you need to use an older EOS SDK version, please use the Paid Edition instead.
+- Voice chat audio is now captured and emitted through Unreal Engine, in preparation for supporting proximity voice chat in a _future release_.
+- Added the "Voice Chat Debugger" tool in the editor, which can be accessed from the "Tools" menu. This shows you the state of all voice chat channels and participants, and allows you to easily toggle voice chat settings while testing with play-in-editor.
+- Fixed an issue where voice chat did not activate the microphone correctly on iOS.
+- Fixed an issue where packaging with Anti-Cheat would fail if the staging directory was read-only.

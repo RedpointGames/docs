@@ -1,0 +1,314 @@
+### 2024.11.25 (Beta)
+
+:::caution
+Unreal Engine 5.5 removed APIs that the plugin was previously dependent on. To add support for Unreal Engine 5.5, we've had to make significant internal changes to the plugin. This release should be considered a beta release. **While it is suitable to upgrade to this release for in-development games, live/published games should remain on the previous version until the next stable release is available.** Please note that the following limitations apply:
+
+- While authentication works on Meta Quest, friend and invite functionality has not yet been reimplemented following the removal of `OnlineSubsystemOculus` in Unreal Engine 5.5.
+- Console platform support has not yet been updated to support this version of the main plugin. We'll make announcements in the private console support channels when each console platform is compatible again.
+
+You should consider upgrading to this beta release only in the following cases:
+
+- You require support for Unreal Engine 5.5.
+- You need compatibility with the Meta XR plugin.
+- You need one of the fixes outlined in the changelog below.
+
+This release has only been published on Fab for Unreal Engine 5.5. The binary releases for earlier Unreal Engine versions will remain at 2024.09.23 until the next stable release.
+:::
+
+This release adds support for Unreal Engine 5.5, adds support for EOS SDK 1.16.4, overhauls cross-platform friends and platform invites to parties/sessions and fixes several issues:
+
+- Added support for Unreal Engine 5.5.
+  - If you're using the Free Edition, you should start upgrading your project to Unreal Engine 5.5 now. 2024.09.23 is still a permitted version for existing Free Edition users who are using Unreal Engine 5.4, but you will need to upgrade to a newer plugin version in the future and this will require your project to be on Unreal Engine 5.5.
+  - If you need to continue using Unreal Engine 5.4, you can switch to using the Paid Edition instead.
+- Added support for EOS SDK 36651368-v1.16.4.
+  - Free Edition users will need to download and install the newer EOS SDK from the Epic Games Developer Portal when upgrading to this release. If you need to use an older EOS SDK version, please use the Paid Edition instead.
+- Extraction of the Developer Authentication Tool ZIP is now handled entirely in C++, and the shell scripts have been removed. This should significantly improve the reliability of extracting the Developer Authentication Tool when it is launched for the first time.
+- The platform-specific authentication graphs have been replaced with the `Runtime Platform` authentication graph, which is now smarter when it comes to determining the correct authentication method to use on a given platform or store. The plugin no longer relies on the OSSv1 code provided by Epic Games for determining the authentication platform.
+  - If you want to override the platform that the game will authenticate with, you can set the `AuthServiceOverride` configuration value under the `[EpicOnlineServices]` section of `DefaultEngine.ini`. You should not need to do this; please let us know in a support ticket if you do so that we can improve the code that determines the authentication platform automatically. The valid values for `AuthServiceOverride` are `Steam`, `RedpointDiscord`, `GOG`, `RedpointItchIo`, `Apple` and `GooglePlay`.
+  - The default authentication graph can no longer select Discord as the default authentication method. Previously this could only occur if you launched the game via the Discord Game Store, which has not been available for several years now. If you want to authenticate via Discord, set `AuthServiceOverride=RedpointDiscord` in the `[EpicOnlineServices]` section of `DefaultEngine.ini`.
+  - **Note:** Documentation will be updated to reflect these changes in the next stable release. Since this beta release is only being published for Unreal Engine 5.5, our existing authentication documentation is remaining unchanged for customers using the previous stable release on Unreal Engine 5.4.
+- Added [modern C++ APIs for interacting with Player Data Storage and Title Storage](/systems/storage.md), via the new `IStorageSystem` interface.
+- Added [modern C++ APIs for interacting with friends, recent players, blocked players and the cross-platform friends database](/systems/friends.md), via the new `IFriendSystem` interface.
+- You no longer need to call `ReadFriendsList`, `QueryRecentPlayers` or `QueryBlockedPlayers` on the `IOnlineFriends` OSSv1 interface. Friends, recent players and blocked players are now queried as part of the login process, and kept up-to-date automatically by the plugin.
+- The `eosSynthetic.subsystemNames` attribute on friends has been renamed to `runtimePlatform.platformNames`; the behaviour is otherwise the same.
+- The `eosSynthetic.friend.<subsystemName>.<attribute>` attribute on friends has been renamed to `runtimePlatform.friend.<platformName>.<attribute>`; the behaviour is otherwise the same.
+- Session results from `IOnlineSession` now correctly set the `OwningUserId` when the session is owned by a player (and not a dedicated server).
+- Fixed an issue where internal phases of the login and logout process would unintentionally run in parallel when they should have run in sequence.
+- Fixed an issue where internal phases of presence synchronisation with the local platform would unintentionally run in parallel when they should have run in sequence.
+- Fixed an issue where `IOnlinePartySystem` would not fire the "party data changed" and "party member data changed" events if no changes were made. The OSSv1 APIs for parties do not have a completion delegate for `UpdatePartyData` and `UpdatePartyMemberData`, so these events needed to always fire for Online Subsystem Blueprints to detect completion.
+- Fixed an issue where `IOnlinePartySystem` would not fire the "party data changed" event under all scenarios. For example, it did not fire when the maximum number of members changed, or when presence/invite permissions were changed.
+- Fixed a potential crash when retrieving presence data of Steam friends.
+- Fixed a potential crash when handling incoming socket connections where the notification object was not valid.
+- Fixed a crash if the HTTP request when downloading a Steam avatar failed without a response.
+- Fixed a crash in the simple first-party cross-platform account provider that only occurred in Shipping builds.
+- Fixed an issue where enabling Meta Quest support on Windows would result in a hard dependency on `LibOVRPlatform64_1.dll`, even when deploying to platforms such as Steam. The plugin now gracefully handles `LibOVRPlatform64_1.dll` not being present, in which case authentication through Meta Quest is not available.
+- Fixed an issue where invites on Steam could not be accepted due to the plugin not setting `BuildUniqueId` of the synthetic Steam session correctly.
+- Fixed an issue where the cross-platform presence system would call the completion delegate twice when removing room advertisements on the local platform.
+- Fixed an issue where presence message connections would not be cleaned up correctly on hosts when the client is the one initiating the disconnection.
+- Fixed a crash that could occur when the plugin was forcibly signing the local user out due to an unexpected logout event from the SDK.
+- For Unreal Engine 5.5 and later, fixed an issue where the plugin would cause comments to be removed from configuration files when either performing auto-configuration, or when you changed Project Settings. Comments and configuration setting order is now preserved when configuration is changed.
+- Added a "Config Inspector" tool to the editor for Unreal Engine 5.5 and later, which shows the full configuration hierarchy that is currently loaded. This is intended to be used an internal debugging tool.
+- Search paths for the EOS SDK are now unified between the build system (which uses the headers and links against libraries) and the editor (which launches the Developer Authentication Tool). Search paths are stored in the `RedpointEOSSDK/RedpointEOSSDKInfo.json` file. This should improve consistency between the build system and the editor.
+- Added support for a modified version of the Fab plugin in Unreal Engine 5.4 [on GitHub](https://github.com/RedpointGames/UnrealEngine/). Due to the way GitHub works, you must request access to this repository via a support ticket. We plan to improve compatibility with the Fab plugin in Unreal Engine 5.5 and later in the next stable release of the plugin.
+- Added a build-time warning when the plugin detects that console support has been incorrectly copied into the main plugin folder. Console support code must remain in a folder separate from the main plugin code.
+
+### 2024.09.23
+
+This release fixes several issues:
+
+- Fixed an issue where the Developer Authentication Tool could not be extracted when using the latest EOS SDK.
+- Fixed an issue where events would not fire if the user was unexpectedly signed out.
+- Fixed an extremely subtle login stall that could happen when multiple play-in-editor windows are signing in at the same time.
+- Fixed an issue where voice channels for voice-enabled parties would not appear when calling `GetChannels`.
+- Fixed an issue where dedicated servers would not start up when "Require Epic Games Launcher" is enabled.
+- Fixed an issue where console commands for the identity system did not work. These console commands have been replaced with [new console commands](/tools/console_commands.mdx).
+
+### 2024.09.10
+
+This release improves the developer experience in the editor with regard to localised presence, and fixes several issues:
+
+- Added support for calling `GetSourceDisplayName` on party join info instances received from invites. You no longer need to use `IOnlineUser` to query the user information for the sender of an invite if you're just looking to get their display name.
+- The presence system will now automatically enable game localization preview in the editor upon sign in, so that localised presence values work in the editor without game localization preview having to be turned on manually.
+- Documented how to pass [dynamic data into presence statuses](/ossv1/presence/updating.mdx#setting-status-properties-for-localised-presence) when updating presence for a local user.
+- Fixed an issue where presence was not updated correctly in the Epic Games overlay.
+- Fixed an issue where localized text strings were not passed to the Steam subsystem correctly.
+- Fixed a crash on Android mobile phones after signing into the game.
+- Fixed an issue where Google Play integration would not be removed from the build after switching a project to target Meta Quest instead.
+- Fixed an issue where the `EOS_TimedOut` result code did not result in an automatic retry with exponential backoff.
+
+### 2024.09.05
+
+:::caution
+As of this release, the `StatusStr` value provided to `IOnlinePresence::SetPresence` must now a [localisable text key](/ossv1/presence/updating.mdx#setting-up-localisation) in the form `<Namespace>_<Key>` to ensure your game is compatible with platforms such as Steam that require localisable presence statuses.
+:::
+
+This release continues our [room system and refactoring work](https://redpoint.games/blog/2024/07/eos-online-subsystem-roadmap-update-2024/), introduces cross-platform presence, enables the new party system, adds support for friend codes, overhauls the example projects and fixes several issues:
+
+- Added support for EOS SDK 35276460-v1.16.3 and removed support for EOS SDK versions prior to 1.16.0.
+  - Free Edition users will need to download and install the newer EOS SDK from the Epic Games Developer Portal when upgrading to this release. If you need to use an older EOS SDK version, please use the Paid Edition instead.
+- Added a new cross-platform presence system, which allows players to see when friends are online, regardless of the platform you're running on and without requiring Epic Games accounts.
+  - **Breaking Change:** To ensure your game is compatible with platforms that require localised presence (such as Steam), the `StatusStr` parameter provided when calling `IOnlinePresence::SetPresence` must now be a [localisable text key](/ossv1/presence/updating.mdx#setting-up-localisation) in the form `<Namespace>_<Key>`. For example, `NSLOCTEXT("A", "B", "My Text")` maps to a value of `A_B` when setting the `StatusStr` parameter. You must ensure that the localisable text keys are cooked into your game via the localisation Project Settings, otherwise the cross-platform presence system will not be able to convert the text keys back into text when presence statuses are received.
+  - This cross-platform presence system means that devices such as Meta Quest now have access to presence.
+  - You can also access the presence system with modern C++ APIs via `IPresenceSystem`:
+    - [Updating and retrieving cross-platform presence](/systems/presence.md)
+- We've added support for friend codes, which you can use to look up user IDs without needing to run your own API.
+  - To access the local user's friend code, [read the `friendCode` authentication attribute](/ossv1/identity/user_attributes.mdx#authentication-attributes-fuseronlineaccount-only) on the `FUserOnlineAccount` object, or call [`IPresenceSystem::GetFriendCode`](/systems/presence.md#access-a-local-users-friend-code).
+  - To resolve a friend code to a user ID, call [`IOnlineUser::QueryUserIdMapping`](/ossv1/user/displayname.mdx#query-a-user-by-their-friend-code) and pass `FriendCode:<Friend Code>` as the `DisplayNameOrEmail` parameter, or call [`IPresenceSystem::FindByFriendCode`](/systems/presence.md#resolve-a-friend-code-into-a-user-id).
+  - Friend codes are generated on login and are not persisted.
+  - When resolving friend codes to user IDs, multiple users may match in extremely popular games. It is recommended you use `IPresenceSystem::FindByFriendCode` in these cases as it can return multiple user IDs for the player to pick from, whereas `IOnlineUser::QueryUserIdMapping` will only return the first matching user.
+- The [example projects for the Redpoint EOS Online Framework and Online Subsystem Blueprint plugins](/docs/examples/index.mdx) have been fully replaced with modern versions.
+  - These new example projects remove the complexity of the "task" system that was present in previous versions, making it much clearer what code is relevant for accessing online subsystems.
+  - Because the task system has been removed, it is now safe to copy the example project code and blueprint assets into your own projects.
+  - To use these new example projects, you must also install the free [Online API Explorer](https://www.fab.com/listings/c8f408b5-ae61-4465-bb6f-a51f587b809b) plugin from Fab or [download it from our GitLab instance](https://src.redpoint.games/redpointgames/online-api-explorer).
+- The new party system code has been enabled by default and the previous `ONLINE_SUBSYSTEM_EOS_ENABLE_OSS_INDEPENDENT_CODE` setting has been removed. You can remove this from your `ProjectDefinitions` if you were previously using it to opt into the party system.
+  - `IOnlinePartySystem::GetAdvertisedParty` is now implemented and uses the cross-platform presence system to retrieve this data.
+  - Parties can now be joined and left from the Epic Games overlay.
+  - Fixed an issue where party events would sometimes not fire.
+  - Fixed an issue where `UpdatePartyData` and `UpdatePartyMemberData` could crash if passed a non-shared data instance.
+  - Fixed an issue where party configuration would not be the same on all clients.
+  - To search for parties via the `IOnlineLobby` interface, you must now set the search parameter `bucket` to a value of `Parties`.
+- Project Settings is now clearer that you should enter the Live sandbox and deployment IDs, and not the sandbox and deployment IDs for the Dev or Stage environments.
+- When a game is launched via the Epic Games Store, the `-epicsandboxid=` and `-epicdeploymentid=` parameters are now used for the sandbox and deployment instead of those configured in Project Settings. This allows the same game build to work across the Dev, Stage and Live environments on the Epic Games Store.
+- Added `OnStartSystem` and `OnStopSystem` hooks to [`IIdentitySystemHook`](/systems/identity.md#hooking-into-the-identity-system). These can be used to reliably start and stop background tasks in response to local users sign in and out.
+- Fixed an issue where a confidential platform would attempt to load `RedpointEOSPlatformDesktop`.
+- `FPlatformHandle::GetService<T>()` has been replaced with `FPlatformHandle::GetSystem<T>()` to match the naming convention of the interfaces.
+- The staging hook installation script now assumes Unreal Engine 5, which fixes an issue where it could assume Unreal Engine 4 when building the engine from source.
+- Fixed a crash that could occur if a session was destroyed at the same time `UpdateSession` was called.
+- Fixed an issue where if a lobby owner only updated their member attributes, the backend would not be notified of the new attributes and the EOS SDK and backend would become inconsistent with each other.
+- Fixed the `OnVoiceChatAvailableAudioDevicesChanged` event not firing.
+- Fixed a potential crash in sanction checks during network authentication if the server has not had `AutoLogin` called.
+- Fixed an issue where the user ID registry for OSSv2 could crash if an invalid `EOS_ProductUserId` was passed to it.
+- Fixed an issue where beacons could unexpectedly close if a client has multiple beacons.
+- Fixed an issue where the plugin could be unexpectedly rebuilt by UBT every build when installed in the engine.
+- Fixed an issue where the authentication graph could stall if it need to sign out an Epic Games account in response to a profile conflict during linking.
+- Fixed an issue where calling `IOnlineIdentity::Logout` did not sign the local user out of EOS Connect and did not sign the user out of the Epic Games overlay.
+- Fixed an issue where the Developer Authentication Tool would not be extracted properly.
+- Fixed a compilation error that would occur when building the editor for Linux.
+- Fixed a compilation error that would occur when building for the Test configuration.
+- Fixed a runtime issue where a missing `xaudio2_9redist.dll` during build would result in the EOS SDK failing to start. If this file is missing, a build error is now issued instead.
+
+### 2024.07.10
+
+This release continues our [room system and refactoring work](https://redpoint.games/blog/2023/11/updates-for-eos-online-subsystem-in-2024/) and fixes several issues:
+
+- Added the new `IIdentitySystem` service and related C++ APIs specific to Epic Online Services. These APIs provide a modern experience for interacting with the EOS SDK in C++, and are documented as follows:
+  - [Signing local users in and out](/docs/systems/identity.md)
+- Updated `IOnlineIdentity` to use the new `IIdentitySystem` service internally.
+- Fixed some public types in `RedpointEOSAuth` not being declared with `REDPOINTEOSAUTH_API`.
+- Fixed ambiguous C++ type resolution errors that could rarely occur for some developers due to the way C++ namespaces and unity C++ compilation interact.
+- Fixed an issue where some modules were incorrectly declared to build for the `TVOS` platform. The plugin does not support tvOS, as the EOS SDK does not support it.
+- Fixed an issue where editor features of the plugin were not available when using the editor on Linux.
+- Fixed an issue where 'Remote Mac' builds for building iOS on Windows would not work due to `SupportedVersions.json` not being copied to the remote macOS machine.
+- Fixed an issue where 'Remote Mac' builds for building iOS on Windows could fail due to the build system selecting an EOS SDK with only partially copied files. In order to use 'Remote Mac' builds for iOS, you'll need to [install the EOS SDK on the remote macOS machine](/setup/index.mdx#installing-the-eos-sdk) in a global location such as the 'Downloads' directory.
+
+### 2024.06.25
+
+This release is a resubmission to the Unreal Engine Marketplace, to address an issue where long paths prevented publishing. There is no Free Edition release for this version, as the Free Edition was not impacted by the issue. Free Edition users can continue to use 2024.06.20.
+
+- Fixed an issue where the `RedpointEOSPlatformIntegrationOnlineSubsystem` module name caused filepaths to exceed the maximum limit of 260 characters on Windows. This internal module has now been renamed `RedpointEOSPlatformIntegrationOSSv1`.
+- Removed `RedpointEOSBuild.ApplyEngineVersionDefinesToModule`. If you have been relying on this call, update your module's private module dependencies to include `RedpointEOSBuild` and `OnlineSubsystemRedpointEOS` instead.
+- The implementation of `IOnlineAvatar` now uses the new `IUserCacheSystem` service internally. There should be no impact or changes visible to developers or players.
+
+### 2024.06.20
+
+This release continues our [room system and refactoring work](https://redpoint.games/blog/2023/11/updates-for-eos-online-subsystem-in-2024/), adds new C++ APIs specific to Epic Online Services, and fixes several issues:
+
+- Added the new `IUserCacheSystem` service and related C++ APIs specific to Epic Online Services. These APIs provide a modern experience for interacting with the EOS SDK in C++, and are documented as follows:
+  - [Introduction to EOS-specific C++ APIs and systems](/docs/systems/index.md)
+  - [Using the memory safe EOS SDK APIs provided by the Redpoint plugin](/docs/systems/api.md)
+  - [Converting user IDs from online subsystem types](/docs/systems/user_id.md)
+  - [Retrieving information about EOS users and Epic Games accounts](/docs/systems/user_cache.md)
+- Added the `RequireOnlinePlayUserPrivilege` configuration option, which makes the default authentication graph check that the local user has the `EUserPrivileges::CanPlayOnline` privilege on the local subsystem before proceeding with authentication. This can be used to ensure that console games are compliant with "online subscription" checks prior to login.
+- Added a check that detects when the Google Play Services component on an Android device is out-of-date, preventing Google authentication from working. The plugin will now return a more helpful error message that instructs the player to upgrade Google Play Services on their phone.
+- Players who are automatically sanctioned by Easy Anti-Cheat and have the `RESTRICT_GAME_ACCESS` sanction applied will now be prevented from joining multiplayer servers. You no longer need to apply the custom `BAN` sanction specifically.
+- Fixed compatibility with EOS SDK 1.15.4.
+- Fixed an issue where e-commerce operations on Steam could stall or crash in Shipping builds.
+- Fixed an issue where the staging hooks were not compatible with non-Windows platforms.
+- Fixed compatibility when using Clang to compile for the Windows platform.
+- Fixed an issue where calling `GetPresence` on Steam friends could result in a crash.
+- Fixed an issue where dedicated servers were unable to call Title File APIs.
+- Fixed an issue where `OnVoiceChatAvailableAudioDevicesChanged` event did not fire.
+- Fixed an issue where an unnecessary call to `IPluginManager::Get().FindPlugin()` caused a crash in packaged games in very specific environments.
+- Fixed an issue that prevented iOS games from loading the EOS SDK.
+- Fixed an issue where rejecting a party invite would result in rate limiting.
+- The plugin will now provide better error messages in the log when platform-specific modules fail to load.
+- Updated the "UEOSNetDriver not available" error message to make it clear that the real error message related to the EOS SDK failing to load will be located at the top of the log file.
+- Updated the implementation of the `IOnlineUser` interface to use the new `IUserCacheSystem` APIs.
+  - User accounts returned by the `IOnlineUser` interface will now include Epic Games account information, when the local user is signed into an Epic Games account and the target user has an Epic Games account linked.
+- Added a new implementation of the `IOnlinePartySystem` interface that uses the room system APIs.
+  - This implementation is not yet enabled by default, as it does not currently support advertising EOS parties sythentically on Steam or other local platforms. It will be enabled by default in the future once synthetic party support is restored.
+  - If you are [not using synthetic parties](/ossv1/presence/parties.mdx) and wish to opt into the new implementation, add the following to your `.Target.cs` files: `ProjectDefinitions.Add("ONLINE_SUBSYSTEM_EOS_ENABLE_OSS_INDEPENDENT_CODE=1");`
+
+### 2024.05.01
+
+This release adds support for Unreal Engine 5.4 and fixes several issues:
+
+- Added support for Unreal Engine 5.4.
+  - If you're using the Free Edition, you should start upgrading your project to Unreal Engine 5.4 now. 2024.04.22 is still a permitted version for existing Free Edition users who are using Unreal Engine 5.3, but you will need to upgrade to a newer plugin version in the future and this will require your project to be on Unreal Engine 5.4.
+  - If you need to continue using Unreal Engine 5.3, you can switch to using the Paid Edition instead.
+- Fixed an issue where optional platform modules were automatically loaded by the engine, causing a launch error even when they should not block loading.
+- Fixed an issue where required platform modules were not forced to load.
+- Fixed an issue where the Google Play support code could fail to compile due to missing `final` specifiers. This issue appeared to only affect a small number of build environments.
+
+### 2024.04.22
+
+This release adds support for EOS SDK 1.16.3 and fixes several issues:
+
+- Added support for EOS SDK 1.16.3.
+  - Free Edition users will need to download and install the newer EOS SDK from the Epic Games Developer Portal when upgrading to this release. If you need to use an older EOS SDK version, please use the Paid Edition instead.
+- Added an option in Project Settings to turn off the Epic Games overlay, even for players who are signed in with Epic Games accounts.
+- Fixed an issue where games packaged for Android on mobile would incorrectly try to access the Oculus subsystem, resulting in a crash.
+- Fixed an issue where the Developer Authentication Tool could not be used in packaged games. The Developer Authentication Tool also now appears as an option for the Authentication Graph setting in Project Settings.
+- Fixed an issue where the updated signature of "Add Widget to Viewport" and "Remove Widget from Viewport" meant that widgets could not be added to the viewport via blueprints. These functions have been changed back to use `UUserWidget` again.
+- Fixed an issue where existing projects would not use the new default Slate-based widgets for sign in or PIN code entry.
+
+### 2024.04.12
+
+This release fixes high priority issues that were introduced in 2024.04.05:
+
+- The plugin will now show an editor hint if your game code uses `IOnlineSubsystem::Get()` or `Online::Get...()` APIs without a world context and then calls `AutoLogin` on them. You must use `Online::GetSubsystem(this->GetWorld())` in order for your code to be compatible with play-in-editor.
+- Fixed an issue where project files could not be generated due to optional plugins not being present.
+- Fixed an issue where persistent authentication for Epic Games accounts did not work.
+- Fixed an issue where Steam authentication did not work, due to integration calls being omitted on startup.
+- Fixed an issue where the "Steam Web API key missing" error would be repeatedly logged.
+- Lowered EAC logs on dedicated servers from `Verbose` to `VeryVerbose` due to the frequency at which they're logged.
+
+### 2024.04.05
+
+This release adds support for EOS SDK 1.16.2, experimental support for Unreal Engine 5.4 Preview 1, and fixes several issues:
+
+- Added support for EOS SDK 1.16.2.
+  - Free Edition users will need to download and install the newer EOS SDK from the Epic Games Developer Portal when upgrading to this release. If you need to use an older EOS SDK version, please use the Paid Edition instead.
+- Added experimental support for Unreal Engine 5.4 Preview 1.
+- Added experimental compatibility with Iris networking.
+- Fixed an issue where a project built for Meta Quest would incorrectly include Google Play related code on Unreal Engine 5.3. The build server has been updated to package a test project for both Quest and Google Play to ensure Android packaging code does not regress in future.
+- Fixed an issue where UBT would emit warnings due to unreachable code in the `.Build.cs` files.
+- Fixed an issue where building for iOS would fail if the EOS SDK library had the quarantine bit set on newer versions of macOS.
+- Fixed an issue where Steam e-commerce operations could stall indefinitely if concurrent requests were made, or if the local player did not have any item definitions to load.
+- Fixed an issue where Recent Players would not add newer players once the player count reached 100, due to an incorrect sort predicate.
+- Fixed an issue where the `authenticatedWith` authentication attribute was not correctly set if the user authenticated with Oculus.
+- Fixed an issue where synthetic invites would incorrectly return an error if the target friend was an Epic Games friend. The invite would still be correctly sent, but the invite call returned an error result even on success.
+- Fixed an issue where sessions could not be searched for in the Lyra example, due to old engine version guards that were not removed.
+  - Engine version guards have been changed from `defined(UE_X_Y_OR_LATER)` to `REDPOINT_EOS_UE_X_Y_OR_LATER`. If you are relying on our internal engine version defines, it is recommended that you set your own engine version defines instead.
+- Fixed an issue where `IOnlineIdentity::GetPlatformUserIdFromLocalUserNum` and `IOnlineIdentity::GetLocalUserNumFromPlatformUserId` did not return the correct values.
+- Fixed an issue where authentication could stall indefinitely if multiple users had `AutoLogin` called concurrently in the same process. This affected play-in-editor scenarios where "login before PIE" is turned off, and split-screen games that sign in multiple local users at the same time.
+- Moved the authentication graph and cross-platform account provider classes to a separate `RedpointEOSAuth` module, in preparation for implementing OSSv2 APIs.
+- Updated the documentation on Epic Games friends to reflect that friends are not returned by the EOS SDK if they have not yet played the game, even for games that have been purchased on the Epic Games Store.
+- Removed the old "Authorize Epic Games Account" button from the toolbar. Using this flow has not been required since EOS SDK 1.15.5.
+
+### 2024.03.13
+
+This release fixes a few issues reported in the previous release:
+
+- Fixed an issue where some template classes in RedpointEOSRooms incorrectly had `REDPOINTEOSROOMS_API`. This caused linker errors during compilation for some developers.
+- Fixed a few IWYU (include-what-you-use) compilation errors that impacted Marketplace submission.
+
+### 2024.03.11
+
+This release introduces the first pass of the [new room system](https://redpoint.games/blog/2023/11/updates-for-eos-online-subsystem-in-2024/), upgrading the IOnlineLobby interface to use the new implementation:
+
+- IOnlineLobby now uses the new room system implementation, which allows developers to retrieve lobby members from search results again in EOS SDK 1.16.0 and later.
+- The Matchmaking plugin is now able to be used with EOS Online Framework 2024.03.09 and EOS SDK 1.16.0 and later. If you are currently using EOS SDK 1.15.4 due to the regression in 1.16.0, you can now upgrade the EOS SDK as the plugin provides the "see members of lobby search results" feature required for Matchmaking to work.
+- Fixed an issue where packaging for Meta Quest on Unreal Engine 5.3 resulted in errors, due to Google Play code being incorrectly included in the compilation.
+- Fixed an issue where an unintended warnings-as-error would be enabled for modules that are not yet compatible, specifically when compiling for console platforms.
+- There are also some changes that are primarily internal to the plugin, but may impact you if you reference plugin headers:
+  - The locations of some plugin headers inside `Public` and `Shared` have changed. If you are referencing plugin code directly, you may need to update your `#include` directives to the new paths.
+  - Significantly increased the number of EOS SDK APIs covered in RedpointEOSAPI. This module is still considered experimental; you could use these more modern bindings in game code, but you should expect that there might be slight changes to the public API surface in future.
+  - Implemented support for OSSv2 user IDs through the `IOnlineAccountIdRegistry` interface. OSSv2 user IDs are used internally in the room system.
+
+### 2024.02.19
+
+This release fixes several issues:
+
+- Fixed an issue where the Free Edition could not be used in C++ projects, due to the `.Build.cs` files being omitted from 2024.02.06 onwards.
+- Fixed an issue where enumeration-based settings in Project Settings would not load or save correctly.
+- Fixed an issue where the staging hook installation could revert engine changes made by Git or Perforce.
+- Reduced "Dropping auth status change notification on server" logs to VeryVerbose level.
+
+### 2024.02.08
+
+This release fixes a few urgent issues reported in 2024.02.06:
+
+- Fixed an issue where Anti-Cheat clients could not connect to game servers at all, and extended our functional test suite to ensure that clients are able to fully connect to game servers after the EAC negotiation has completed.
+- Fixed an issue where the "backend unreachable" editor hint would appear when it should not.
+- Potentially fixed an issue where players on Android would be prompted to sign into their Google account every time, instead of automatically signing them in with the account they previously used.
+- Removed all legacy 4.27-related code from the plugin.
+
+### 2024.02.06
+
+This release fixes issues and continues our [internal refactoring work to better support sessions and lobbies moving forward](https://redpoint.games/blog/2023/11/updates-for-eos-online-subsystem-in-2024/):
+
+- Added the Cloud Messaging Hub to replace the existing P2P messaging layer for the cross-platform friends database.
+  - The existing messaging implementation uses EOS P2P to communicate friend invites across platforms. This implementation will be phased out in the future, as it can cause excessive load on the EOS infrastructure when your game has a significant number of players and a significant number of pending invites for players that are currently offline.
+  - The replacement messaging implementation requires deploying a "Cloud Messaging Hub" onto Google Cloud and configuring your project to connect to the endpoint. The implementation is extremely efficient and it is expected most small projects will incur no costs under the Google Cloud Run free tier.
+  - Migrating to the Cloud Messaging Hub at this time is recommended for games that foresee having a large number of concurrent players (greater than 1000). In future, all projects will be required to migrate to the new implementation.
+  - To deploy the Cloud Messaging Hub:
+    1. [Clone the CMH source code from GitLab](https://src.redpoint.games/redpointgames/eos-online-subsystem/-/tree/main/Extras/CloudMessagingHub?ref_type=heads).
+    2. Ensure you have a [Google Cloud account](https://cloud.google.com/) and have authorized your local computer with the Google Cloud SDK.
+    3. In a terminal, run `set EOS_CLIENT_IDS=...`, replacing `...` with a comma-separated list of client IDs that your game uses as per the EOS Developer Portal.
+    4. Run `dotnet run` inside the `cmh-deploy` folder to deploy the Cloud Messaging Hub onto Google Cloud.
+    5. In your `DefaultEngine.ini`, set the `CloudMessagingHubUrl="wss://<domain>/messaging/v1"` configuration option, replacing `<domain>` with the hostname that `cmh-deploy` displays after deployment.
+  - More detailed documentation will be available on this topic in the future closer to the phase out of the P2P messaging implementation.
+- Added API version 2023-10-27, after which `IsPlayerMuted` only reports the local mute status of remote players, instead of their remote mute status. This ensures that this function only reports the value that has been set locally through `SetPlayerMuted`.
+- Fixed issues where clients on trusted console platforms could not connect to Easy Anti-Cheat protected servers.
+  - We've added new automation tests to catch issues with EAC and trusted clients, and have added documentation on [platform compatibility](/setup/networking/anticheat.mdx#platform-compatibility) with verifying EAC protection status of game clients.
+- Fixed support for the experimental "Late Join" play-in-editor feature of the Unreal Editor.
+- Fixed a crash that could occur when DestroySession was called when the internal SessionInfo data of the session had already been released.
+- Attempt to fix an issue where clients and servers could destroy the wrong EAC session when a client connects from one server to another without passing through standalone mode.
+- Fixed an issue where inconsistent synthetic session and synthetic party names led to synthetic invites not working on some console platforms.
+- Fixed an issue where a system-wide installation of .NET 8 would result in build failures when patching UnrealBuildTool, due to newer versions of the .NET SDK having additional build checks. The plugin will now always attempt to use the .NET SDK that ships with the engine instead of the system-wide installation.
+- Fixed an issue where the Recent Players section of the cross-platform friends database could grow without limit. The Recent Friends list is now limited to 100 players, with the oldest players automatically removed from the list when the database is saved.
+- Fixed an issue where application and network lifecycle handlers were not registered correctly on console platforms.
+- Internal refactoring to support OSSv2 means that the EOS SDK instances are now managed by the `RedpointEOSCore` module. If you directly call the EOS SDK you can continue to access it via the online subsystem, or you can use the headers in `RedpointEOSCore`.
+- Updated the staging hook installation to check if `SkipStagingHookInstallation=True` is set in `DefaultEngine.ini` of the project. If you have this configuration value set, staging hooks will not be patched into UnrealBuildTool, which can be a workaround if they are preventing your project from building.
+- Fixed an issue where muting and unmuting voice chat could result in rate limiting on SDK 1.16.1.
+- Fixed an issue where rapidly muting and unmuting a player's voice input could cause an increase in voice chat latency.
+- Fixed an issue where `ConvertError` APIs had incorrect linkage.
+- Fixed an issue where the voice chat login callback delegate would be called multiple times.
+- Fixed build compatibility with EOS SDK 1.15.1.
+- Fixed an issue where Android would not package correctly due the browser dependency version.
+- Fixed an issue where querying the voice chat devices would cause frame hitching. The plugin now queries voice chat devices asynchronously when using EOS SDK 1.16.0 or later.
+- Fixed an issue where voice chat settings would be set to the inverse of what they were expected to be.
+- Fixed an issue where the voice chat settings would be synchronised more than once per frame.
+- Renamed the log categories in the plugin to ensure that they do not cause the editor to assert if the project incorrectly has the Epic Games plugin enabled at the same time.
+- The Free Edition now excludes all source folders, so that we can eventually move the contents of `Shared` back into the `Public` folder for `OnlineSubsystemRedpointEOS` and simplify header inclusion for Marketplace customers that want to use the OSS APIs directly.

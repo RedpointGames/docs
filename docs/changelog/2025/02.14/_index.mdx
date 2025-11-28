@@ -1,0 +1,38 @@
+import ImageFlicking from "@site/src/ImageFlicking";
+
+import Image_20250214_EarlyPreview1 from "./early_preview_1.png";
+import Image_20250214_EarlyPreview2 from "./early_preview_2.png";
+
+### 2025.02.14
+
+This release adds support for EOS SDK 1.17.0, introduces an early preview of the Redpoint EOS Framework and several other features:
+
+<ImageFlicking
+  images={[
+    {
+      url: Image_20250214_EarlyPreview1,
+      altText:
+        "An actor derived from the new party member actor in the Redpoint EOS Framework, with skeletal mesh and text rendering components set up.",
+    },
+    {
+      url: Image_20250214_EarlyPreview2,
+      altText:
+        'The blueprint graph listening for "Event PartyMemberChanged" and adjusting the visibility of the skeletal mesh and text rendering components if the party member is present.',
+    },
+  ]}
+/>
+
+- Added support for EOS SDK 39599718-v1.17.0.
+  - Free Edition users will need to download and install the newer EOS SDK from the Epic Games Developer Portal when upgrading to this release. If you need to use an older EOS SDK version, please use the Paid Edition instead.
+- Introduced an **early preview** of the Redpoint EOS Framework, which provides pre-made actors and components for faster prototyping of multiplayer games.
+  - You can use the new `Redpoint EOS Starter Game Mode` which gives you a character controlled by WASD / space-bar inputs and a third-person camera view.
+  - These starter components use Enhanced Input. To override the input controls or actions, you can create a new blueprint that inherits from `Redpoint EOS Starter Player Controller`, and select your derived implementation as an override on the game mode.
+  - Added the `Redpoint EOS Party Member` actor, which lets you easily display party members in your main menu world.
+    - You can create a new blueprint that inherits from this actor, and override the `Party Member Changed` event. When the local player joins or leaves their primary party, or when the members in the primary party change, this event will fire with all of the information about that party member, such as the person's display name and party attributes.
+    - The `Party Member Slot` variable on the actor indicates which party member that actor represents; i.e. `0` for the first member of the party, `1` for the second member of the party and so on.
+    - It is expected that your derived blueprint will add skeletal mesh and text components, and use the `Party Member Changed` event to toggle their visibility and other rendering settings to render a party member when they're present.
+  - Further documentation on the Redpoint EOS Framework, as well as example projects demonstrating the features, will be available in a future release.
+- Added support for Linux ARM64 dedicated servers.
+- Internally moved Anti-Cheat code to a separate module to support OSSv2 in the future. This is an internal change and should have no impact on game developers.
+- Internally moved dedicated server orchestration support to a separate module to support OSSv2 in the future. This is an internal change and should have no impact on game developers.
+- Moved all remaining itch.io code from the itch.io OSSv1 module to a runtime platform integration. If you have any game code currently referencing `RedpointItchIo` as an online subsystem, you will need to use the EOS interfaces instead, which will delegate their functionality to itch.io when running on that platform.

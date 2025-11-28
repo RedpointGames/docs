@@ -1,0 +1,216 @@
+### 2020.12.17
+
+This release is only for the Free Edition, and updates the targeted SDK to 1.10.1.
+
+Typically we'd release an update for all editions when a new EOS SDK version comes out, but it's only about a day until the Christmas break where we close until January. Thus, we need to mitigate as much of the risk associated with doing a new release as possible.
+
+This _optional_ update for the Free Edition is intended for users who can now only download EOS SDK 1.10.1 from the developer portal, as Epic Games does not make older versions of the EOS SDK available for download. If you are an existing Free Edition user, you can continue using 2020.12.16 with EOS SDK 1.10.
+
+- This release is not a mandatory upgrade if you're on the Free Edition. You can continue to use 2020.12.16 if you want to continue using EOS SDK 1.10.
+- Paid Edition users that have the plugin installed through the Epic Games Launcher: The EOS SDK 1.10 is bundled with the installation, so the release of 1.10.1 does not impact you.
+- Paid Edition users that are using the plugin from the source code repository: The latest commit on `main` supports EOS SDK 1.10.1 if you need to use that version. However, because support will be unavailable over the next two weeks we recommend sticking with 1.10 for now, as we will not be able to assist you with issues caused by 1.10.1 until we return in January.
+
+### 2020.12.16
+
+This release fixes a compatibility issue with Online Subsystem Blueprints, and includes the release of a blueprint-only example project:
+
+- Fix `IOnlineSession::DestroySession` so that it calls its local completion delegate, in addition to the global event.
+- Released a new [blueprint-only example project](/docs/examples/index.mdx) for EOS Online Framework that uses Online Subsystem Blueprints.
+
+### 2020.12.10
+
+This release adds support for Unreal Engine 4.26, adds new features and fixes a range of issues:
+
+- Added support for Unreal Engine 4.26.
+  - If you are a Paid Edition user, you can use any supported engine version (4.24, 4.25 or 4.26).
+  - The Free Edition is now _only_ built for Unreal Engine 4.26. Due to infrastructure limitations, we can't build the Free Edition for more than one Unreal Engine version at a time.
+  - **Important:** If you are a Free Edition user, you should start upgrading your project to Unreal Engine 4.26 now. You will need to [download 2020.12.10 for 4.26 through the License Manager](https://licensing.redpoint.games/get/eos-online-subsystem-free/), as you will not get a prompt in the editor to upgrade.
+  - Free Edition users can continue to use 2020.12.01 while they upgrade their projects to Unreal Engine 4.26. Upon the next release in January, Free Edition users will be required to upgrade to a 4.26-only version of the plugin.
+- Added support for creating and updating sessions before the listen or dedicated server has started accepting connections. Now, when a listen server or dedicated server is started, it will automatically update any sessions you are the owner of when it is ready for receive connections.
+- Added the concept of "API versions", which allow you to keep the same functionality behaviour even when you upgrade the plugin to a later release to receive fixes.
+  - **Important:** If you are an existing user of EOS Online Framework, you will need to [set your API version](/support/advanced_configuration.mdx#upgrading-your-api-version) depending on the behaviour you want after upgrading to this release.
+- In API version 2020-12-02 and later, the `JoinSessionAccepted` event fired from the EOS SDK is mapped onto `OnSessionUserInviteAccepted` instead of automatically joining the session for you. See [API versions](/support/advanced_configuration.mdx) for more details.
+- In API version 2020-12-09 and later, sessions that are not ready to accept client connections will no longer be returned in search results by default. This means that clients will only find sessions they can actually connect to. If you want to retrieve all sessions or non-listening sessions, refer to [API versions](/support/advanced_configuration.mdx) on how to do this.
+- Fixed an issue where `IOnlineIdentity::GetUserPrivilege` would fire the provided delegate more than once.
+- Fixed an issue where the Developer Tool could not be extracted due to the invocation not using absolute paths. It's likely this occurred when the EOS SDK was located on a different drive to Unreal Engine.
+- Fixed an issue where the `OnPartyInviteReceived` event would not fire if the user was a member of _any_ party, rather than the check being only for the party the invite was sent for.
+- Fixed CPU trace and counter support for Unreal Engine 4.24, so profiling in that engine version will now return EOS statistics.
+- Updated documentation on profiling to include the alternate command line required in Unreal Engine 4.24.
+
+### 2020.12.01
+
+This release fixes a critical issue with the Free Edition, where the editor would crash if you had an older version of the EOS SDK installed:
+
+- The Free Edition now requires that you install EOS SDK 1.10. It will no longer accept older versions of the EOS SDK.
+- Fixed an issue where the editor would crash if the EOS SDK DLL could not be found at startup. This was most commonly encountered by Free Edition users when the version of the EOS SDK they had installed was different to the version of the EOS SDK that the Free Edition was built against.
+- Fixed an issue to ensure that the `EOSSDK.Build.cs` script in the Free Edition will only accept a matching version of the EOS SDK, rather than allowing a version other than the one the Free Edition binaries were built with.
+- Fixed an issue to ensure the project Makefile is correctly invalidated if the EOS SDK is ever renamed or deleted. If you move or delete the EOS SDK you have installed, Unreal Engine will now correctly re-scan for the installed EOS SDK.
+- Added PDB files to the Free Edition to resolve an issue that occurs when compiling games on the command line through UBT.
+- Added an automated test to the test suite that ensures the editor launches correctly when the EOS SDK DLL is not available at runtime.
+- Added an automated test to the test suite that builds the Example Project against the Free Edition, and ensures that the editor launches successfully both with and without the EOS SDK DLL present at runtime.
+
+### 2020.11.27
+
+This release adds support for the latest EOS SDK and fixes a few issues:
+
+- Added support for EOS SDK 1.10.
+- Added support for the [`IOnlineLobby` interface](https://src.redpoint.games/redpointgames/online-lobby-interface). This custom interface provides generalized access to the lobby APIs outside the existing session and party interfaces. Support for this API is currently experimental and it may change in incompatible ways in a future release.
+- The build system now checks for the existence of dependent files before compilation, to ensure that all of the required dependencies are present on disk. This prevents issues caused by a corrupt or partially extracted SDK installation.
+- Fixed an issue that prevented macOS games from being able to be packaged.
+
+### 2020.11.13
+
+This release significantly improves the editor experience and fixes a few issues:
+
+- You can now launch the Developer Authentication Tool from the EOS dropdown in the editor. This will automatically extract the Developer Authentication Tool from the SDK if needed, and then start it.
+- You can now toggle "login before play-in-editor" from the EOS dropdown. When this setting is turned on, each play-in-editor instance will be authenticated against the Developer Authentication Tool before it starts. This is useful for testing online behaviour in game maps where `AutoLogin` won't be called (such as gameplay maps that would normally occur after the main menu). For more information, refer to [Using the Developer Authentication Tool](/auth/dev_auth_tool_usage.mdx#login-before-play-in-editor).
+- You can now hide the EOS button from the toolbar under Editor Preferences 🡒 Epic Online Services.
+- Sessions can now be advertised in the presence system in the Epic Games overlay. This allows players to join and invite other players to sessions that they are in. You must specifically enable this functionality by changing the `PresenceAdvertises` configuration option. For more information, refer to [Joining sessions from the Overlay](/ossv1/presence/sessions.mdx).
+- The Epic Games Overlay will now appear when launching the game in the editor through "Standalone Game". This means you can now test overlay functionality without creating a packaged build.
+- When launching multiple "Standalone Game" instances through the editor (from the Play dropdown), each instance will correctly use a different context from the Developer Authentication Tool. This makes "Standalone Game" behave the same as "Selected Viewport" when it comes to authentication.
+- Added performance counters to so that you can view how long EOS operations are taking on the main thread in Unreal Insights, as well as how many network packets and bytes are being sent over EOS P2P. For more information, refer to [Profiling with Unreal Insights](/tools/profiling.mdx).
+- The plugin will now emit an error to the Output Log if you attempt to use `CreateSession` or `UpdateSession`, but you haven't enabled the EOS networking driver.
+- Fixed an issue where Android shipping builds would crash due to a bug in a third-party Android library.
+- Fixed an issue where custom properties would not be set when a user's presence status was updated.
+
+### 2020.10.31
+
+This release fixes a critical bug and adds support for the `FindFriendSession` function:
+
+- Added support for the `IOnlineSession::FindFriendSession` function. Refer to [Reconnecting to a session](ossv1/sessions/reconnecting.mdx) on how to use this.
+- Fixed an issue which would prevent P2P network connections working in Shipping builds of games.
+
+### 2020.10.29
+
+This release adds support for EOS SDK 1.9, extends cross-platform party invites to all authentication modes and fixes a wide range of bugs:
+
+- **Breaking Change:** The `ToString()` function of `FUniqueNetIdEOS` now only returns the product user ID (without the Epic account ID). This makes the result unique per user and suitable to use as a key for `TMap<>`. Previously you could get two strings for the same user (one with the Epic account ID and one without) depending on where you obtained the user ID from. To access the Epic account ID going forward, you can either use `ToDebugString`, cast the instance to `FUniqueNetIdEOS` and use `GetEpicAccountIdString()`, or query for the full user account using the user/identity APIs and obtain it from the user attributes.
+- Added support for EOS SDK 1.9. This does not yet add support for the new modding APIs.
+- Added support for Unreal Engine 4.26 Preview 4. No changes were required to support this release, but Preview 4 has now been tested with this release of the plugin. Support for Preview 4 is only available for Paid Edition users building from source.
+- Added support for the `IOnlinePartySystem::RestoreInvites` function. You should call this when your game starts up and is ready to display invite notifications in-game.
+- Added an internal type `TUserIdMap<>` which is a variant of `TMap<>` that uses unique net IDs as it's keys. This type ensures that the map is unique per each ID value, rather than each pointer (when using `TSharedPtr<const FUniqueNetId>`). Although this is an internal type, it is a header-only implementation which you may find useful to copy into your own project if you're managing unique net IDs in C++. It is located in `OnlineSubsystemEOS/Shared/UniqueNetIdEOS.h` for Paid Edition users.
+- Cross-platform party invites now work in `NoEAS` and `EASOptional` authentication modes. Previously they were unnecessarily restricted to `EASRequired`.
+- Fixed an issue where a player's login would expire, and the plugin did not refresh credentials in response to the authentication expiry event. The plugin now attempts to refresh credentials when needed so that users do not get logged out.
+- When the EOS SDK signs out a user (due to credentials not being refreshed), the logout event will now be fired on `IOnlineIdentity`. Once the EOS SDK signs out a user, no further API calls will work until you sign the user in again.
+- Fixed an issue where calling `IOnlineFriends::ReadFriends` in `NoEAS` and `EASOptional` authentication modes would cause an error to be logged to the console, if the user was not signed into an Epic Games account.
+- Fixed an issue where `FOnlinePartyIdEOS` was relying on the lifetime of the `EOS_LobbyId` pointer, which was managed by the EOS SDK. In some circumstances, this led to the `FOnlinePartyIdEOS` referencing an invalid pointer after it was initially obtained.
+- Fixed an issue where the Discord authentication module did not correctly reference the Discord plugin for linking.
+- Fixed an issue where the `IOnlinePartySystem::SendInvitation` function could fire it's delegate twice if the underlying EOS SDK call failed.
+- Fixed an issue where the `IOnlinePartySystem::SendInvitation` function could fail if you called it too soon after creating the party. It will now retry up to 3 times with exponential backoff.
+- Fixed an issue where the `IOnlinePartySystem::RejectInvitation` function did not correctly compare user IDs and thus it would never reject invitations.
+- Fixed an issue where the `IOnlinePartySystem::RejectInvitation` function did not remove invites from the plugin's local cache of invites.
+- Fixed an issue where the `IOnlinePartySystem::RejectInvitation` function could log an error if the online subsystem shutdown before the call was able to complete.
+- Fixed an issue where invitation events could be fired even if the user is already in the party that the invitation is for. Instead, these events are now silently discarded.
+- Fixed a few areas of the plugin where local EOS structures and pointers were not initialized correctly. This could impact shipping builds. As part of this process, an Unreal Engine C++ linter was implemented and added to the source code repository. If you are a Paid Edition user and you are writing code directly against the EOS SDK, the source code for the linter is available so you can adapt it to check for issues in your own C++ code.
+- Fixed the URL of the "Getting Started" link in the License Manager for EOS Online Framework (Free Edition). This now links correctly to the documentation.
+- Added unit tests around sending and rejecting party invitations.
+
+### 2020.10.17
+
+This release adds features to authentication, improves documentation and fixes platform specific issues:
+
+- Added Discord authentication to the repository. Due to Discord Game SDK licensing restrictions, Discord authentication is only available to Paid Edition users that are using a source-based version of the plugin.
+- Added exchange code authentication support for games shipping on the Epic Games store. This is experimental so if you run into any issues, please notify support.
+- Documented how to [enable Steam](/setup/platforms/steam.mdx) and [Discord authentication](/setup/platforms/discord.mdx) in games.
+- Documented the [supported attribute types](ossv1/sessions/attributes.mdx) when creating or updating sessions.
+- Documented how to [handle connection failures when using the session subsystem](ossv1/sessions/joining.mdx#handling-join-failures).
+- Documented how to [uninstall the plugin](/support/uninstall.mdx) if you need to remove it from your project.
+- Fixed a crash that would occur in packaged Nintendo Switch builds when the game could not load the EOS SDK.
+- Fixed a crash that would occur in iOS games, caused by incorrect linking settings.
+- Fixed a crash that would occur when you attempted to use server travel. Seamless server travel now works as expected, though non-seamless server travel does not. Epic Games has recommended seamless server travel since at least 2015, so if you have a particular need to use non-seamless server travel in your game, please reach out to support in the Discord server.
+- Fixed an issue where the cache path was incorrectly set on iOS, preventing the SDK from starting up correctly.
+- Fixed an issue where `ULocalPlayer::GetPreferredUniqueNetId` would always return null.
+- Fixed an issue where building for Android would fail if you were using the 1.8 SDK.
+- Fixed an issue where for some games packaged for Android, the build process would fail due to missing (optional) files.
+- Moved the Steam authentication implementation and the default platform implementation into their own modules. This change should not impact any developers, unless you're referencing plugin internals.
+
+### 2020.10.09
+
+This release fixes a few critical bugs, including an issue that would prevent packaging projects using the Free Edition:
+
+- Fixed an issue where Free Edition users could not package projects, due to `EOSSDK` not being included in the list of dependency module names for `OnlineSubsystemEOS`.
+- Fixed an issue where the engine would call `AutoLogin` when starting a multiplayer session. For accounts that were not logged into an Epic Games account in `EASOptional` mode, this would cause an Epic Games login prompt to appear, as the `AutoLogin` call was treated as a "link an Epic Games account" request.
+- Fixed Unreal Engine 4.24 compatibility for source builds of the Paid Edition.
+- Clarified documentation on where the plugin expects the EOS SDK to be installed.
+
+### 2020.10.05
+
+This release focuses on fixing bugs and issues identified in the last major release:
+
+- Fixed a crash that would occur when using unsupported session attribute types with `CreateSession` or `UpdateSession`.
+- Fixed a crash that would occur if you left either `ClientId` or `ClientSecret` unset in the config.
+- Fixed listen servers being incorrectly detected as dedicated servers.
+- Fixed the product user ID not being available for API calls when running as a dedicated server.
+- Fixed a crash that would occur if the EOS online subsystem failed to initialize, but then the engine created a `UEOSNetDriver` for a network connection. This could happen if you configure the plugin incorrectly, and then attempt to start a multiplayer game in the editor.
+- Fixed dedicated servers not having their ports registered correctly with the EOS Sessions service.
+- Skip calling the player metrics APIs for the dedicated server (as it is not a player).
+- Support falling back to local IP addresses when connecting to a dedicated server in development. This allows you to test dedicated servers in the editor without any additional configuration.
+- Fixed connections to dedicated servers not working correctly if the server was listening on a port other than 7777.
+- Prevent two local users signing in with the same EOS account. This is not a supported scenario and may have previously introduced other issues. Now the authentication system will prevent a user from signing in if there is already another local user signed into that account.
+
+### 2020.10.03
+
+This is a **major new release** with tons of new features and improvements. With this release, the plugin now supports all Epic Online Services APIs. It's also the first official release of the Free Edition!
+
+- The Free Edition is now available! You can [download it from the License Manager](https://licensing.redpoint.games/get/eos-online-subsystem-free/).
+- User Cloud _(Player Data Storage)_ is now implemented. You can use this interface to store and retrieve player data across platforms.
+- Title File _(Title Storage)_ is now implemented. You can use this store and retrieve game-specific data such as DLC downloads, etc.
+- Achievements, stats and leaderboards are now all implemented.
+- Metrics are now implemented. This comes in the form of an improvement to the sessions implementation, as it now makes the appropriate metrics API calls when players join or leave sessions.
+- Linux is now supported as a platform.
+- The plugin now adds a dropdown to the Level Editor Toolbar, allowing you quick access to settings and documentation.
+- You can now configure the plugin settings through the "Project Settings" window instead of editing `.ini` files.
+- Fixed an issue where the unit tests module could prevent Hot Reload from working for developers using a source version of the plugin.
+
+### 2020.09.23
+
+This release brings the following changes:
+
+- EOS SDK 1.8 is now supported. The new Title Storage API is not yet supported.
+- EOS SDK configuration has now been converted to an external module (`EOSSDK`) instead of requiring you to call `EOSSDK.AddToModule(...)`. This change only impacts you if you are linking against the EOS SDK in C++ modules (for example, if you have custom code that uses the EOS SDK APIs directly). You should now add `EOSSDK` to your `PrivateDependencyModuleNames` instead.
+- Significant refactoring in the way the plugin handles string values and IDs, to fix some hard to diagnose heap corruption bugs.
+- Developers using the plugin in a source build of the engine can now enable Steamworks support by adding `ProjectDefinitions.Add("ONLINE_SUBSYSTEM_EOS_ENABLE_STEAM=1");` to their `.Target.cs` files. The previous way of configuring plugin build behaviour through environment variables is deprecated and will be removed in a future version. If you are using the plugin from the Marketplace, the Free Edition or using the plugin source code with an engine installed through the Epic Games Launcher, this change does not impact you (Steamworks support is always enabled in those builds).
+- The `ProductName` and `ProductVersion` configuration values now have default values, to allow the EOS SDK initialize even when not fully configured yet.
+- Significant work has been done to add automated tests (with code coverage) to the plugin. This will allow us to improve reliability and stability as future versions are released.
+
+### 2020.09.16
+
+This release brings the following changes:
+
+- Android is now supported. This includes support for signing in with an Epic Games account.
+- Nintendo Switch is now supported for registered Nintendo Switch developers using a source version of the plugin. If you are currently using binaries from the Marketplace through the Epic Games launcher and are developing for Nintendo Switch, please follow the instructions in the [License Manager](https://licensing.redpoint.games/) to access the Nintendo Switch support.
+- Improvements to documentation, including the addition of video guides on how to configure the plugin.
+
+### 2020.09.13
+
+This release brings the following changes:
+
+- Developers can now override the UMG widgets used in the Authentication Graph. Refer to the documentation on [customising the login UI](auth/custom_ui.mdx) for more information.
+- The [Redpoint Games License Manager](https://licensing.redpoint.games/) can now be used to manage your access to source code and support (instead of direct messaging receipts on Discord).
+- The networking driver can now be used for both P2P and IP-based connections. The documentation has been updated to recommend developers enable the networking driver in all games.
+- Fixed an issue where the authentication graph would crash if the map changed between starting the authentication process and it attempting to display UI.
+- Fixed an issue where an EOS account could not be created if signing in with an Epic Games account for the first time.
+- Allow the native platform library loaders to override the default authentication graph. This is used on console platforms to replace the authentication graph entirely.
+- Fixed an issue where retrieving the friends list would fail if an Epic account didn't have any friends (instead of it returning an empty friends list).
+- Added support for reading and writing party and party member attributes in the party interface.
+- Added support for firing the party member joined/left/promoted events in the party interface.
+- Added support for firing the party data and party member data events in the party interface.
+- Along with the networking driver update to support both P2P and IP-based connections, the session interface will now automatically use the public IP address of the server (as detected by the EOS backend) when listening on an IP-based connection. This will be the true public IP address of the server (as you would find out through "What's my IP" services).
+- Added support for the `IOnlineUser` interface, which can be used to lookup arbitrary user accounts and resolve external platform IDs to product user IDs (such as converting a Steam user ID into an EOS product user ID).
+
+### 2020.08.29
+
+This release brings the following changes:
+
+- Fix issues with the authentication graph showing UMG widgets.
+- For customers with source code access, you can now access the headers of internal classes under the `Shared/` folder.
+- Improved compatibility with Unreal Engine 4.24.
+- Added support for modifying how the EOS SDK is loaded on console platforms.
+- Simplified linking against the EOS SDK in other modules, with `EOSSDK.AddToModule` now available in `.Build.cs` files.
+- Added support for using EOS SDK `1.7` (instead of `1.7.1` if you are still on an older version).
+- Removed `Win32` from the list of whitelisted platforms in the `.uplugin` file, since `Win32` support is no longer shipped in Unreal Engine itself.
+- The plugin has been updated to use the new versioning scheme that we are moving to across all of our products.
+
+### 2020.08.25
+
+Initial release (versioned as "1.25.0").

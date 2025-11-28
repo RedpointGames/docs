@@ -1,0 +1,146 @@
+### 2023.10.07
+
+This release fixes compilation errors that were specific to the Marketplace:
+
+- Fixed an issue where the Marketplace binaries would not be able to locate include files in Unreal Engine 5.3. This did not impact developers using the plugin from Git.
+- Fixed an issue where configuration files were not correctly checked out when using Perforce as the source control provider.
+- Fixed a minor Unreal Engine 5.3 deprecation warning.
+- Updated internal APIs in the main plugin for improved console platform support.
+
+### 2023.09.11
+
+This release adds support for Unreal Engine 5.3 and EOS SDK 1.16.1:
+
+- Added support for Unreal Engine 5.3.
+  - If you're using the Free Edition, you should start upgrading your project to Unreal Engine 5.3 now. 2023.08.21 is still a permitted version for existing Free Edition users who are using Unreal Engine 5.2, but you will need to upgrade to a newer plugin version in the future and this will require your project to be on Unreal Engine 5.3.
+  - If you need to continue using Unreal Engine 5.2, you can switch to using the Paid Edition instead.
+- Added support for EOS SDK 1.16.1.
+  - Free Edition users will need to download and install the newer EOS SDK from the Epic Games Developer Portal when upgrading to this release. If you need to use an older EOS SDK version, please use the Paid Edition instead.
+- Fixed an issue where the plugin would not compile if you were targeting the older EOS SDK 1.15.x series.
+- Fixed an issue where enabling lobby state diagnostics could result in a crash at runtime.
+
+### 2023.08.21
+
+This release fixes several issues, notably a change introduced in 2023.08.17 that would result in excessive logs when the editor or game is no longer focused:
+
+- This release includes the Free Edition as well; 2023.08.17 was not released for the Free Edition.
+  - As of this release, Free Edition users must be using Unreal Engine 5.2.
+  - Free Edition users will need to download and install the newer EOS SDK from the Epic Games Developer Portal when upgrading to this release. If you need to use an older EOS SDK version, please use the Paid Edition instead.
+- Fixed an issue where the application status was incorrectly set when using EOS SDK 1.16, resulting in erroneous logs to the console when the editor was not in focus.
+- Fixed an issue where Android would crash on startup with 1.16, due to a new runtime dependency on `androidx.browser:browser` in the 1.16 SDK.
+- Theoretical fix for an issue where the plugin attempts to fix configuration files, but the configuration files are tracked by Perforce source control and the editor has not yet connected to Perforce.
+- Minor change to wording of the prompt shown when starting the Developer Authentication Tool, based on changes made for 1.16.
+
+### 2023.08.17
+
+This release adds support for EOS SDK 1.16, adds support for Epic Games e-commerce and includes various bug fixes:
+
+- Added support for EOS SDK 1.16.
+- Added support for using Epic Games e-commerce APIs when the game is listed on the Epic Games Store and run via the Epic Games launcher. Refer to the [e-commerce documentation](/ossv1/ecom/offers.mdx) on how to use e-commerce on Epic Games.
+- Added an editor hint when the EOS SDK is unable to reach the Epic Games backend, usually due to Internet connectivity issues or outages, so that developers understand the cause of API calls being slow in these scenarios.
+- Added a warning if the networking driver attempts to connect to an EOS P2P address, but P2P connectivity is not available.
+- Updated the "The current online subsystem is not the EOS online subsystem, so UEOSNetDriver can not work." warning so that it also now includes the name of the current subsystem for diagnostic purposes.
+- Reduced a `check()` to a warning to prevent a development-mode crash in some voice chat related edge cases.
+- Fixed an issue where avatars on Oculus did not return the default texture if the user had no avatar set.
+- Fixed an issue where the cross-platform friends database would repeatedly fetch the avatar URLs. This caused issues with some native platform APIs that throttle requesting avatar URLs.
+- Fixed an issue where the EAS presence implementation could crash on shutdown.
+- Fixed an issue where platform initialisation did not correctly use UTF-8 encoding, which caused issues when the cache directory for Player Data Storage contained non-ASCII characters on machines that contain Unicode in the path to the user's profile directory.
+- Fixed the error code not being present in one of the network authentication error logs.
+- Fixed an incorrect timer delay in the cross-platform friends database.
+- Fixed an issue where the mute status of a remote player was not correctly updated when the mute status changes.
+- Fixed an issue where authenticating with a Steam account that has an Epic Games account linked would immediately start the Epic Games login prompt, even if cross-platform accounts are set to optional and the user has not chosen to sign in with Epic Games yet. This fix is only available if you're using EOS SDK 1.16 or later.
+
+### 2023.05.18
+
+This release adds support for the stable version of Unreal Engine 5.2:
+
+- The Free Edition now targets Unreal Engine 5.2.
+  - Existing users can continue to use 2023.05.09 for now, but should start planning their upgrade to 5.2 as soon as possible.
+- When changing settings in Project Settings, the plugin will now check out the relevant configuration files from source control automatically to ensure that they are writable.
+- Fixed an issue specific to Unreal Engine 5.2, where making changes in Project Settings could result in the editor crashing.
+- Fixed an issue specific to Unreal Engine 5.2, where the beacon automation tests would not pass.
+
+### 2023.05.09
+
+This release significantly overhauls Android support, adds experimental support for Unreal Engine 5.2 Preview 2 and fixes several issues:
+
+- The plugin now directly supports Google Play authentication and e-commerce, rather than relying on the unmaintained `OnlineSubsystemGoogle` and `OnlineSubsystemGooglePlay` plugins.
+  - If you've previously been authenticating with Google on Android, you will need to [reconfigure your project](/setup/platforms/google.mdx) using the new instructions when upgrading to this version.
+  - If you've previously been using Google Play e-commerce on Android, you will need to [use the e-commerce interfaces provided by EOS for Google Play](/ossv1/ecom/offers.mdx), instead of the interfaces provided by the `OnlineSubsystemGooglePlay` plugin.
+- Added experimental support for Unreal Engine 5.2 Preview 2.
+- Fixed an issue where FMultiOperation could access memory after it was released.
+- Fixed a few console-specific issues.
+- Fixed a crash that could be caused by recursive FlushNet calls when P2P connections are closed.
+- Fixed an issue where `PromoteMember` on the party interface did not return the correct value when the callback was scheduled.
+- Worked around an issue where setting the application status to anything other than foreground on desktop platforms is not supported in EOS SDK 1.15.x.
+
+### 2023.03.07
+
+This release adds support for EOS SDK 1.15.5 and fixes several issues:
+
+- Added support for EOS SDK 1.15.5.
+  - Free Edition users will need to download and install the newer EOS SDK from the Epic Games Developer Portal when upgrading to this release. If you need to use an older EOS SDK version, please use the Paid Edition instead.
+- Fixed several IWYU (include-what-you-use) compilation errors that were not picked up by the previous Marketplace submission. We now run an IWYU build overnight to avoid this in future.
+- Fixed a crash when fetching Steam items from e-commerce that lack an item definition.
+- Fixed an issue where `UEOSNetConnection` could remain open even when the underlying socket had been closed by the remote host.
+- Fixed an issue where network authentication could crash the server if the client disconnected before network authentication was complete.
+- Fixed an issue where the default intended input volume was not calculated correctly if auto-gain control is turned on.
+- Fixed an issue where `JoinChannel` would not error correctly if the user was already joined to the channel.
+- Fixed an issue where Android on Unreal Engine 5.1 would not correctly require the use of EOS SDK 1.15.4 or later.
+- Added `LogRedpointEOSSocketLifecycle` logs which include information about how EOS P2P sockets change state over time.
+- The plugin now detects if an older version of the EOS SDK was loaded than the one that it was built with, and warns you in the editor if this is the case. This is usually caused by stale DLLs in your `Binaries` folder.
+- The plugin no longer uses the "write stat bug" workaround when built against EOS SDK 1.15.3 or higher. This workaround forwarded stat writing requests to clients from dedicated servers, as in earlier versions of the SDK it was not possible to write stats from dedicated servers properly. This also now obsoletes the `AcceptStatWriteRequestsFromServers` configuration setting, which will be removed from the plugin when all EOS SDK versions prior to 1.15.4 are dropped from support.
+- Silenced a debug log in the `LogRedpointSteam` category that accidentally got left in, where the log message reported that the Steam avatar was successfully obtained from the existing cache.
+- Removed support for EOS SDK versions 1.15, 1.15.1 and 1.15.3. The current supported SDK versions are now 1.15.5, 1.15.4 and 1.14.2-hf-2.
+
+### 2023.02.14
+
+This release improves lobbies and voice chat, and fixes a lot of outstanding issues:
+
+- Free Edition users must now be on Unreal Engine 5.1. If you are still using 2022.12.01 on 5.0, you will be prompted to upgrade and must upgrade your project to Unreal Engine 5.1. If you have not already upgraded your project and need to remain on Unreal Engine 5.0, you will need to purchase the Paid Edition which currently supports 4.27 through 5.1 with the latest plugin version.
+- Added support for [controlling echo cancellation, noise suppression, auto gain control and DTX in voice chat](/ossv1/voice_chat/control.mdx#controlling-audio-features) via `IVoiceChatUser::SetSetting`.
+- Added support for setting the bucket ID of lobbies through the special `bucket` lobby attribute.
+  - You can now also search for lobbies by bucket ID using the `bucket` attribute.
+  - `GetLobbyMetadataValue` for the `bucket` attribute will now return the bucket ID of the lobby.
+- Added the `steam.sessionTicket.base64` and `steam.encryptedAppTicket.base64` authentication attributes, which can be used to retrieve these values base64 encoded (instead of hex encoded).
+- The lobby or party ID associated with a voice chat channel is now accessible through `IVoiceChatUser::GetSetting`.
+  - To [retrieve the lobby ID for an associated voice chat channel](/ossv1/voice_chat/listen_servers.mdx#get-the-lobby-id-that-a-voice-chat-channel-is-associated-with), access the setting `__EOS_LobbyId:<channel name>`, replacing `<channel name>` with the channel name.
+  - To [retrieve the party ID for an associated voice chat channel](/ossv1/voice_chat/parties.mdx#get-the-party-id-that-a-voice-chat-channel-is-associated-with), access the setting `__EOS_PartyId:<channel name>`, replacing `<channel name>` with the channel name.
+  - If there's no lobby ID or party ID associated with a voice chat channel (e.g. it's a voice chat channel you have joined from a dedicated server), the attribute value will be an empty string.
+  - Note that because parties use lobbies underneath, party IDs _are_ lobby IDs. This means that `__EOS_LobbyId:<channel name>` and `__EOS_PartyId:<channel name>` are effectively the same and will return the same value.
+- Updated the project auto-configuration to turn off bitcode for iOS, as per the EOS SDK requirements.
+- Updated the example projects:
+  - Lobbies in the blueprint project now set and use bucket IDs via the `bucket` attribute.
+  - The voice chat UI in the blueprint project now shows the associated lobby/party ID for a given voice chat channel.
+  - The voice chat UI in the blueprint project now allows you to control voice chat features.
+  - Fixed an issue where avatars would not be fetched correctly in the example projects.
+- Documented how to [enable cross-platform invites and presence for sessions and parties](/setup/crossplatform/invites.mdx).
+- Fixed an issue where the plugin would prevent you from using interactive Epic Games authentication in the editor, when using EOS SDK 1.15.4.
+  - Between 1.15.0 and 1.15.3, the EOS bootstrapper was required to perform interactive Epic Games authentication. Since the bootstrapper was never present for the editor, we added a check that would preempt the EOS SDK call so we could provide a more useful error message to developers.
+  - Since the EOS bootstrapper is no longer required in 1.15.4 and later, this check has been removed when compiling with EOS SDK 1.15.4 and later.
+- Fixed an issue that would occur if you had multiple accounts set up in the Developer Authentication Tool that needed to go through scope approval, and you launched play-in-editor with "login before PIE" enabled, the EOS SDK would launch multiple browser tabs to do scope approval for all the different accounts. Because the browser-based Epic Games scope approval page does not handle multiple accounts, the scope approval process would get confused and only allow you to approve one account with the remainder failing.
+  - Developer Authentication Tool accounts are now authenticated sequentially the first time they are used in an Unreal Editor session, which ensures that the EOS SDK will only be trying to perform scope approval in the browser one account at a time.
+- Fixed an issue where avatars of arbitrary Steam users were not loaded. The plugin now correctly calls `RequestUserInformation` before trying to fetch avatars, ensuring that Steam will download the required user information necessary for fetching avatars.
+- Fixed an issue where `IVoiceChatUser::SetPlayerMuted` would always mute the remote player (ignoring the `bMuted` parameter). This previously meant that you could not unmute remote players.
+- Fixed an issue where voice chat channels were not tracked correctly if you were kicked from lobbies or parties, or if the host left a voice chat enabled lobby.
+- Fixed an issue where muting the input in voice chat would not work if auto gain control was enabled (which it is by default).
+- Fixed an issue where the configuration system could save stale EOS settings under `Saved/Config/`, which would result in the editor using out-of-date settings that were not reflected in Project Settings.
+- Fixed an issue where the configuration system would emit deprecation warnings in Unreal Engine 5.1 due to not calling `FConfigCacheIni::NormalizeConfigIniPath`. The plugin now calls this function in all the necessary places.
+- Fixed an issue where the Anti-Cheat and bootstrapper packaging script would not detect EOS SDK 1.15.4.
+- Fixed an issue where the Anti-Cheat signing process would fail due to a missing `runtime.conf` file. This file is now automatically created when needed.
+- Fixed an issue where the Developer Authentication Tool would not be extracted if the path to `ExtractDevAuthTool.ps1` had spaces.
+- Fixed an issue where the `InstallStagingHooksInEngine.ps1` would not correctly detect Unreal Engine 5 if you were building the engine from source.
+- Fixed an issue where deprecated API usage in the automation tests could cause compilation failures if you have errors-as-warnings turned on in your Unreal Engine project.
+- Fixed an issue in the example projects where avatars for the friends list were not loaded.
+- Added logs that report changes to the session listening state (which is used for the `__EOS_bListening` attribute in session searches). These logs are associated with the new `LogRedpointEOSSessionListening` log category.
+- Added missing `#include` declarations that were picked up as part of an include-what-you-use build.
+- Updated the scope approval hint that would appear when scope approval is necessary for an Epic Games account. This hint has been updated to reflect the new behaviour of scope approval in EOS SDK 1.15.4.
+- Updated the `MetaClass` and `MustImplement` attributes on the widget class UPROPERTYs in Project Settings so that they use full paths. This avoids any ambiguity when the project itself contains assets with the same name as the default assets provided in the plugin.
+- For clarity the `bDisableAutoAcceptConnection` field on `EOS_P2P_SendPacketOptions` is now explicitly set to `false` when sending packets. This was already the default value for `EOS_P2P_SendPacket`, but now it's clear in the source code what the behaviour will be.
+- The log level of logs emitted from `IOnlineParty::GetJoinedParties` has been lowered to `VeryVerbose`, to prevent log spam when you're calling this function frequently and the user has not joined any parties.
+- The `UE_X_Y_OR_LATER=1` public defines that were set by the `OnlineSubsystemRedpointEOS` module are now private to prevent conflicts with other modules. If you were using these in game code, you can copy the `PrivateDefinitions.Add(...)` code from the `OnlineSubsystemRedpointEOS.Build.cs` file into your game module's `.Build.cs` file.
+- The build system will now provide a more useful error if you try to compile for the x64 architecture on Android. The EOS SDK itself does not support the x64 architecture for Android; only the ARM architecture is supported.
+- Removed an erroneous `#pragma once` in `AuthBeaconPhaseContext.cpp`. This did not impact most developers, as it would only have caused a compilation error if you turned on include-what-you-use builds.
+- Removed the Free Edition SDK constraint code in `RedpointEOSSDK.Build.cs` that would cause build warnings due to unreachable code. These constraints had no effect as they only applied to old EOS SDK versions that we no longer support.
+- Removed compile-time code paths that were specific to EOS SDK versions that we no longer support.
+- Removed code paths that were specific to authenticating with Steam encrypted app tickets. This method of authentication is no longer supported by the EOS backend.

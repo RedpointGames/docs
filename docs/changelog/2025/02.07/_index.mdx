@@ -1,0 +1,51 @@
+### 2025.02.07
+
+This release adds compatibility with the Fab plugin in Unreal Engine 5.5, improves synthetic session and invite support on console platforms, and fixes a significant number of issues:
+
+- Added compatibility with the Fab plugin in Unreal Engine 5.5. You can now have the EOS Online Framework plugin and the Fab plugin enabled at the same time in the editor.
+- Added support for fetching friends and blocked users on Meta Quest, and improved Meta Quest compatibility with older engine versions.
+- Added experimental support for presence and invites on Meta Quest. You must configure [destinations](/setup/platforms/meta.mdx#enable-meta-quest-avatars-friends-and-invites) in the Meta Quest Developer Portal in order for presence to work.
+- Parties created through the OSSv1 APIs now have the "public member list" feature. This allows you to inspect party members when searching for parties via the lobby interface.
+- Passing an already prefixed lobby ID to `ParseSerializedLobbyId` is now handled correctly. You could only run into this scenario if you called `ToDebugString` on a party or lobby ID instead of `ToString`.
+- Added the `OnInternetConnectivityChanged` event to the [presence system for modern C++](/systems/presence.md#detect-when-internet-connectivity-is-lost-or-restored).
+- The `OnConnectionStatusChanged` event for the OSSv1 online subsystem is now broadcast when the plugin detects a disruption in Internet connectivity. You can use this event to notify the user and recreate lobbies and parties when Internet connectivity is restored.
+- Events triggered from room synchronisation (such as party update events) are now deferred if there is currently a room transaction running (such as a party update operation). This ensures that when your game code responds to an event, if you attempt to start a room operation you won't get an "already pending" error code due to a running transaction.
+- Room operations that would internally conflict if running in parallel (such as party operations that act on the same party type ID) are now automatically deferred and run in sequence instead of failing with an "already pending" error code. You no longer have to worry about party operations potentially conflicting, as the plugin will execute them in sequence when needed.
+- Developers can now intercept the "Join Game" event from Steam and other platforms, by setting the `JoinRequestAction` of the party configuration to `Manual`.
+  - When the join request action of a party is set to `Manual`, you should listen for the `OnPartyRequestToJoinReceived` event on the party interface. In handling the event, you must later call the `ApproveJoinRequest` and set `bIsApproved` to `true` if you want to continue the join, or `false` if you want to cancel the join.
+  - The `GetPendingRequestsToJoin` function is now implemented on the party interface, and returns the list of pending joins you are yet to call `ApproveJoinRequest` for.
+  - Using `ApproveJoinRequest` to reject a party join triggered via the Epic Games Overlay will also notify the user via the Epic Games overlay that the join was rejected.
+- The plugin now automatically enables the `net.AllowPIESeamlessTravel` console variable in the editor, which allows you to test multiplayer map changes in the editor.
+- Fixed an issue where the Developer Authentication Tool was started with the wrong port number on Windows.
+- Fixed an issue that prevented multi-address resolution from working when testing against dedicated servers in non-Shipping builds.
+- Fixed an issue where Meta Quest authentication did not check entitlement before obtaining the authentication token to pass to EOS on login.
+- Fixed a compilation error that could occur under unity builds due to a redeclaration of `DestructInterface`.
+- Fixed an issue where login would fail if the client policy configured in the EOS Developer Portal did not permit access to the lobbies service.
+- Fixed an issue where you could not join a presence-enabled room while already in one.
+- Fixed an issue where the mute status of other participants in a voice chat would be incorrect if you changed the mute state.
+- Fixed an issue where room transactions would not acquire the exclusive keys correctly when performing an operation, which caused inconsistent behaviour when using presence-enabled parties.
+- Fixed an issue where joining a party with a party type set by the host, when the client is already in a party with that party type, would not result in the client automatically leaving the existing party even though the party type conflicts.
+- Fixed an issue where updating a presence-enabled party would result in that party being automatically left due to room transaction exclusive keys.
+- Fixed an issue where updating a party would fail due to an incorrect check on the `bShouldRemoveOnDisconnection` value of the new party configuration.
+- Fixed an issue where the cross-platform presence lobby needed to be recreated after a temporary loss in Internet connectivity on platforms such as Steam. The plugin will now automatically restore previously set presence on Steam after Internet connectivity is restored.
+- Fixed an issue the EOS SDK could cause a crash in the plugin if the EOS SDK incorrectly invoked a callback multiple times. This represents a bug in the EOS SDK. The plugin now detects these scenarios and emits diagnostic information to the logs so that you can report them to Epic Games.
+- Fixed an issue where lobbies were always created as public lobbies, even if `Transaction.Public` was set to false.
+- Fixed an issue where calling `SendInvitation` for a party could result in incorrect behaviour when the recipient is a friend from the local platform.
+- Fixed an issue where a voice chat enabled party would not have echo enabled even if "Enable Voice Chat Echo in Parties" was turned on in Project Settings.
+- Fixed a crash if you called `ShowInviteUI` for a session while that session was in the process of being destroyed.
+- Fixed an issue where updating the party configuration would in some cases not trigger the `OnPartyUpdated` event.
+- Fixed an issue where updating an existing room feature would not trigger room events from room synchronisation.
+- Fixed an issue where if you attempted to send an invite to a friend on the local platform immediately after creating or joining a session or party, the invite could fail if the cross-platform presence system had not yet started advertising the session or party on the local platform.
+- Fixed an issue where `runtimePlatform.friend` attributes on users were incorrectly formatted.
+- Fixed an issue where linking an Epic Games account could fail if the EOS SDK required a PIN grant code to continue.
+- Improved performance when the `RedpointEOSRooms` log category is not set to `VeryVerbose`, and in Shipping builds, by skipping construction of debugging JSON used for diagnosing room state.
+- Switched UObject pointers to use `TObjectPtr<>` in UPROPERTY fields for compatibility with Lyra in Unreal Engine 5.5.
+- Improved reliability of calls to OSSv1 subsystems for platforms that still use OSSv1 for synthetic sessions and invites, such as Steam.
+- Replaced the workaround in `RedpointEOSUtils` with a more modern solution in Unreal Engine 5.5 and later. This makes the plugin compatible with Hot Reload again, and prevents warnings about class paths on startup.
+- Added the `RedpointEOSAsync` module which provides async/await APIs similar to C#. This module relies on C++20 features, and while enabled by default, is not relied on by the plugin.
+  - If you run into compilation issues with this enabled, change `REDPOINT_EOS_ENABLE_ASYNC_LIBRARY=0` in `RedpointEOSAsync.Build.cs` and report the incompatibility in our support Discord. If you don't report compatibility issues, there's a high likelihood that the rest of the plugin starts depending on this async library in the near future and this setting will go away (as it will now be a required part of the build).
+- Added a gameplay debugger that shows all of the EOS SDK calls that are "in-flight", so you can observe what calls are currently running.
+- Removed old files related to the Cloud Messaging Hub implementation that were no longer used.
+- Increased automation test coverage of presence-enabled rooms and parties to ensure that invites, join, update and create operations work for presence-enabled rooms.
+- Added Anti-Cheat API bindings to `RedpointEOSAPI`.
+- The plugin now logs the version of the EOS SDK it was built against, so it is more obvious in game logs when the build version and runtime version of the EOS SDK differ.

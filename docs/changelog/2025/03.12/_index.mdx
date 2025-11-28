@@ -1,0 +1,13 @@
+### 2025.03.12
+
+This release fixes several issues:
+
+- Calling `AutoLogin` in your game map while "login before PIE" is enabled will now return a successful result, instead of a linking failure. Since the editor already logged you in before play-in-editor, the second `AutoLogin` was previously treated as a call to start the [account link flow](ossv1/identity/linking.mdx), which would never succeed since the local user would already be an Epic Games account.
+- Fixed an issue where querying for user information on dedicated servers did not work.
+- Fixed an issue where the initial connection timeout could be set too low for EOS P2P connections. The networking driver now enforces a minimum timeout of 120 seconds for P2P negotiation regardless of your configuration settings.
+- Fixed an issue where the `epic.authenticatedWith` user authentication attribute was not available.
+- Fixed a crash when the editor was run with the `-server` parameter.
+- Fixed an issue where if game A connected to game B over P2P on channel X, but game B was only listening for connections on channel Y, game A would be unaware of the connection failure and network packets would be dropped silently. As of this release, when a game is unable to route an incoming packet for a P2P channel, it will notify the connecting client and cause it to close the connection specific to the unroutable channel.
+- Fixed an issue where the `bHosting` field was not set to true on sessions that were created with `CreateSession`. This resulted in session join failures in Lyra when host reservation beacons were enabled (which they are by default). Host reservation beacons are now correctly created in Lyra, as the `bHosting` field is set correctly.
+- Added the `UseFallbackAddressesInDevelopment` configuration option, which defaults to `True`. If you set this to `False`, it is the same as passing `-emulateeosshipping` on the command-line, and causes the plugin to not attempt multiple IP addresses when routing an IP connection to a dedicated server.
+- Added the `FallbackAddressTimeoutSecondsInDevelopment` configuration option, which defaults to 2 seconds. You can use this to adjust the amount of time the plugin will spend attempting to connect to each IP address when multiple IP addresses have been provided by a dedicated server's session.

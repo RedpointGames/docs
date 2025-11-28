@@ -1,0 +1,33 @@
+import ImageFlicking from "@site/src/ImageFlicking";
+
+import Image_20250811_MatchResults1 from "./match_results_1.png";
+import Image_20250811_MatchResults2 from "./match_results_2.png";
+
+### 2025.08.11
+
+This release updates the "Minute of Mayhem" example project to demonstrate submitting match results for skill-based matchmaking, and fixes several issues:
+
+<ImageFlicking
+  images={[
+    {
+      url: Image_20250811_MatchResults1,
+      altText: "Match results being submitted at the end of a round.",
+    },
+    {
+      url: Image_20250811_MatchResults2,
+      altText: "The updated matchmaking stats in the EOS Developer Portal.",
+    },
+  ]}
+/>
+
+- The ["Minute of Mayhem" example project](/docs/examples/minute/index.mdx) now demonstrates how to submit match results for skill-based matchmaking.
+  - Fixed an issue where players in Minute of Mayhem would remain alive if the server player died first.
+  - Fixed an issue where the main menu UI in Minute of Mayhem did not display when returning to the main menu after a match.
+  - Fixed an issue where players were not considered to be in the safe zone at the end of the round in Minute of Mayhem.
+- Fixed an issue where changing Project Settings would result in repeated source control operations, making it frustrating to change Project Settings if you had source control enabled.
+- Fixed an IWYU compilation issue when building for iOS in Shipping configuration.
+- Fixed an issue in friend widget binding where a player on your friends list who has recently left the party you are in would display the "Join Party" option, even though that operation would result in you joining the party you are already in.
+- Fixed an issue where network connections could be reset if a client disconnected from a game server during the initial connection sequence, and then attempted to reconnect to the same game server.
+- Added the `FSendPlayerBehaviorReport` API to the [memory safe C++ APIs](/docs/systems/index.md).
+- Added an `OnlineSubsystemBlueprintsOnly.uplugin` plugin file to the [GitLab repository](https://src.redpoint.games/redpointgames/eos-online-framework) for developers who want the online subsystem blueprint nodes without EOS integration.
+- Removed the old "Accept Stat Write Requests from Servers" configuration option in Project Settings.

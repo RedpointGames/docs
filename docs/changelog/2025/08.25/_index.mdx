@@ -1,0 +1,21 @@
+### 2025.08.25
+
+This release adds support for EOS SDK 1.17.1.3 and fixes several issues:
+
+- The ["Minute of Mayhem" example project](/docs/examples/minute/index.mdx) has been updated:
+  - Minute of Mayhem is now available for [download on Google Play](https://play.google.com/store/apps/details?id=games.redpoint.MinuteOfMayhem) so you can test it on Android without building it yourself. This app will be continually updated as we make further improvements to the Minute of Mayhem example project.
+  - Minute of Mayhem now displays the user ID and build version in the bottom-left corner of the main menu.
+  - Voice chat is now enabled by default for parties in Minute of Mayhem.
+  - Fixed an issue where the "Sign In or Create Account" prompt did not get cooked and included in Shipping builds.
+- Added support for EOS SDK 1.17.1.3.
+- Improved the enumeration value names for "EOnlineKeyValuePairDataType" to accurately reflect which data types are supported by Epic Online Services.
+- Fixed a matchmaking issue where the match would be immediately queued if everyone is ready except for the party leader, and the party leader leaves. When a player in a party is now promoted to party leader due to the leader leaving, matchmaking now automatically marks the new leader as not ready.
+- Fixed a matchmaking issue where players were not marked as "not ready" after matchmaking is complete and the match is started. This could cause players to be immediately queued back into matchmaking.
+- Fixed an issue where a friend who left our party recently would have the "Join Party" option displayed via friend widget binding, even though the advertised party is still the party we are already a member of.
+- Fixed an issue where the "Are all expected players connected?" blueprint node for matchmaking did not correctly return true when matchmaking had run via play-in-editor.
+- Fixed an issue where auto-configuration of the "Sign in with Apple" entitlement did not write out the correct entitlement value.
+- Fixed a very rare crash that could occur if the host of a lobby leaves at the exact same time as a player joined.
+- Fixed an issue where the patching process for UnrealBuildTool could cause build errors due to NuGet package vulnerability warnings. You can mitigate these errors by either upgrading to Unreal Engine 5.6.1 or by updating the plugin to this version.
+- Fixed an issue where enabling Anti-Cheat would prevent multiplayer play-in-editor games from working.
+- The plugin no longer sets the minimum iOS version in Project Settings, as all versions of iOS supported by Unreal Engine now include support for "Sign in with Apple".
+- Removed Unreal Engine 5.3 from our build matrix; Unreal Engine 5.3 will not receive this or future updates on Fab. Please upgrade to a supported engine version, or build the plugin from source code via GitLab.

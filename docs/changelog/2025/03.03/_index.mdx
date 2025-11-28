@@ -1,0 +1,15 @@
+### 2025.03.03
+
+This release fixes several issues:
+
+- The Free Edition now ships without debugging symbols, which makes the Free Edition download much smaller. Debugging symbols are not useful in the Free Edition anyway, as the Free Edition does not include source code or support.
+- Fixed an issue where EOS sessions could not be joined via Steam presence in some circumstances.
+- Fixed an issue where dedicated servers would not have their sessions marked as listening.
+- Fixed the networking driver paths that are automatically set in configuration files in Unreal Engine 5.4 and earlier.
+- Fixed an issue where the session interface would incorrectly warn about the networking drivers not being set in Unreal Engine 5.5, due to the new dynamic configuration layer system.
+- Fixed an issue where the plugin would attempt to install the post-stage hooks multiple times when using a source-based engine.
+- Fixed an issue where the post-stage hooks would incorrectly attempt to run on packaged Windows dedicated servers when using the DebugGame or Debug configurations.
+- Fixed an unused function warning when compiling on Unreal Engine 5.4 and earlier.
+- Fixed the Agones orchestrator implementation invoking the incorrect callback when the session ends.
+- Fixed an issue where calling `KickMember` on the same lobby member multiple times would cause a crash.
+- Fixed an issue where configuration files would not be written if they don't currently exist.

@@ -1,0 +1,55 @@
+import ImageFlicking from "@site/src/ImageFlicking";
+
+import Image_GameModeSelection from "./game_mode_selection.png";
+import Image_ProximityGameMode from "./proximity_game_mode.png";
+import Image_OptionsMenu from "./options_menu.png";
+import Image_VoiceChatDebugger from "./voice_chat_debugger.png";
+
+### 2025.11.28
+
+This release adds support for proximity voice chat, anonymous title storage access, and fixes several issues:
+
+<ImageFlicking
+  images={[
+    {
+      url: Image_GameModeSelection,
+      altText: "The new game mode selection screen in Minute of Mayhem.",
+    },
+    {
+      url: Image_ProximityGameMode,
+      altText:
+        "The new proximity game mode map, which allows you to test proximity voice chat inside Minute of Mayhem.",
+    },
+    {
+      url: Image_OptionsMenu,
+      altText:
+        "The new options menu that appears in Minute of Mayhem, allowing you to return to the main menu or exit the game.",
+    },
+    {
+      url: Image_VoiceChatDebugger,
+      altText:
+        "The improved Voice Chat Debugger, with new controls for hard muting players on the server.",
+    },
+  ]}
+/>
+
+- Added support for [proximity voice chat via the Redpoint Voice Chat component](/docs/framework/voice_chat.mdx). This component can manage voice chat channel connections for you on listen servers and dedicated servers, and vastly simplifies voice chat implementations in multiplayer games.
+  - If you are currently managing voice chat connections manually on game servers, it is recommended that you use the Redpoint Voice Chat component instead.
+- The [Minute of Mayhem example project](/docs/examples/minute/index.mdx) has been updated:
+  - Minute of Mayhem now targets Unreal Engine 5.7.
+  - Added a new game mode selection, to select between 'Tempo' and 'Proximity'.
+  - Added a new 'Proximity' game mode and map, which demonstrates using the new Redpoint Voice Chat component and proximity voice chat.
+  - Added a new in-game options menu that allows you to return to the main menu or exit the game.
+  - Improved support for controllers, including movement during gameplay and interacting with login prompts during startup.
+- Added support for [anonymous access to Title Storage](/docs/ossv1/title_file/anonymous.mdx), allowing game clients to download files from Title Storage before the first user signs in.
+- Customizing widget presentation during authentication is now done via the [IRedpointEOSAuthWidgetFactory](/docs/auth/custom_ui.mdx). This allows you to display widgets with Common UI, and makes routing focus easier for games that have controller support.
+  - The existing "EOS Subsystem" and the events it provides are now deprecated and will be removed in a future release.
+  - We have added a "Redpoint Widget Reference List" data asset type, which makes it easier to ensure your custom authentication widgets are included when your project is cooked.
+- Sanction checks now allow players to connect if the EOS SDK returns `EOS_UnexpectedError` during EOS outages.
+- Added a "Is Play-in-Editor?" blueprint node, which can be used to detect when the game is running in the editor.
+- Improved logging when overriding the game mode in team-based matchmaking.
+- Improved the [Voice Chat Debugger](/docs/tools/voice_chat_debugger.mdx), and documented this editor tool.
+- Fixed an issue where invites on Meta Quest were processed before the local user was signed in.
+- Fixed a periodic lag spike when the plugin refreshed audio devices; refreshing the audio device list is now done on a background thread.
+- Fixed a rare deadlock when voice chat channels are being cleaned up.
+- Removed support for EOS SDK 1.16.

@@ -1,0 +1,26 @@
+### 2025.10.29
+
+This release adds a game session implementation that can automatically manage player registration for you, adds support for joining and inviting friends to games via friend widget binding, and fixes several issues:
+
+- Added support for [automatic player registration management](/docs/framework/player_registration.mdx) via the new Redpoint Game Session class:
+  - Developers no longer need to call "Register Players" or "Unregister Players" when using the Redpoint Game Session class as their game session implementation, and we recommend games move to this implementation instead of calling "Register Players" and "Unregister Players" manually.
+  - Redpoint Game Session also supports maintaining a `__RedpointEOS_AnonymousPlayerCount` session attribute for you, which reflects the number of anonymous players on the game server (applicable to Steam games with split-screen support).
+  - Added the "Get Game Session" blueprint node to allow the game session instance to be accessed on the game mode from blueprints.
+- Added support for joining games and invite friends to games via [friend widget binding](/docs/framework/bind_friends_list.mdx).
+  - The `bIsInvitable` variable on `RedpointFriendListEntry` has been separated into `bIsInvitableToParty` and `bIsInvitableToGame`
+  - Added the `bInGame` variable on `RedpointFriendListEntry` which indicates if the friend is already in the same multiplayer game session.
+  - Added the `bInJoinableGame` variable on `RedpointFriendListEntry` which indicates if the friend is a multiplayer game session that can be joined.
+  - Added the "Can Invite to Game" and "Can Join Game" blueprint nodes on `RedpointFriendListEntry`.
+  - Added the "Invite Friend List Entry to Game Session" and "Join Game Session of Friend List Entry" blueprint nodes.
+- Added a "Kick Player Controller" blueprint function which can be used to call the `KickPlayer` C++ function on the game session, for projects that are not using C++.
+- ["Show Invite UI"](/docs/ossv1/external_ui/invite.mdx#showing-the-invite-overlay) now works with parties. To show the platform's invite UI for the player's primary party, pass `PartySession` as the session name.
+- The dedicated server client ID, client secret and private key can now be provided [via environment variables](/docs/setup/networking/authentication.mdx#setting-dedicated-server-client-ids-and-secrets) instead of the command line.
+- Fixed an issue where [automatic login with startup screens](/docs/framework/automatic_login.mdx) caused dedicated servers to not start correctly.
+- Fixed an issue where the public module dependencies for the `OnlineSubsystemBlueprints` module were not correct.
+- Fixed an issue where the cross-platform presence was not updated when the session advertised for presence changed.
+- Fixed an issue where presence for the Epic Games Overlay did not respect the 'Presence Advertises' setting in Project Settings.
+- Fixed the enumeration display names for `Int32` and `Float` for variant data to clarify that these types work for EOS stats.
+- Fixed an issue the session data returned by `GetNamedSession` did not reflect the updated attributes after calling `UpdateSession`. The updated attributes are now reflected immediately in the local session data, and rolled back if the session update fails.
+- Fixed an issue where the session state of joined sessions did not get set to `Creating` and `Pending` as the join occurs.
+- Added additional logging when sessions are modified; visible when setting `LogOnlineSubsystemRedpointEOS` to `VeryVerbose`.
+- Added a [warning and editor check when developers are updating rooms (parties or lobbies) too frequently](/docs/support/troubleshooting/room_transactions_throttled.mdx) for the plugin to flush updates to the Epic Online Services backend.
