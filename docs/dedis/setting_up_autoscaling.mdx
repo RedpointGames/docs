@@ -9,7 +9,7 @@ Now that your packaged game server has been successfully deployed and tested on 
 
 To date, we've created all of the Agones/Kubernetes resources by using the SSH terminal on the Kubernetes control node.
 
-For obvious reasons, this doesn't work long term, especially when you're [deploying your game servers from a build server](/dedis/automating_deployments.mdx). Instead, we'll open the Kubernetes API port on the control node so that we can access it from our local machine and build servers.
+For obvious reasons, this doesn't work long term, especially when you're deploying your game servers from a build server. Instead, we'll open the Kubernetes API port on the control node so that we can access it from our local machine and build servers.
 
 ### Identifying your IP address
 
@@ -40,33 +40,33 @@ You'll get a file that looks like this:
 ```yaml
 apiVersion: v1
 clusters:
-- cluster:
-    certificate-authority-data: ...
-    server: https://127.0.0.1:6443
-  name: default
+  - cluster:
+      certificate-authority-data: ...
+      server: https://127.0.0.1:6443
+    name: default
 contexts:
-- context:
-    cluster: default
-    user: default
-  name: default
+  - context:
+      cluster: default
+      user: default
+    name: default
 current-context: default
 kind: Config
 preferences: {}
 users:
-- name: default
-  user:
-    client-certificate-data: ...
-    client-key-data: ...
+  - name: default
+    user:
+      client-certificate-data: ...
+      client-key-data: ...
 ```
 
 You'll need to change `https://127.0.0.1:6443` to the public IP address of the control node. For example, if the public IP was `1.1.1.1`, you would change it to:
 
 ```yaml
 clusters:
-- cluster:
-    certificate-authority-data: ...
-    server: https://1.1.1.1:6443
-  name: default
+  - cluster:
+      certificate-authority-data: ...
+      server: https://1.1.1.1:6443
+    name: default
 ```
 
 Then to utilize this file, you have a few options:
@@ -105,30 +105,30 @@ spec:
     spec:
       # Set up your game ports as appropriate.
       ports:
-      - name: game
-        containerPort: 7777
-      - name: beacon
-        containerPort: 12345
+        - name: game
+          containerPort: 7777
+        - name: beacon
+          containerPort: 12345
       template:
         spec:
           # Don't forget to use your GitLab pull secret.
           imagePullSecrets:
-          - name: gitlab
+            - name: gitlab
           containers:
-          - name: eos-dedicated-server
-            # Update the image to the URL you pushed your packaged game server to.
-            image: registry.gitlab.com/redpointgames/internal/eos-game-server:latest
-            resources:
-              requests:
-                # Adjust these values for your game server.
-                # 1GB of RAM
-                memory: "1Gi"
-                # 1.5 vCPU
-                cpu: "1500m"
-              limits:
-                # These should be the same settings as requests.
-                memory: "1Gi"
-                cpu: "1500m"
+            - name: eos-dedicated-server
+              # Update the image to the URL you pushed your packaged game server to.
+              image: registry.gitlab.com/redpointgames/internal/eos-game-server:latest
+              resources:
+                requests:
+                  # Adjust these values for your game server.
+                  # 1GB of RAM
+                  memory: "1Gi"
+                  # 1.5 vCPU
+                  cpu: "1500m"
+                limits:
+                  # These should be the same settings as requests.
+                  memory: "1Gi"
+                  cpu: "1500m"
 ```
 
 Deploy the fleet by running the following command:

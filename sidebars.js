@@ -116,7 +116,6 @@ module.exports = {
     "dedis/setting_up_autoscaling",
     "dedis/updating_your_game_client",
     "dedis/bursting_into_cloud",
-    "dedis/automating_deployments",
     "dedis/playfab",
   ],
   ossv1: [
