@@ -9,8 +9,12 @@ module.exports = {
   projectName: "docs",
   onBrokenLinks: "throw",
   onBrokenAnchors: "throw",
-  onBrokenMarkdownLinks: "throw",
-  onDuplicateRoutes: "throw",
+  markdown: {
+    hooks: {
+      onBrokenMarkdownLinks: "throw",
+      onBrokenMarkdownImages: "throw",
+    },
+  },
   plugins: [
     () => ({
       name: "Raw Loader",
@@ -93,6 +97,12 @@ module.exports = {
               label: "📘 Blueprints reference (OSSv1)",
               hint: "A comprehensive reference of all auto-generated blueprint nodes.",
               blueprint: true,
+            },
+            {
+              type: "doc",
+              docId: "tools/index",
+              label: "⚙️ Unreal Editor tools",
+              hint: "Editor and debugging tools to help you implement Epic Online Services.",
             },
             {
               type: "doc",

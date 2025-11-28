@@ -25,3 +25,12 @@
 /docs/core_getting_started                          /docs/
 /docs/matchmaking/configuration                     /docs/matchmaking/skill_configuration
 /docs/matchmaking/configuration/                    /docs/matchmaking/skill_configuration
+/docs/support/gameplay_debugger                     /docs/tools/gameplay_debugger
+/docs/support/gameplay_debugger/                    /docs/tools/gameplay_debugger
+/docs/support/console_commands                      /docs/tools/console_commands
+/docs/support/console_commands/                     /docs/tools/console_commands
+/docs/support/console_variables                     /docs/tools/console_variables
+/docs/support/console_variables/                    /docs/tools/console_variables
+/docs/support/profiling                             /docs/tools/profiling
+/docs/support/profiling/                            /docs/tools/profiling
+

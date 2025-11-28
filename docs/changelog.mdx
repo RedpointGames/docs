@@ -272,7 +272,7 @@ The changes in EOS Online Framework 2025.06.24 are as follows:
 - Fixed an issue where a stale friend cache would be used if a user no longer had any friends.
 - Fixed support for calling the receipt-less version of `Checkout` on the purchase interface when using Epic Games e-commerce.
 - Fixed an issue where party attribute values were not visible to blueprints on the `RedpointPartyMember` events.
-- Fixed an issue where the [gameplay debugger for P2P networking](./support/gameplay_debugger.mdx) did not show NAT status.
+- Fixed an issue where the [gameplay debugger for P2P networking](./tools/gameplay_debugger.mdx) did not show NAT status.
 - Fixed an issue where `ShowInviteUI` on the external UI interface would fail with "This platform does not have a native subsystem", even though external UI functionality is now provided internally in the plugin.
 - Fixed an issue where Meta Quest invites could be consumed prior to the user being signed in.
 - Searches for lobbies and parties are now automatically retried with exponential backoff if the EOS SDK returns `EOS_TooManyRequests` or `EOS_TimedOut`.
@@ -498,7 +498,7 @@ This release fixes several issues:
 - Fixed an extremely subtle login stall that could happen when multiple play-in-editor windows are signing in at the same time.
 - Fixed an issue where voice channels for voice-enabled parties would not appear when calling `GetChannels`.
 - Fixed an issue where dedicated servers would not start up when "Require Epic Games Launcher" is enabled.
-- Fixed an issue where console commands for the identity system did not work. These console commands have been replaced with [new console commands](/support/console_commands.mdx).
+- Fixed an issue where console commands for the identity system did not work. These console commands have been replaced with [new console commands](/tools/console_commands.mdx).
 
 ### 2024.09.10
 
@@ -982,7 +982,7 @@ This release fixes various bugs, adds provisional support for EOS SDK 1.15.3 and
 
 This release adds a gameplay debugger for network traffic and fixes a few issues with the Free Edition:
 
-- Added a new [gameplay debugger](/support/gameplay_debugger.mdx) which shows the state of all P2P networking connections.
+- Added a new [gameplay debugger](/tools/gameplay_debugger.mdx) which shows the state of all P2P networking connections.
 - Fixed an issue in the Free Edition where clang-tidy related files were incorrectly shipped in the package, preventing the Free Edition from working on Windows.
 - Fixed an issue with the license validation for the Free Edition, which prevented relatively new license keys from working with the Free Edition. License keys obtained from the License Manager in the past were not affected. We've also added an automation test to our build system to prevent this issue occurring again in the future.
 - Fixed an issue where party member data would not tolerate UTF8 string values correctly.
@@ -1741,7 +1741,7 @@ This release significantly improves the editor experience and fixes a few issues
 - Sessions can now be advertised in the presence system in the Epic Games overlay. This allows players to join and invite other players to sessions that they are in. You must specifically enable this functionality by changing the `PresenceAdvertises` configuration option. For more information, refer to [Joining sessions from the Overlay](/ossv1/presence/sessions.mdx).
 - The Epic Games Overlay will now appear when launching the game in the editor through "Standalone Game". This means you can now test overlay functionality without creating a packaged build.
 - When launching multiple "Standalone Game" instances through the editor (from the Play dropdown), each instance will correctly use a different context from the Developer Authentication Tool. This makes "Standalone Game" behave the same as "Selected Viewport" when it comes to authentication.
-- Added performance counters to so that you can view how long EOS operations are taking on the main thread in Unreal Insights, as well as how many network packets and bytes are being sent over EOS P2P. For more information, refer to [Profiling with Unreal Insights](/support/profiling.mdx).
+- Added performance counters to so that you can view how long EOS operations are taking on the main thread in Unreal Insights, as well as how many network packets and bytes are being sent over EOS P2P. For more information, refer to [Profiling with Unreal Insights](/tools/profiling.mdx).
 - The plugin will now emit an error to the Output Log if you attempt to use `CreateSession` or `UpdateSession`, but you haven't enabled the EOS networking driver.
 - Fixed an issue where Android shipping builds would crash due to a bug in a third-party Android library.
 - Fixed an issue where custom properties would not be set when a user's presence status was updated.

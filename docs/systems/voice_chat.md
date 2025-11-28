@@ -358,7 +358,7 @@ FVoiceChatMicrophoneAudioCaptureHandleRef Handle = VoiceChat->AddMicrophoneAudio
 
 ## Get the audio volume levels
 
-You can retrieve the audio volume levels and various stages of voice chat audio processing. The Voice Chat Debugger uses these APIs to display the audio levels in the editor:
+You can retrieve the audio volume levels and various stages of voice chat audio processing. The [Voice Chat Debugger](/docs/tools/voice_chat_debugger.mdx) uses these APIs to display the audio levels in the editor:
 
 - `GetLastMicrophoneAudioLevels(LocalUserId)`: Reports the last unmodified microphone audio levels, prior to any volume or input patch modifications. This will return the same values for all local users using the same input device.
 - `GetLastInputAudioLevels(LocalUserId)`: Reports the last input audio levels, after global volume and mute, and after input patch modifications.
