@@ -4,6 +4,7 @@ description: Turn on automatic party management to keep players in a party at al
 ---
 
 import Blueprint from "@site/src/Blueprint";
+import NodeRef from "@site/src/components/NodeRef";
 
 import bpGetPrimaryParty from "./automatic_parties/get_primary_party.bp";
 import bpUpdatePartySize from "./automatic_parties/update_party_size.bp";
@@ -28,7 +29,7 @@ In Project Settings, under "Epic Online Services":
 
 ## Get the current party
 
-You can get the party that the local player is currently in by using the "Get Primary Party" blueprint node on the local player subsystem.
+You can get the party that the local player is currently in by using the <NodeRef name="Get Primary Party" /> blueprint node on the local player subsystem.
 
 :::warning
 This can return a None object temporarily if the player was kicked from their previous party, and we haven't finished creating a new party for them yet.
@@ -38,6 +39,6 @@ This can return a None object temporarily if the player was kicked from their pr
 
 ## Change the size of the party at runtime
 
-You can change the size of the party, if you are the party leader, by using the "Update Party" blueprint node.
+You can change the size of the party, if you are the party leader, by using the <NodeRef name="Update Party" /> blueprint node.
 
 <Blueprint height="800px" blueprint={bpUpdatePartySize} />

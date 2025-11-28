@@ -3,17 +3,18 @@ title: Logging in and out, and retrieving local user information
 description: How to authenticate users using the online identity subsystem.
 ---
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
-import Blueprint from '@site/src/Blueprint';
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+import Blueprint from "@site/src/Blueprint";
+import NodeRef from "@site/src/components/NodeRef";
 
-import bpLogin from './bp/login.bp';
-import bpLogout from './bp/logout.bp';
-import bpLoginStatus from './bp/login_status.bp';
-import bpUserId from './bp/user_id.bp';
-import bpUserDisplayName from './bp/user_display_name.bp';
-import bpUserAccount from './bp/user_account.bp';
-import bpAllAccounts from './bp/all_accounts.bp';
+import bpLogin from "./bp/login.bp";
+import bpLogout from "./bp/logout.bp";
+import bpLoginStatus from "./bp/login_status.bp";
+import bpUserId from "./bp/user_id.bp";
+import bpUserDisplayName from "./bp/user_display_name.bp";
+import bpUserAccount from "./bp/user_account.bp";
+import bpAllAccounts from "./bp/all_accounts.bp";
 
 Once you've [configured authentication](auth/configuration.mdx) in your project, you can now log users in when your game launches.
 
@@ -94,7 +95,7 @@ void UMyClass::HandleLoginComplete(
 </TabItem>
 <TabItem value="blueprints">
 
-To sign the user in, just call the "Auto Login" blueprint node on the identity subsystem:
+To sign the user in, just call the <NodeRef name="Auto Login" /> blueprint node on the identity subsystem:
 
 <Blueprint height="300px" blueprint={bpLogin} />
 

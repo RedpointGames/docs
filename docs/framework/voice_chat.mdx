@@ -42,58 +42,57 @@ After adding the component, there are only a few settings to configure:
 
 The following blueprint nodes can be called on both the client and server:
 
-- <NodeRef name="Get Audio Anchor Point" /> Returns the actor that this player's
-  voice chat audio will be emitted from.
 - <NodeRef name="Get Local User Id" /> Returns the local player's user ID.
 
 The following blueprint nodes can be called only on the client:
 
-- <NodeRef name="Is Input Muted" /> Returns whether this player's microphone is muted
-  in this voice chat group.
+- <NodeRef name="Is Input Muted" pure /> Returns whether this player's microphone
+  is muted in this voice chat group.
 - <NodeRef name="Set Input Muted" /> Sets whether this player's microphone is muted
   in this voice chat group.
-- <NodeRef name="Get Input Volume" /> Returns the volume of this player's microphone
+- <NodeRef name="Get Input Volume" pure /> Returns the volume of this player's microphone
   in this voice chat group.
 - <NodeRef name="Set Input Volume" /> Sets the volume of this player's microphone
   in this voice chat group, between 0.0 and 200.0 (2x volume).
-- <NodeRef name="Is Output Muted" /> Returns whether this player's speaker is muted
-  in this voice chat group.
+- <NodeRef name="Is Output Muted" pure /> Returns whether this player's speaker is
+  muted in this voice chat group.
 - <NodeRef name="Set Output Muted" /> Sets whether this player's speaker is muted
   in this voice chat group.
-- <NodeRef name="Get Output Volume" /> Returns the volume of this player's speaker
+- <NodeRef name="Get Output Volume" pure /> Returns the volume of this player's speaker
   in this voice chat group.
 - <NodeRef name="Set Output Volume" /> Sets the volume of this player's speaker in
   this voice chat group, between 0.0 and 200.0 (2x volume).
-- <NodeRef name="Get Other Member User Ids" /> Returns the list of other users that
-  are currently in this player's voice chat group.
-- <NodeRef name="Get All Member User Ids" /> Returns the list of all users (including
+- <NodeRef name="Get Other Member User Ids" pure /> Returns the list of other users
+  that are currently in this player's voice chat group.
+- <NodeRef name="Get All Member User Ids" pure /> Returns the list of all users (including
   this player) that are currently in this player's voice chat group.
-- <NodeRef name="Is Member Output Local Muted" /> Returns if the other member in
-  the voice chat group has been locally muted by this player.
+- <NodeRef name="Is Member Output Local Muted" pure /> Returns if the other member
+  in the voice chat group has been locally muted by this player.
 - <NodeRef name="Set Member Output Local Muted" /> Sets the other member's audio
   to be locally muted or unmuted by this player.
-- <NodeRef name="Get Member Output Local Volume" /> Returns the locally adjusted
+- <NodeRef name="Get Member Output Local Volume" pure /> Returns the locally adjusted
   volume level of the other member in the voice chat group.
 - <NodeRef name="Set Member Output Local Volume" /> Sets the other member's volume
   level to be locally adjusted by this player, between 0.0 and 200.0 (2x volume).
-- <NodeRef name="Is Member Output Hard Muted" /> Returns if the other member in the
-  voice chat group has been hard muted by the server.
-- <NodeRef name="Is Member Blocked" /> Returns if the other member in the voice chat
-  group has been blocked by the local player. If another member of the voice chat
-  group is blocked by the local player, the local player's microphone audio will
-  not be sent to them.
-- <NodeRef name="Is Local User Speaking" /> Returns if the local player is currently
+- <NodeRef name="Is Member Output Hard Muted" pure /> Returns if the other member
+  in the voice chat group has been hard muted by the server.
+- <NodeRef name="Is Member Blocked" pure /> Returns if the other member in the voice
+  chat group has been blocked by the local player. If another member of the voice
+  chat group is blocked by the local player, the local player's microphone audio
+  will not be sent to them.
+- <NodeRef name="Is Local User Speaking" pure /> Returns if the local player is currently
   speaking.
-- <NodeRef name="Is Member Speaking" /> Returns if the member of the voice chat group
-  is currently speaking.
-- <NodeRef name="Get Member Audio Actor" /> Returns the actor that the other member's
-  audio is being emitted from. This will be None if the target member is not emitting
-  proximity-enabled audio, or if the actor has not been replicated by the server.
+- <NodeRef name="Is Member Speaking" pure /> Returns if the member of the voice chat
+  group is currently speaking.
+- <NodeRef name="Get Member Audio Actor" pure /> Returns the actor that the other
+  member's audio is being emitted from. This will be None if the target member is
+  not emitting proximity-enabled audio, or if the actor has not been replicated by
+  the server.
 
 The following blueprint nodes can be called only on the server:
 
-- <NodeRef name="Is Hard Muted on Server" /> Returns true if this player has been
-  hard muted for all other players in the voice chat group.
+- <NodeRef name="Is Hard Muted on Server" pure /> Returns true if this player has
+  been hard muted for all other players in the voice chat group.
 - <NodeRef name="Set Hard Muted on Server" /> Sets whether this player should be
   hard muted for all other players in the voice chat group.
 
@@ -101,13 +100,13 @@ The following blueprint nodes can be called only on the server:
 
 You can control the input and output audio devices on the client:
 
-- <NodeRef name="Get Available Voice Chat Audio Devices" /> Returns the available
+- <NodeRef name="Get Available Voice Chat Audio Devices" pure /> Returns the available
   audio devices that can be used with voice chat.
 - <NodeRef name="Set Voice Chat Audio Input Device" /> Sets the input audio device
   that the user should use for voice chat.
 - <NodeRef name="Set Voice Chat Audio Output Device" /> Sets the output audio device
   that the user should use for voice chat.
-- <NodeRef name="Get Voice Chat Audio Input Device" /> Returns the current input
+- <NodeRef name="Get Voice Chat Audio Input Device" pure /> Returns the current input
   audio device the user is using for voice chat.
-- <NodeRef name="Get Voice Chat Audio Output Device" /> Returns the current output
-  audio device the user is using for voice chat.
+- <NodeRef name="Get Voice Chat Audio Output Device" pure /> Returns the current
+  output audio device the user is using for voice chat.
