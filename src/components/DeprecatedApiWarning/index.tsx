@@ -41,6 +41,7 @@ export default function DeprecatedApiWarning(props: {
           </button>
         </div>
       </div>
+      <div style={{ display: "none" }}>{props.children}</div>
     </>
   );
 }

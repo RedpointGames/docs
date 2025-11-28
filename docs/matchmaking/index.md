@@ -11,5 +11,5 @@ Team-based matchmaking is only available to users of the [Paid Edition](https://
 
 - [Configure your project for skill-based matchmaking](./skill_configuration.md)
 - [Configure your project to support matchmaking with dedicated servers](./dedicated_server_configuration.mdx)
-- [Use team-based matchmaking from blueprints](./blueprints/index.md)
-- [Use team-based matchmaking from C++](./cpp/index.md)
+- [Use team-based matchmaking from blueprints](./blueprints/index.mdx)
+- [Use team-based matchmaking from C++](./cpp/index.mdx)
