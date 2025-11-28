@@ -17,6 +17,25 @@ import Image_20250811_MatchResults2 from "./changelog/2025.08.11/match_results_2
 
 This document describes the changes made in each release.
 
+### 2025.11.28
+
+This release adds support for proximity voice chat, anonymous title storage access, and fixes several issues:
+
+- Added support for [proximity voice chat via the Redpoint Voice Chat component](/docs/framework/voice_chat.mdx). This component can manage voice chat channel connections for you on listen servers and dedicated servers, and vastly simplifies voice chat implementations in multiplayer games.
+  - If you are currently managing voice chat connections manually on game servers, it is recommended that you use the Redpoint Voice Chat component instead.
+- Added support for [anonymous access to Title Storage](/docs/ossv1/title_file/anonymous.mdx), allowing game clients to download files from Title Storage before the first user signs in.
+- Customizing widget presentation during authentication is now done via the [IRedpointEOSAuthWidgetFactory](/docs/auth/custom_ui.mdx). This allows you to display widgets with Common UI, and makes routing focus easier for games that have controller support.
+  - The existing "EOS Subsystem" and the events it provides are now deprecated and will be removed in a future release.
+  - We have added a "Redpoint Widget Reference List" data asset type, which makes it easier to ensure your custom authentication widgets are included when your project is cooked.
+- Sanction checks now allow players to connect if the EOS SDK returns `EOS_UnexpectedError` during EOS outages.
+- Added a "Is Play-in-Editor?" blueprint node, which can be used to detect when the game is running in the editor.
+- Improved logging when overriding the game mode in team-based matchmaking.
+- Improved the [Voice Chat Debugger](/docs/tools/voice_chat_debugger.mdx), and documented this editor tool.
+- Fixed an issue where invites on Meta Quest were processed before the local user was signed in.
+- Fixed a periodic lag spike when the plugin refreshed audio devices; refreshing the audio device list is now done on a background thread.
+- Fixed a rare deadlock when voice chat channels are being cleaned up.
+- Removed support for EOS SDK 1.16.
+
 ### 2025.11.16
 
 This release adds support for Unreal Engine 5.7, EOS SDK 1.18.1.2, and routes voice chat audio through the engine:
