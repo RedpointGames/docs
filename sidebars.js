@@ -258,7 +258,11 @@ module.exports = {
     {
       type: "category",
       label: "Title File",
-      items: ["ossv1/title_file/uploading", "ossv1/title_file/reading"],
+      items: [
+        "ossv1/title_file/uploading",
+        "ossv1/title_file/anonymous",
+        "ossv1/title_file/reading",
+      ],
     },
     {
       type: "category",
