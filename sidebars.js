@@ -25,12 +25,14 @@ module.exports = {
   systems: [
     "systems/index",
     "systems/api",
+    "systems/async",
     "systems/user_id",
     "systems/identity",
     "systems/friends",
     "systems/presence",
     "systems/storage",
     "systems/user_cache",
+    "systems/voice_chat",
   ],
   support: [
     "support/index",
