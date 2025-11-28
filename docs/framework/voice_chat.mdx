@@ -17,7 +17,7 @@ Some common implementations are:
 - If you are building a cooperative game and you want all players on the server to hear each other, leave all players in voice chat group 0.
 - If you are building a competitive game and you want team members to hear each other, set the voice chat group to the team ID.
 
-You can change the voice chat group at any time on the game server, and players will connect to the necessary voice chat channel internally.
+You can change the voice chat group at any time on the game server, and players will connect to the correct voice chat channel automatically.
 
 ## Add the Redpoint Voice Chat component to your player controller
 
@@ -36,7 +36,7 @@ After adding the component, there are only a few settings to configure:
   - If set to 'None', no proximity or spatialisation will be applied to this player's voice chat audio when they are heard by other players.
   - If set to 'Possessed Pawn', the player's voice chat audio will appear to be coming from their possessed pawn or character on other game clients.
   - If set to 'Custom', the player's voice chat audio will appear to be coming from the actor you have set on the server via the "Set Custom Audio Anchor Point".
-- **Attenuation Settings**: If proximity type is not set to None, you must set the attenuation settings which specifies how the voice chat audio is heard in the world.
+- **Attenuation Settings**: If proximity type is not set to None, you must set the attenuation settings which specifies how sound propagates in the game world, including the maximum distance at which the voice chat audio will be heard.
 
 ## Blueprint nodes on the component
 
