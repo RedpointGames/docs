@@ -23,9 +23,11 @@ PrivateDependencyModuleNames.AddRange(new string[]
 });
 ```
 
-For all of these APIs, you will need to include the appropriate namespace:
+For all of these APIs, you will need to include the correct headers and the appropriate namespace:
 
 ```cpp
+#include "RedpointEOSAsync/Task.h"
+
 using namespace ::Redpoint::EOS::Async;
 ```
 
