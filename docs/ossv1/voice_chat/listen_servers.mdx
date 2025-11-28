@@ -7,6 +7,11 @@ description: How to use voice chat when players are connected to listen servers.
 import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
 import Blueprint from "@site/src/Blueprint";
+import DeprecatedApiWarning from "@site/src/components/DeprecatedApiWarning";
+
+import MdxDeprecatedWarning from "./_deprecated_warning.mdx";
+
+<DeprecatedApiWarning warning={<MdxDeprecatedWarning />}>
 
 If you want to provide voice chat for players on a listen server, you'll need to create a voice-enabled lobby on the listen server, and get all connected clients to join it.
 
@@ -616,3 +621,5 @@ End Object
 `} />
 </TabItem>
 </Tabs>
+
+</DeprecatedApiWarning>

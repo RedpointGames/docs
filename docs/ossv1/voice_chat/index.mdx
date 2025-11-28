@@ -7,6 +7,11 @@ description: Understand how voice chat works on Epic Online Services.
 import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
 import Blueprint from "@site/src/Blueprint";
+import DeprecatedApiWarning from "@site/src/components/DeprecatedApiWarning";
+
+import MdxDeprecatedWarning from "./_deprecated_warning.mdx";
+
+<DeprecatedApiWarning warning={<MdxDeprecatedWarning />}>
 
 To access voice chat in EOS, you'll need to use the `IVoiceChat` interface. You'll use this interface to create a voice chat user, and then "connect" that voice chat user to the EOS online subsystem (where you've already signed the user in).
 
@@ -235,3 +240,5 @@ The echo functionality does not appear to reliably work in EOS SDK 1.13.1. For n
 :::caution
 The "is talking" status of voice chat users will always return false if there is only one user in the voice chat channel, even if you have echo enabled. If you want to use the "is talking" status, you must test with multiple players in voice chat.
 :::
+
+</DeprecatedApiWarning>

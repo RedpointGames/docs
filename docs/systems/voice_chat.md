@@ -386,7 +386,7 @@ The voice chat system provides the following events:
 
 ## Using audio patches to intercept audio data
 
-The voice chat system has a powerful audio interception API that allows you to modify and replace both input and output audio data as needed.
+The voice chat system has a powerful audio interception API that allows you to modify and replace both input and output audio data as needed. For example, the [Redpoint Voice Chat component](#) uses an output audio patch to route audio data from each player to the audio component on their possessed pawn in the world, enabling proximity voice chat.
 
 There are two types of audio patches:
 
@@ -477,7 +477,7 @@ Alternatively, you can modify the data in `AudioData->Frames` and _then_ return 
 `PeriodicUpdateOnGameThread` is called periodically from the game thread, and can be used to clean up state you were tracking for previous voice chat channels that no longer exist. A typical implementation for an audio patch will keep a "time last used" value as part of the state, and `PeriodicUpdateOnGameThread` will iterate through the states and release resources where "time last used" is older than a few seconds.
 
 :::info
-`FAbstractSoundWaveOutputAudioPatch` is an abstract implementation of `IVoiceChatOutputAudioPatch`, and is used by `FSpeakerOutputAudioPatch` (the default audio patch).
+`FAbstractSoundWaveOutputAudioPatch` is an abstract implementation of `IVoiceChatOutputAudioPatch`, and is used by both `FSpeakerOutputAudioPatch` (the default audio patch) and `FComponentOutputAudioPatch` (used by the Redpoint Voice Chat component).
 
 This abstract implementation provide a simpler API, whereby you can indicate whether you're interested in audio from a given player via `WantsToHandleAudioDataCheckedOnAudioThread`, and handle only the construction of the `UAudioComponent` with `CreateAudioComponentForSoundWave`. The abstract implementation then handles sending audio data to the audio component you constructed.
 :::

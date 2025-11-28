@@ -3,6 +3,12 @@ title: "Controlling voice chat audio"
 description: How to adjust audio input devices, output devices, control muting and read speaking/mute statuses.
 ---
 
+import DeprecatedApiWarning from "@site/src/components/DeprecatedApiWarning";
+
+import MdxDeprecatedWarning from "./_deprecated_warning.mdx";
+
+<DeprecatedApiWarning warning={<MdxDeprecatedWarning />}>
+
 To fully implement EOS voice chat, you'll want to allow the user to configure which audio devices they want to use for input and output, and allow them to mute or block other remote players during gameplay.
 
 ## Get the current or available audio devices
@@ -91,3 +97,5 @@ To control features like echo cancellation, noise suppression, auto gain control
 - `EnablePlatformAEC` (defaults based on Project Settings)
 
 You can retrieve the current status of these features using `GetSetting`. To turn these features on, the value must be `true` (exactly, case-sensitive). Any other value is treated as `false`.
+
+</DeprecatedApiWarning>

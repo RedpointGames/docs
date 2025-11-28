@@ -7,6 +7,11 @@ description: How to use voice chat when players are connected to dedicated serve
 import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
 import Blueprint from "@site/src/Blueprint";
+import DeprecatedApiWarning from "@site/src/components/DeprecatedApiWarning";
+
+import MdxDeprecatedWarning from "./_deprecated_warning.mdx";
+
+<DeprecatedApiWarning warning={<MdxDeprecatedWarning />}>
 
 If you want to provide voice chat for players on a dedicated server, you'll need to make the dedicated server issue channel credentials for connecting players, send the issued credentials over Unreal Engine networking, and then have the clients join the channel using the issued credentials.
 
@@ -594,3 +599,5 @@ End Object
 `} />
 </TabItem>
 </Tabs>
+
+</DeprecatedApiWarning>

@@ -7,6 +7,11 @@ description: How to use voice chat in parties.
 import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
 import Blueprint from "@site/src/Blueprint";
+import DeprecatedApiWarning from "@site/src/components/DeprecatedApiWarning";
+
+import MdxDeprecatedWarning from "./_deprecated_warning.mdx";
+
+<DeprecatedApiWarning warning={<MdxDeprecatedWarning />}>
 
 Enabling voice chat in EOS parties is easy. Just set the `bChatEnabled` / "Chat Enabled" flag in the party configuration when creating the party, and the user will automatically join the voice chat room. When they leave the party, they will be disconnected from the voice chat room.
 
@@ -264,3 +269,5 @@ End Object
 `} />
 </TabItem>
 </Tabs>
+
+</DeprecatedApiWarning>

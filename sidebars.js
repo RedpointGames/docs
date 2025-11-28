@@ -21,6 +21,7 @@ module.exports = {
     "framework/displaying_avatars",
     "framework/bind_friends_list",
     "framework/player_registration",
+    "framework/voice_chat",
   ],
   systems: [
     "systems/index",
