@@ -3,12 +3,17 @@ title: Customizing login prompts
 description: How to customize the login prompts and how they are displayed.
 ---
 
+import Video from "@site/src/Video";
+
+import videoCreateReferencesAsset from "./custom_ui/create_references_asset.mp4";
+import videoSetupReferencesAsset from "./custom_ui/setup_references_asset.mp4";
+
 The authentication system may need to prompt the player in certain scenarios, to confirm how the player wants to log into their account.
 
 There are two ways to customize the login system:
 
 - Customizing the UMG widgets to change the appearance of the prompts.
-- Binding to the "Add Widget to Viewport" and "Remove Widget from Viewport" events to customize where widgets are displayed. This is essential for VR games which will need to attach widgets to actors instead of the viewport.
+- Implementing the `IRedpointEOSAuthWidgetFactory` interface on your game instance to customize how widgets are displayed. This is essential for VR games which will need to attach widgets to actors instead of the viewport, but can also be used by games that want to push widgets onto a Common UI activatable widget stack.
 
 ## Customizing the login appearance
 
@@ -53,15 +58,39 @@ Once you have got a copy of the widgets in your project, you can change which wi
 
 ![Changing the UMG widgets via Project Settings](custom_ui/change_umg_widgets.png)
 
+### Including the widgets in your project cook
+
+To ensure your custom widgets are included when your game is cooked and packaged, you should create a new "Redpoint Widget Reference List" data asset in your project:
+
+<Video url={videoCreateReferencesAsset} />
+
+Open the newly created asset, and add your custom widgets to the list. Then, if this is the first time you are setting up a widget reference list in your project, click the "Register 'Redpoint Widget Reference List' assets with Asset Manager" button:
+
+<Video url={videoSetupReferencesAsset} />
+
+:::warning
+If you don't set up a reference list asset, then your UMG widgets may not be cooked at runtime. If this is the case, login can fail if the plugin needs to prompt the player.
+:::
+
+If you want to add the Redpoint Widget Reference List assets to the Asset Manager manually, or if the button in the asset does not work for you, these are the settings you need:
+
+![A screenshot of the Asset Manager Primary Asset Types to Scan after pressing the button in the asset](./custom_ui/asset_manager_manual.png)
+
 ## Customizing how widgets are displayed
 
-The plugin provides a global "EOS subsystem" with "Add Widget to Viewport" and "Remove Widget from Viewport" events.
+The plugin allows you to override how authentication widgets are created, displayed and destroyed by implementing the `IRedpointEOSAuthWidgetFactory` interface on your game instance. In blueprints, you can do this by selecting "Class Settings" in the toolbar, and then clicking "Add" next to "Implemented Interfaces":
 
-When you bind to these events, you override how the plugin displays widgets on screen with your own behaviour.
+![A screenshot of the game instance after the interface has been added](./custom_ui/implement_gameinstance_interface.png)
 
-The default behaviour is effectively as follows:
+There is one function available to override, and two events:
 
-![An example of binding to the custom UI events](custom_ui/override_widget_handlers.png)
+- `ConstructStartupScreen`: This should construct the widget and return it.
+- `PresentStartupScreen`: This should add the widget to the viewport and focus it.
+- `DestructStartupScreen`: This should remove the widget from the viewport.
+
+For example, in Minute of Mayhem we implement the `ConstructStartupScreen` function like so:
+
+![A screenshot of the implementation of ConstructStartupScreen from the Minute of Mayhem example project](./custom_ui/construct_startup_screen.png)
 
 :::caution
 VR games will need to bind to these events, and attach the widgets to the actors in the scene. Otherwise, your players will not be able to interact with the login prompts.
