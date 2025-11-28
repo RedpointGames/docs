@@ -3,9 +3,15 @@ title: Fetching and displaying avatars
 description: How to fetch and display avatars in-game.
 ---
 
+import DeprecatedApiWarning from "@site/src/components/DeprecatedApiWarning";
+
+import MdxDeprecatedWarning from "./_deprecated_warning.mdx";
+
+<DeprecatedApiWarning warning={<MdxDeprecatedWarning />}>
+
 Epic Online Services does not yet have support for avatars; even Epic Games accounts don't have avatars on their profiles.
 
-However, native platforms such as Steam have avatars. When you sign in with a native platform, you might be displaying accounts from platforms such as Steam, which *do* support avatars.
+However, native platforms such as Steam have avatars. When you sign in with a native platform, you might be displaying accounts from platforms such as Steam, which _do_ support avatars.
 
 To allow you to display avatars for native platforms, EOS implements the [IOnlineAvatar](https://src.redpoint.games/redpointgames/online-interfaces/) interface.
 
@@ -31,3 +37,5 @@ Avatars are currently supported on the following platforms:
 - Discord
 - Oculus
 - itch.io
+
+</DeprecatedApiWarning>
