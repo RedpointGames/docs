@@ -1,0 +1,14 @@
+import NodeRef from "@site/src/components/NodeRef";
+
+### 2025.12.04
+
+This release improves the stability of proximity voice chat and fixes several issues:
+
+- Improved the stability of the voice chat system on platforms such as Android by limiting hardware device selection only to platforms that support it (Windows, Linux).
+- Added [development-only console variables](/docs/tools/console_variables.mdx#console-variables-for-voice-chat) which can be used to diagnose issues with the voice chat system.
+- Added "editor auto-mute", which silences the input audio of the currently focused play-in-editor to avoid undesired echo cancellation effects when testing with multiple players in the editor.
+- Added the <NodeRef name="Is Global Voice Chat Audio Feature Enabled" pure /> and <NodeRef name="Set Global Voice Chat Audio Feature Enabled" /> blueprint nodes to toggle audio features like echo cancellation and noise suppression.
+- Updated the [Minute of Mayhem example project](/docs/examples/minute/index.mdx):
+  - Launching games via matchmaking or simple session search has now been abstracted into "launch providers", which can be located under `Redpoint/MainMenu/LaunchProviders` in the Content Browser.
+- Fixed an issue where changing unrelated Project Settings could result in dynamic configuration layers being unloaded; we use dynamic configuration layers to automatically configure things like net driver definitions. This fix only applies to Unreal Engine 5.7.
+- Fixed an crash that could happen when a remote socket did not have a peer address set.

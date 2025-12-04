@@ -46,3 +46,14 @@ If you're seeing high latency in the "In Flight" column, beyond the latency you 
 :::caution
 Tools like Excel will lock the file for reading and writing, preventing the engine from writing timing data. Make sure you don't have the `EOSPacketTiming.csv` file open in Excel before turning on `t.EOSEnablePacketTiming`.
 :::
+
+## Console variables for voice chat
+
+The following console variables are available in non-Shipping builds only:
+
+- `vc.RouteInputAudioThroughEngine`: Defaults to true. When turned off, audio input will be captured by the EOS SDK instead of through Unreal Engine. Features such as volume adjustment, muting and device selection will not work when this console variable is turned off.
+- `vc.RouteOutputAudioThroughEngine`: Defaults to true. When turned off, audio output will be emitted by the EOS SDK instead of through Unreal Engine. Features such as volume adjustment, muting, device selection and proximity/attenuation will not work when this console variable is turned off.
+- `vc.AlwaysUseMainSubmixDevice`: Defaults to false. When turned on, the plugin will always use the primary device for outputting voice chat audio, even on platforms that support multiple audio output devices (Windows and Linux). Output device selection will not be available on Windows and Linux when this option is turned on.
+- `vc.OverrideInputChannels`: Defaults to -1 (use hardware default). This can be set to override the input channels requested from the microphone device when audio capture begins.
+- `vc.RecordPcmToDisk`: Defaults to false. When turned on, the plugin will write raw PCM audio data to `Saved/VoiceChat` so you can see the raw audio data as it passes through the plugin and the EOS SDK.
+- `vc.AlwaysPopulateInputDevicesOnGameThread`: Defaults to false. When turned on, the plugin will always populate the input device list on the game thread. This may cause hitches if the underlying audio capture implementation takes time to query the hardware list.
