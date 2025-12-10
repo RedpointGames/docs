@@ -62,6 +62,7 @@ module.exports = {
         "support/troubleshooting/anticheat",
         "support/troubleshooting/room_transactions_throttled",
         "support/troubleshooting/netdrivers_oculusxr",
+        "support/troubleshooting/linux_editor",
       ],
     },
     "support/blueprints_only",

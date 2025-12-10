@@ -1,0 +1,22 @@
+---
+title: "'Runtime dependency ... is configured to be staged from' when launching editor on Linux"
+description: Learn how to launch the editor on Linux.
+---
+
+Epic's EOSShared plugin copies the EOS SDK that ships with the engine into the same location that the Redpoint plugin copies it when targeting Linux. This is because unlike Windows and macOS, Linux does not support delay loading dynamic libraries from different locations, so we can not place the EOS SDK in a location that does not conflict.
+
+In addition, the `bHasProjectBinary=true` configuration value that we set in `DefaultEngine.ini` for you does not impact editor builds. Unlike game or server builds for Linux which will correctly skip copying the EOS SDK from the engine when `bHasProjectBinary=true` is set, editor builds will always attempt to copy the file and result in a conflict.
+
+To launch the editor on Linux, you need to open `Engine/Source/ThirdParty/EOSSDK/EOSSDK.Build.cs` and replace:
+
+```csharp
+bool bEnableLink = !(bIsMonolithic && HasProjectBinary);
+```
+
+with:
+
+```csharp
+bool bEnableLink = false;
+```
+
+The editor should then build and launch successfully.
