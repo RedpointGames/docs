@@ -157,7 +157,6 @@ auto Operation = Storage->ReadStream(
 // can store the returned operation and call CancelOperation. This is useful if you want to cancel the
 // read prior to the EOS SDK returning another chunk of data.
 Storage->CancelOperation(Operation);
-)
 ```
 
 ## Write a file as a stream of data
