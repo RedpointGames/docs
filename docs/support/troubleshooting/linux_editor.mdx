@@ -20,3 +20,15 @@ bool bEnableLink = false;
 ```
 
 The editor should then build and launch successfully.
+
+## Modify CollectRuntimeDependencies
+
+If changing `bEnableLink` does not resolve the problem, you can alternatively comment out the following exception from `Engine/Source/Programs/UnrealBuildTool/Configuration/UEBuildBinary.cs`:
+
+```csharp
+throw new BuildException("Runtime dependency '{0}' is configured to be staged from '{1}' and '{2}'", Dependency.Path, Dependency.SourcePath, ExistingSourceFile);
+```
+
+:::danger
+Changing `CollectRuntimeDependencies` may result in the incorrect EOS SDK being copied for your project. You must be certain that `EOSShared` is not a runtime dependency of your game, or you may experience issues when running the packaged game. Modify `CollectRuntimeDependencies` only as a last resort.
+:::
