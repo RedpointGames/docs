@@ -10,6 +10,12 @@ The friend system provides a common API for reading and managing cross-platform 
 The C++ APIs described in this section are only available in the Paid Edition, as the Free Edition does not ship with any C++ headers.
 :::
 
+:::warning
+APIs for modifying the friends list only impact the cross-platform friends database and will not affect the local platform or Epic Games friends list. This includes actions such as sending and receiving invites, blocking and unblocking players and modifying recent players.
+
+It is not possible to support modifying the local platform's friends list or Epic Games friends list programmatically, as the platform SDKs and EOS SDK do not expose this functionality.
+:::
+
 ## Updating your game module dependencies
 
 Before you can access the friend system, you need to update your game module's `.Build.cs` file to depend on the `RedpointEOSFriends` module, like so:

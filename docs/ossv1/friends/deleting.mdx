@@ -13,6 +13,12 @@ A user might want to delete a friend that they previously added to their friends
 You can't delete friends if they're friends from the local platform (such as Steam). To know if you can delete a friend from the friends list, check the `deletable` user attribute. It will be `true` if the friend can be deleted.
 :::
 
+:::warning
+APIs for modifying the friends list only impact the cross-platform friends database and will not affect the local platform or Epic Games friends list. This includes actions such as sending and receiving invites, blocking and unblocking players and modifying recent players.
+
+It is not possible to support modifying the local platform's friends list or Epic Games friends list programmatically, as the platform SDKs and EOS SDK do not expose this functionality.
+:::
+
 ## Deleting a friend from the friends list
 
 <Tabs lazy groupId="code-format" defaultValue="c++" values={[ { label: 'C++', value: 'c++' }, { label: 'Blueprints', value: 'blueprints' } ]}>

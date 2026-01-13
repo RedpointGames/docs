@@ -13,6 +13,12 @@ You don't need to manually add recently seen players; the plugin will check what
 
 You no longer need to call `QueryRecentPlayers` - the plugin automatically caches the recent players during login and keeps the list of recent players up-to-date.
 
+:::warning
+APIs for modifying the friends list only impact the cross-platform friends database and will not affect the local platform or Epic Games friends list. This includes actions such as sending and receiving invites, blocking and unblocking players and modifying recent players.
+
+It is not possible to support modifying the local platform's friends list or Epic Games friends list programmatically, as the platform SDKs and EOS SDK do not expose this functionality.
+:::
+
 ## Getting the recent players list
 
 <Tabs lazy groupId="code-format" defaultValue="c++" values={[ { label: 'C++', value: 'c++' }, { label: 'Blueprints', value: 'blueprints' } ]}>
