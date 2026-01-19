@@ -1,0 +1,22 @@
+import NodeRef from "@site/src/components/NodeRef";
+
+### 2026.01.19
+
+This release improves voice chat component replication and fixes several issues:
+
+- Added the <NodeRef name="Block Member" /> and <NodeRef name="Unblock Member" /> blueprint nodes for blocking and unblocking players in voice chat.
+- Improved replication behaviour of voice chat components. This should fix issues where voice chat is not spatialised correctly on multiplayer servers.
+- When users sign in with Apple on iOS for the first time, their display name will now be set to their nickname, or if not available, their given name, instead of "Anonymous".
+- Improved type support for `UOnlineLeaderboardWrite`, which now supports `double` and `int32` types.
+- Editor preferences are now stored in `DefaultEditor.ini` so that they are preserved when cleaning the project from source control, and when sharing the project with other team members.
+- The audio levels of voice chat members are now visible through the gameplay debugger.
+- Fixed an issue where attenuation settings would not apply in some circumstances.
+- Fixed a crash when the game instance does not implement `IRedpointEOSAuthWidgetFactory`.
+- Fixed a crash in voice chat when running on Steam Deck under WINE/Proton.
+- Fixed voice chat channels not being left automatically on clients when changing maps.
+- Fixed a crash when a voice chat component is garbage collected while synchronising voice chat component state.
+- Fixed a crash when sending room invites on some platforms, due to the local platform not implementing required APIs.
+- Fixed the `MatchmakingMatchmaker` module headers not being in the `Public` folder.
+- Fixed an assertion failure when cross-platform presence reconnects with the same connection ID.
+- Session attributes are now logged when calling `UpdateSession`.
+- Removed usage of the legacy `OnlineJsonSerializer.h` header files.
