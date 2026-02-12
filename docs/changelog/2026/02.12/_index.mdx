@@ -1,0 +1,44 @@
+import NodeRef from "@site/src/components/NodeRef";
+
+### 2026.02.12
+
+This release improves stability and fixes several issues:
+
+- Added the <NodeRef name="On Voice Chat Channel Joined" event /> and <NodeRef name="On Voice Chat Channel Left" event /> blueprint events on the voice chat component, allowing you to synchronise volume levels and mute state when the player connects to the underlying voice chat channel.
+- Sign in with Apple will now use the nickname or first name of the player's Apple account before falling back to "Anonymous".
+- Added the following user attributes for user accounts that are linked with Epic Games. Please note that Epic Games privacy restrictions may prevent this data from being populated if the linked Epic Games account has not yet played the game:
+  - `externalAccount.epic.displayNameSanitized`: The Epic Games display name sanitized for the current platform.
+  - `externalAccount.epic.displayNameUnsanitized`: The Epic Games display name without sanitization.
+  - `externalAccount.epic.best.displayName`: The best display name for this user, based on the current platform they are playing on, without sanitization.
+  - `externalAccount.epic.best.displayNameSanitized`: The best display name for this user, based on the current platform they are playing on, sanitized.
+  - `externalAccount.epic.best.nickname`: The best nickname for this user, based on the current platform they are playing on.
+  - `externalAccount.epic.best.platform`: The platform that the best display name and nickname are from; one of: `Epic`, `PSN`, `Nintendo`, `XBL`, `Steam` or `Unknown`.
+  - `externalAccount.epic.linkedAccountTypes`: A comma-separated list of platforms that the user's Epic Games account is linked with.
+  - `externalAccount.epic.linkedAccount.<platform>.id`: The ID of the platform account that the user's Epic Games account is linked with.
+  - `externalAccount.epic.linkedAccount.<platform>.displayName`: The display name of the platform account that the user's Epic Games account is linked with.
+  - `externalAccount.epic.linkedAccount.<platform>.displayNameSanitized`: The display name of the platform account that the user's Epic Games account is linked with, sanitized.
+- Fixed a crash that could happen when cleaning up voice chat components on the game client.
+- Fixed Unreal Engine 5.4 compatibility on Windows.
+- Fixed an issue where the `NickName` field in leaderboard entries would be blank.
+- Fixed an issue where using startup screens would prevent dedicated servers from starting properly.
+- Fixed an issue where OpenSSL was not initialized on some platforms, leading to failures when connecting to dedicated servers with automatic network encryption.
+- Fixed a potential crash in `ARedpointGameSession` when logging after the current world has been garbage collected.
+- Fixed an issue where clients were not correctly joined to voice chat on dedicated servers when using voice chat components.
+- Fixed a rare crash that could occur when audio levels were measured in voice chat.
+- Fixed an issue where clients would disconnect from game servers when servers travelled to a new map.
+- Fixed an issue where the product user ID would not be linked with the local platform account if the user signs into an Epic Games account already linked to a product user ID, when the game is configured to have optional cross-platform accounts.
+- Fixed an issue where settings would not be saved in Project Settings when the engine and project were located on the same drive, but the project was not underneath the engine directory.
+- Fixed an issue where a player would not be able to accept a friend request on the cross-platform friends database if the users were already friends but the pending friend request was still present in the cross-platform friends database. The cross-platform friends database will now automatically accept friend requests from users who are already friends.
+- Fixed an issue where two players could send friend requests to each other while offline, and they would not be able to accept the friend request from each other. In this scenario, the players will now automatically become friends as if they had accepted each other's friend request.
+- Fixed an issue where internal messages sent by the cross-platform friends system would be lost if two players connected to each other at the exact same time.
+- Fixed an issue where players would not disconnect from a voice chat group when the voice chat group was changed from a positive integer to a negative integer.
+- Added the `redpoint friends inspect <file>` console command which can be used to dump the state of cross-platform friends databases downloaded from the Epic Games developer portal. You must decrypt the downloaded file first using the EOS File Decryption Tool before it can be read with this command.
+- Added the `vc.RecordStutterToDisk` and `vc.RecordAlignStart` console variables to change the behaviour of `vc.RecordPcmToDisk` when diagnosing voice chat issues.
+- Added the `friends.DoNotOpenConnections` console variable which can be used to prevent the cross-platform friends system from connecting to other players to send friend requests. This can be turned on to emulate players in the editor being offline, and to force messages to be queued in the cross-platform friends database.
+- Added the `friends.ImmediatelyRetryMessaging` console variable which makes the cross-platform friend system ignore the "next attempt" date of queued messages. With this turned on, the cross-platform friend system will always try to send queued messages regardless of when they were last tried, every two minutes.
+- Refactored the cross-platform friend system code to improve stability and prevent crashes on shutdown due to the behaviour of the `TPromise<>` destructor.
+- Added a warning if "join by presence" is turned off but "publicly advertised" is enabled on a party. Public advertisement implies allowing join-by-presence in the EOS SDK, so it is not possible to publicly advertise a party or lobby without also allowing join-by-presence in the Epic Games overlay.
+- Improved the Intellisense type hinting when using `TTask<>` and `co_await`.
+- Added support for binding asynchronous lambdas with captures to the lifetime of a `UObject` or `TSharedFromThis<>` via the `Bind()` function, improving the usability of `TTask<>` and `co_await`.
+- Replaced `TTask<Result>::With<Binding>` with `TTask<Result, Binding>` to improve type deduction.
+- Removed the `bRejoinAfterKickRequiresInvite` parameter for `FInvitesRoomFeatureRequest`, as it prevented players from accepting Steam invites if they had been previously kicked (as the EOS SDK is not aware of invites on Steam).
