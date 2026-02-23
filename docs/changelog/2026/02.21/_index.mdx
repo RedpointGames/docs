@@ -1,0 +1,15 @@
+import NodeRef from "@site/src/components/NodeRef";
+
+### 2026.02.21
+
+This release adds support for EOS SDK 1.19 and fixes several issues:
+
+- Added support for EOS SDK 1.19.0.3.
+  - Free Edition users will need to download and install the newer EOS SDK from the Epic Games Developer Portal when upgrading to this release. If you need to use an older EOS SDK version, please use the Paid Edition instead.
+- Fixed an issue where voice chat audio could be delayed if proximity voice chat was enabled.
+- Fixed an issue where voice chat audio would not be played back correctly if the audio output device was not configured for 48000hz, or did not have 2 audio channels, on desktop platforms.
+- Fixed a rare crash when polling audio input and output devices on Windows.
+- Fixed a crash that would occur if the presence system queued up too many presence updates without being able to perform the updates due to a lack of Internet connectivity.
+- Fixed a crash that would happen if you pressed `;` to open the debug camera during play-in-editor.
+- Fixed a deadlock when the voice chat channel joined and left events that would occur if you attempted to change voice chat settings in response to those events.
+- Reduced memory usage by removing excessive padding in internal data structures.
