@@ -169,7 +169,7 @@ auto BoundLambda = Bind(
      * the first argument and the lambda will be bound to the global lifetime.
      */
     this,
-    [this](IUnbound) -> TTask<void, ETaskBinding::Unbound>
+    [this](IUnbound, FString Message) -> TTask<void, ETaskBinding::Unbound>
     {
         // 'this' captured can be safely accessed; the lambda will not continue beyond a co_await
         // if the bound lifetime is no longer valid.
@@ -178,13 +178,13 @@ auto BoundLambda = Bind(
         co_await Delay(Seconds);
 
         // Print out a message.
-        UE_LOG(LogTemp, Warning, TEXT("Waiting %f seconds."), Seconds);
+        UE_LOG(LogTemp, Warning, TEXT("Waiting %f seconds, message was %s."), Seconds, *Message);
 
         // co_return - always required, even in TTask<void> functions.
         co_return;
     });
 
-co_await BoundLambda();
+co_await BoundLambda(TEXT("My message!"));
 ```
 
 When using `ETaskBinding::Unbound`, the first argument must always be the `IUnbound` type. You can't construct the `IUnbound` type and must use `Bind()` to return the version of the lambda that does not require `IUnbound` to be passed in. This is to ensure that lambdas using `ETaskBinding::Unbound` can't be accidentally used without using `Bind()`.
