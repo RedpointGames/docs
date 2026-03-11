@@ -92,6 +92,8 @@ To write asynchronous functions, your function needs to return a `TTask<>`. If y
 
 There are some limitations as to when you can use `TTask<>` as a return value, and this is because the lifetime of memory in C++ is manually managed.
 
+### Asynchronous member functions on `UObject` and `TSharedFromThis<>`
+
 You can use `TTask<>` directly when your function is declared on a class that inherits from `UObject`, `TSharedFromThis<>`, or [returns a deferred task](#creating-a-deferred-task) (and doesn't call `co_await`):
 
 ```cpp
@@ -135,10 +137,12 @@ All functions that use `co_await` must pass parameters by value. You can not pas
 All functions using `TTask<>`, even those using `TTask<void>`, must call `co_return` when returning from the function. This is required for the compiler to generate correct return code.
 :::
 
-You can also use `co_await` in static functions, but you need to indicate the function is static by using `::With<ETaskBinding::Static>`, like so:
+### Asynchronous static functions
+
+You can use `co_await` in static functions, but you need to indicate the function is static by using `TTask<ReturnType, ETaskBinding::Static>`, like so:
 
 ```cpp
-TTask<void>::With<ETaskBinding::Static> MyFunction(float Seconds)
+TTask<void, ETaskBinding::Static> MyFunction(float Seconds)
 {
     // Wait some time using Delay.
     co_await Delay(Seconds);
@@ -151,11 +155,25 @@ TTask<void>::With<ETaskBinding::Static> MyFunction(float Seconds)
 }
 ```
 
-You can also use `co_await` in lambda functions, but the **lambda functions must not have any captures**, and you need to indicate the function is a lambda using `::With<ETaskBinding::Lambda>`:
+### Asynchronous lambdas
+
+You can use `co_await` in any lambda (capturing and non-capturing), and bind the lifetime of that lambda globally or to a `TSharedPtr` or `UObject` using `Bind`, like so:
 
 ```cpp
-auto MyLambda = [](float Seconds) -> TTask<void>::With<ETaskBinding::Lambda>
+auto BoundLambda = Bind(
+    /**
+     * The first argument is the object to bind the lifetime to. Pass in a
+     * TSharedFromThis, TSharedPtr, TWeakPtr, TWeakObjectPtr, UObject*, etc...
+     *
+     * Alternatively, if the lambda isn't capturing 'this', you can omit
+     * the first argument and the lambda will be bound to the global lifetime.
+     */
+    this,
+    [this](IUnbound) -> TTask<void, ETaskBinding::Unbound>
     {
+        // 'this' captured can be safely accessed; the lambda will not continue beyond a co_await
+        // if the bound lifetime is no longer valid.
+
         // Wait some time using Delay.
         co_await Delay(Seconds);
 
@@ -164,15 +182,13 @@ auto MyLambda = [](float Seconds) -> TTask<void>::With<ETaskBinding::Lambda>
 
         // co_return - always required, even in TTask<void> functions.
         co_return;
-    };
-AsCallback(
-    MyLambda(),
-    []()
-    {
-        // Optionally, do something after the lambda finishes.
     });
+
+co_await BoundLambda();
 ```
 
-:::warning
-Using lambdas with `TTask<>` is not recommended, since we can't automatically stop the asynchronous work when associated memory is released. It's always better to declare the function on a `UObject` or `TSharedFromThis`.
+When using `ETaskBinding::Unbound`, the first argument must always be the `IUnbound` type. You can't construct the `IUnbound` type and must use `Bind()` to return the version of the lambda that does not require `IUnbound` to be passed in. This is to ensure that lambdas using `ETaskBinding::Unbound` can't be accidentally used without using `Bind()`.
+
+:::info
+You can also use `co_await` in non-capturing lambdas using `ETaskBinding::Lambda`, but we no longer recommend this task binding type because you can't capture locals and you need to perform any lifetime/validity checks manually.
 :::
