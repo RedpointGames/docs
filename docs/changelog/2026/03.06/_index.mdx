@@ -1,0 +1,15 @@
+import NodeRef from "@site/src/components/NodeRef";
+
+### 2026.03.06
+
+This release fixes several issues:
+
+- Fixed a potential crash if the procedural sound wave object used by voice chat was unexpectedly garbage collected.
+- Fixed an issue where clients would not connect to voice chat channels correctly if there were multiple voice chat components referencing the same voice chat group.
+- Fixed an issue where clients would not reconnect to voice chat channels when the server performs server travel, or the client otherwise disconnects and then quickly reconnects to the same game server.
+- Fixed an issue where presence was not working correctly on Meta Quest.
+- Fixed a crash that could happen when signing in with Google on some Android devices.
+- Fixed a crash that could happen when the matchmaking engine shuts down on game exit.
+- Fixed an issue where `MaxPacketHandlerBits` was not set correctly on the net connection.
+- Added a new low-level `IMetaPlatformSystem` C++ API for performing custom calls to the Oculus platform SDK.
+- Unreal Engine 5.3 has been removed from the build matrix, as we no longer have any Premium support customers who require support for this engine.

@@ -1,0 +1,16 @@
+import NodeRef from "@site/src/components/NodeRef";
+
+### 2026.03.17
+
+This release improves the asynchronous task library and fixes several issues:
+
+- Added thread policies to asynchronous tasks, which makes writing cross-thread code easier.
+- Fixed an issue where exceptions thrown by asynchronous functions using `TTask<>` were not re-thrown. This improves diagnostics when debugging crashes in Visual Studio that involve asynchronous functions.
+- Fixed a crash when the engine runs `OnRegister` twice for the same voice chat component.
+- Fixed a crash that could happen if voice chat was polling hardware devices for audio during game exit.
+- Fixed a build error that could occur when extracting SDK files for Android builds.
+- Improved the performance of the asynchronous task library and reduced the number of allocations that occur when invoking an asynchronous function.
+- Increased the size of audio buffers in voice chat to reduce the chance of buffer underruns.
+- Improved logging when audio buffers underrun for voice chat.
+- Changed the implementation of `URedpointVoiceChatSoundWave` used by the voice chat system in an attempt to mitigate a crash caused by the audio processing logic in `USoundWaveProcedural`.
+- Removed legacy code guards referring to engine versions prior to Unreal Engine 5.5.

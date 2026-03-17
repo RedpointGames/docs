@@ -192,3 +192,40 @@ When using `ETaskBinding::Unbound`, the first argument must always be the `IUnbo
 :::info
 You can also use `co_await` in non-capturing lambdas using `ETaskBinding::Lambda`, but we no longer recommend this task binding type because you can't capture locals and you need to perform any lifetime/validity checks manually.
 :::
+
+### Running asynchronous code on background threads
+
+You can specify what thread an asynchronous function should run on with a thread task policy as the third parameter to `TTask<>`, like so:
+
+```cpp
+TTask<void, ETaskBinding::Static, FBackgroundThreadTaskPolicy> MyFunction(float Seconds)
+{
+    // Print out a message.
+    UE_LOG(LogTemp, Warning, TEXT("This is running on a background thread."));
+
+    // co_return - always required, even in TTask<void> functions.
+    co_return;
+}
+```
+
+Whenever you `co_await` or use `AsCallback` to invoke `MyFunction`, the entire function runs on a background thread per `FBackgroundThreadTaskPolicy`. You do not need to manually schedule the work on a different thread, and the asynchronous task library ensures that the caller of `MyFunction` resumes on it's original thread when `MyFunction` completes.
+
+All types of asynchronous functions, including lambdas bound with `Bind()`, support thread task policies.
+
+The available thread task policies are:
+
+- `FCurrentThreadTaskPolicy`: This is the default when you don't specify a thread task policy, and results in the function running on the same thread as the caller.
+- `FGameThreadTaskPolicy`: This function will run on the game thread. If the caller is already running on the game thread, then the function is invoked directly. If the caller is not the game thread, this function will be scheduled to run on the game thread through an internal call to `AsyncTask(ENamedThreads::GameThread, ...)`.
+- `FBackgroundThreadTaskPolicy`: This function will run on a worker pool thread. If the caller is already running on a worker pool thread, then this function is invoked directly. If the caller is not a worker pool thread (e.g. it's the game thread), this function will be scheduled to run on the worker pool through an internal call to `AsyncPool(*GThreadPool, ...)`
+
+:::danger
+If the caller of an asynchronous function is running on a thread other than the game thread or worker pool, and that asynchronous function uses a thread task policy other than `FCurrentThreadTaskPolicy`, you will get an assertion when the function completes and tries to resume the caller on it's original thread.
+
+This is because `FCurrentThreadTaskPolicy` does not know how to resume work on threads other than the game thread or worker pool (see the `FCurrentThreadTaskPolicy::RunOnDesiredThread` implementation). If you require support for other types of threads, please let support know and we will update `FCurrentThreadTaskPolicy::RunOnDesiredThread` to support your use case.
+:::
+
+:::danger
+Deferred tasks created with `TTask<>::Deferred()` do not currently automatically return to the caller's thread upon `SetValue` being called. This makes certain functions such as `Delay` unsafe to call from a background thread.
+
+We plan on changing this in the future, so that deferred tasks automatically resume execution on the thread that `TTask<>::Deferred()` ran on.
+:::
