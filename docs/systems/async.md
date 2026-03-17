@@ -223,9 +223,3 @@ If the caller of an asynchronous function is running on a thread other than the 
 
 This is because `FCurrentThreadTaskPolicy` does not know how to resume work on threads other than the game thread or worker pool (see the `FCurrentThreadTaskPolicy::RunOnDesiredThread` implementation). If you require support for other types of threads, please let support know and we will update `FCurrentThreadTaskPolicy::RunOnDesiredThread` to support your use case.
 :::
-
-:::danger
-Deferred tasks created with `TTask<>::Deferred()` do not currently automatically return to the caller's thread upon `SetValue` being called. This makes certain functions such as `Delay` unsafe to call from a background thread.
-
-We plan on changing this in the future, so that deferred tasks automatically resume execution on the thread that `TTask<>::Deferred()` ran on.
-:::
