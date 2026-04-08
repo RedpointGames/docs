@@ -1,0 +1,22 @@
+import NodeRef from "@site/src/components/NodeRef";
+
+### 2026.04.08
+
+:::danger Breaking Change
+The "Recent" and "Blocked" enumeration values on "Redpoint Friend List Entry Invite Status" for friend list binding have been removed, and replaced with separate "Is Blocked" and "Is Recent Player" boolean values on friend list entries. This is because friends and pending inbound/outbound invites can _also_ be recent players or blocked players, independently of their invite status.
+
+If you are using [friend list widget binding](/docs/framework/bind_friends_list.mdx) and querying the invite status of friend list entries, you will need to update your blueprints.
+:::
+
+This release simplifies dedicated server configuration and fixes several issues:
+
+- Dedicated servers no longer require a public/private key pair to be generated in Project Settings. Instead, dedicated servers now generate a unique encryption key when they first start. The public key is automatically stored as a session attribute and included in the connection string for clients.
+  - You must get the connection string for dedicated servers by calling [`GetResolvedConnectString` on the session search result](/docs/setup/networking/server_travel.mdx#connecting-to-the-game-server), as this includes the `?PublicKey=` option necessary for connecting to the dedicated server.
+- Android now uses the new Credential Manager library for signing into Google Play, to mitigate issues on some devices when using the older authentication library.
+- Fixed an issue where friends would not appear in the "recent players" or "blocked players" section of [bound UMG widgets](/docs/framework/bind_friends_list.mdx). This required the breaking change outlined above, and recent and blocked states are now provided separately to the invite status of friend list entries.
+- Fixed an issue where changes to parties would never complete, when multiple party operations are started immediately in response to party events.
+- Fixed an issue when accepting a friend request from someone who already has the other player as a friend, or who has removed that player from their friends list since they sent the original invite.
+- Fixed an issue in the latest Xcode where Clang 21 would error on `-Wallocator-wrappers` when compiling for macOS.
+- Fixed an issue where proximity voice chat could prevent play-in-editor from starting correctly.
+- Fixed an issue where the game would crash if attempting to display Steam friends in the cross-platform friends list, where those Steam friends have not yet played the game.
+- Reduced log severity of presence logs when the game is exiting.
