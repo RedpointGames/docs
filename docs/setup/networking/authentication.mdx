@@ -3,12 +3,9 @@ title: Using network authentication
 description: How to authenticate players when they connect to game servers.
 ---
 
-EOS Online Framework provides several network security features, such as automatic encryption and player authentication. These security features are available when:
+EOS Online Framework provides several network security features, such as automatic encryption and player authentication. In all cases, players are prevented from impersonating one another.
 
-- When players connect to listen servers hosted by other players over P2P, and/or
-- You as the developer are running trusted dedicated servers over IP
-
-Trusted dedicated servers offer the strongest level of security, and prevent players from impersonating other players.
+When a player connects to a dedicated server, the network connection is encrypted with AES-GCM by default. When a player connects to a listen server over P2P, the network connection is encrypted via the WebRTC protocol.
 
 ## Turning on network authentication
 
@@ -24,31 +21,23 @@ Connecting split-screen clients (with multiple local players) to listen servers 
 
 ## Dedicated servers
 
-A server is a dedicated server when you are running the dedicated server binary that you built in Unreal Engine. Dedicated servers can be run by either you (the game developer) or players, but only dedicated servers run by you as the game developer can be trusted.
+A server is a dedicated server when you are running the dedicated server binary that you built in Unreal Engine. Dedicated servers can be run by either you (the game developer) or players.
+
+Dedicated servers always automatically generate an encryption key, and use that encryption key to protect network traffic from the dedicated server to each player. Players can't intercept or modify the traffic for other players.
 
 ### Setting dedicated server distribution mode
 
 In Project Settings you can specify how you're distributing your dedicated server binaries. It's important that this value matches how you're using dedicated servers in your game, to prevent dedicated server secrets from leaking to players. The options for this setting are:
 
-- **Dedicated server binaries are only ever distributed and run by developers (you)**: Dedicated server secrets, such as the client ID, secret and private key will be embedded into the dedicated server binaries.
+- **Dedicated server binaries are only ever distributed and run by developers (you)**: Dedicated server secrets, such as the client ID and secret will be embedded into the dedicated server binaries.
 - **Both developers and players will run dedicated servers**: Secrets are stored externally in `Build/NoRedist/DedicatedServerEngine.ini`. When you run dedicated servers on your own infrastructure, you must provide these settings at runtime.
-- **Dedicated server binaries will be distributed to players and only run by players**: Turns off all trusted dedicated server functionality.
-
-With the first two options, you can separately turn off trusted dedicated servers and the network security features they provide.
-
-### Using automatic encryption on trusted dedicated servers
-
-When a player connects to a trusted dedicated server, the network connection is encrypted with AES-GCM by default. When a player connects to a listen server over P2P, the network connection is encrypted via the WebRTC protocol.
-
-When you open the EOS Project Settings for the first time, the plugin will automatically generate the public/private key pair used for trusted dedicated servers. Automatic encryption on trusted dedicated servers is enabled by default.
-
-If you need to use something other than AES-GCM to encrypt connections over IP, you can turn off "Enable Automatic Encryption on Trusted Dedicated Servers". You will then need to handle setting up encryption yourself. The network security features listed here and Anti-Cheat both require the network connection to be encrypted, so you _must_ set up encryption manually if you turn off automatic encryption.
+- **Dedicated server binaries will be distributed to players and only run by players**: When players run dedicated servers, they must provide the client ID and secret on the command line.
 
 ### Setting dedicated server client IDs and secrets
 
-Your trusted dedicated servers will have their own client ID and secret for Epic Online Services. This allows your dedicated servers to access EOS APIs without signing in as a player.
+Your dedicated servers will have their own client ID and secret for Epic Online Services. This allows your dedicated servers to access EOS APIs without signing in as a player.
 
-You should give your game client a policy of `GameClient` and your trusted dedicated servers a policy of `TrustedServer`. This can be configured in the Epic Online Services Developer Portal.
+You should give your game client a policy of `GameClient` and your dedicated servers a policy of `TrustedServer`. This can be configured in the Epic Online Services Developer Portal.
 
 Once you've created a client ID and secret for your dedicated servers, you should set them in Project Settings here:
 
@@ -56,7 +45,7 @@ Once you've created a client ID and secret for your dedicated servers, you shoul
 
 By setting the dedicated server client ID and secret in Project Settings, this will enable dedicated servers launched in the editor to work correctly.
 
-If your dedicated servers will only be run by you on your trusted infrastructure, you don't need to do anything else; setting the client ID and secret in Project Settings is enough.
+If your dedicated servers will only be run by you on your infrastructure, you don't need to do anything else; setting the client ID and secret in Project Settings is enough.
 
 :::info
 If you're running dedicated game servers on Agones, [Preparing your game server](../../dedis/preparing_your_game_server.mdx#creating-a-client-id-and-secret-for-your-game-server-binaries) has more detailed information on how to set up the client ID and secret on Kubernetes.
@@ -67,7 +56,7 @@ If your dedicated servers are being run by both you and players, you'll need to 
 To provide the values on the command line, locate them inside Project Settings and then pass the following additional parameters:
 
 ```
--ini:Engine:[EpicOnlineServices]:DedicatedServerClientId=__SERVER_ID__ -ini:Engine:[EpicOnlineServices]:DedicatedServerClientSecret=__SERVER_SECRET__ -ini:Engine:[EpicOnlineServices]:DedicatedServerPrivateKey=__PRIVATE_KEY__
+-ini:Engine:[EpicOnlineServices]:DedicatedServerClientId=__SERVER_ID__ -ini:Engine:[EpicOnlineServices]:DedicatedServerClientSecret=__SERVER_SECRET__
 ```
 
 To provide the values via environment variables, locate them inside Project Settings and then set the following environment variables:
@@ -75,11 +64,10 @@ To provide the values via environment variables, locate them inside Project Sett
 ```
 REDPOINT_EOS_DEDICATEDSERVERCLIENTID=__SERVER_ID__
 REDPOINT_EOS_DEDICATEDSERVERCLIENTSECRET=__SERVER_SECRET__
-REDPOINT_EOS_DEDICATEDSERVERPRIVATEKEY=__PRIVATE_KEY__
 ```
 
 :::caution
-Dedicated servers being run by players currently need to set at least `DedicatedServerClientId` and `DedicatedServerClientSecret` on the command line. You must not provide `DedicatedServerPrivateKey` to players.
+Dedicated servers being run by players currently need to set at least `DedicatedServerClientId` and `DedicatedServerClientSecret` on the command line.
 
 You should create a low permission client ID/secret for player run dedicated servers so that your players can run dedicated servers.
 :::

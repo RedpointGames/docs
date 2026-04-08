@@ -79,8 +79,6 @@ This guide assumes your distribution mode is set to "Dedicated server binaries a
 
 If it's set to "Both developers and players will run dedicated servers", you'll also need to pass the client ID and secret as environment variables when defining your `GameServer` and `GameServerFleet` resources, as demonstrated below.
 
-The `DedicatedServerPrivateKey` is the value of the "Dedicated Server Private Key" field in Project Settings, and you only need to provide it if "Trusted Dedicated Servers" is turned on.
-
 ```yaml
 spec:
   imagePullSecrets:
@@ -101,18 +99,12 @@ spec:
             secretKeyRef:
               name: eos-server-info
               key: DedicatedServerClientSecret
-        - name: REDPOINT_EOS_DEDICATEDSERVERPRIVATEKEY
-          valueFrom:
-            secretKeyRef:
-              name: eos-server-info
-              key: DedicatedServerPrivateKey
 ```
 
 On each Kubernetes cluster you set up, you'll need to create the `eos-server-info` secret with:
 
 ```
 kubectl create secret generic eos-server-info --from-literal=DedicatedServerClientId=__SERVER_ID__ --from-literal=DedicatedServerClientSecret=__SERVER_SECRET__
---from-literal=DedicatedServerPrivateKey=__PRIVATE_KEY__
 ```
 
 ## Required behaviour for your game server binaries
