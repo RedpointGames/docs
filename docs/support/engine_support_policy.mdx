@@ -1,0 +1,29 @@
+---
+title: Engine support policy
+description: This document outlines the engine versions we support. You should keep up-to-date with the latest stable engine version during production to ensure that your game can be published on non-desktop platforms.
+---
+
+It is a misconception that remaining on older Unreal Engine versions for stability is the best choice during production. This is incorrect, as Unreal Engine is designed and released in a manner that expects you to keep up-to-date during the lifetime of your game.
+
+When you remain on an older version of Unreal Engine, you run the risk that your game will not pass the publishing requirements for non-desktop platforms such as Google Play and iOS. These publishing requirements are enforced and often can not be bypassed. If you are blocked by these publishing requirements close to release, upgrading the engine will be more painful, as you will need to upgrade through multiple versions and address engine differences in a much shorter timeframe than if you had done so during the main production cycle of your game.
+
+:::warning
+During the main production of your game, you should plan to upgrade to new stable releases of Unreal Engine once the first patch release is available (e.g. 5.5.1, 5.6.1, 5.7.1, etc.).
+:::
+
+## What engine versions does the plugin support?
+
+The plugin supports the last 3 stable versions of the engine for desktop platforms.
+
+The plugin supports the latest stable version of the engine for non-desktop platforms.
+
+## Why does the plugin require a recent engine version for desktop platforms?
+
+Beyond updates to the platform SDKs, newer versions of Unreal Engine provide bug fixes and features that are essential to maintaining the plugin and delivering improvements:
+
+- Unreal Engine 5.3 added support for `CreateSPLambda` on delegates, which greatly simplifies callback handling inside the plugin, and reduces memory usage when lambda callbacks on delegates are no longer bound to a valid shared pointer.
+- Unreal Engine 5.4 added support for dynamically changing parents of audio submixes, which are required to support adjusting output volume levels on proximity voice chat. It also added support for `GetTypeHash()` for `TOptional<>`, which is used inside the presence system.
+- Unreal Engine 5.5 sets the minimum C++ version to C++20 at the engine level, which means we can rely on C++20 being present. C++20 is required for `co_await` and `TTask<>` support, which further simplifies asynchronous code in the plugin.
+- Unreal Engine 5.6 improves XR support, after Unreal Engine 5.5 removed the Oculus platform SDK. It also improves lifetime tracking for network sockets in the engine.
+
+These are infrastructural changes in the engine; changes that we can't reasonably polyfill or replace with plugin code.

@@ -47,6 +47,7 @@ module.exports = {
     "support/index",
     "support/clone_from_gitlab",
     "support/migrate",
+    "support/engine_support_policy",
     {
       type: "category",
       label: "Troubleshooting",
