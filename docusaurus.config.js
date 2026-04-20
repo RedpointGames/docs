@@ -33,14 +33,6 @@ module.exports = {
     }),
   ],
   themeConfig: {
-    announcementBar: {
-      id: "proximity_voice_chat",
-      content:
-        '🎉 Proximity voice chat is <a href="/docs/framework/voice_chat">now available</a>!',
-      backgroundColor: "rgb(175, 255, 172)",
-      textColor: "#000",
-      isCloseable: false,
-    },
     prism: {
       additionalLanguages: ["cpp", "csharp", "docker", "batch", "powershell"],
     },
