@@ -1,0 +1,19 @@
+import NodeRef from "@site/src/components/NodeRef";
+
+### 2026.04.20
+
+This release fixes several issues, and upgrading is recommended:
+
+- Fixed an issue where clients did not always correctly join voice chat via the voice chat component when connecting to a game server.
+- Fixed a very rare scenario where a crash could occur in `RedpointVoiceChatSoundWave` due to the hardware device ID endpoint implementation. This crash appears to have been more likely to occur if the game already had other memory issues, such as missing `UPROPERTY()` declarations on fields in `UObject`-based classes.
+- Fixed an issue where the engine would swap out the audio output device for voice chat if the selected audio device goes away (e.g. was unplugged). This was undesirable as the automatically selected audio output device would not be reflected in the voice chat settings.
+- Fixed a crash on Windows that would occur when the audio output device for voice chat was disconnected in Shipping builds.
+- Fixed compilation errors when building dedicated servers.
+- Fixed compatibility with newer versions of Clang by silencing the `-Wc++20-compat` warning.
+- The following console variables can now be enabled in Shipping builds via your `DefaultEngine.ini` file. These console variables should only be used if you need to mitigate an urgent issue in production - if you need to change these console variables, please open a support case so we can address the underlying issue.
+  - `vc.RouteInputAudioThroughEngine`
+  - `vc.RouteOutputAudioThroughEngine`
+  - `vc.AlwaysUseMainSubmixDevice`
+  - `vc.OverrideInputChannels`
+  - `vc.AlwaysPopulateInputDevicesOnGameThread`
+  - `vc.DelayProximityAudioComponentPlay`
