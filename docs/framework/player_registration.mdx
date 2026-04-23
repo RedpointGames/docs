@@ -18,6 +18,10 @@ However this approach is error prone and difficult for developers to get right, 
 
 To make this easier, Redpoint EOS Online Framework offers a `RedpointGameSession` class. You can set this as the game session class on your game mode, and from this point onwards, the plugin will ensure players are registered and unregistered automatically.
 
+:::danger
+You **must** use a session name of `GameSession` when creating your sessions in order for `RedpointGameSession` to work. If you are using a session name other than `GameSession`, you won't see players automatically registered or unregistered.
+:::
+
 ## Using Redpoint Game Session in your game
 
 To use Redpoint Game Session with the default behaviour, select `RedpointGameSession` as the game session class in your game mode:
