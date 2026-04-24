@@ -3,13 +3,12 @@ title: Joining a lobby
 description: How to join a lobby.
 ---
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
-import Blueprint from '@site/src/Blueprint';
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+import Blueprint from "@site/src/Blueprint";
 
-import bpConnectToParty from './bp/connect_to_party.bp';
-import bpConnect from './bp/connect.bp';
-import bpDisconnect from './bp/disconnect.bp';
+import bpConnect from "./bp/connect.bp";
+import bpDisconnect from "./bp/disconnect.bp";
 
 You can join a lobby in one of two ways:
 
@@ -59,6 +58,7 @@ if (!Lobby->ConnectLobby(
 }
 // ...
 ```
+
 </TabItem>
 <TabItem value="blueprints">
 
@@ -67,7 +67,6 @@ Using the results of a previously saved lobby ID, call "Connect Lobby":
 <Blueprint height="450px" blueprint={bpConnect} />
 </TabItem>
 </Tabs>
-
 
 ## Disconnecting from a lobby
 
@@ -99,7 +98,6 @@ if (!Lobby->DisconnectLobby(
 }
 ```
 
-
 </TabItem>
 <TabItem value="blueprints">
 
@@ -111,52 +109,8 @@ Using a previously saved lobby ID, call "Disconnect Lobby":
 
 ## Joining a lobby as party
 
-<Tabs lazy groupId="code-format" defaultValue="c++" values={[ { label: 'C++', value: 'c++' }, { label: 'Blueprints', value: 'blueprints' } ]}>
-<TabItem value="c++">
+Internally parties are built on top of lobbies. Therefore, if you join a lobby that was originally [created as a party](../parties/creating.mdx#creating-a-party), joining the lobby will cause the player to also join the party.
 
-First, get the online lobby and party interfaces:
-
-```cpp
-#include "OnlineSubsystem.h"
-#include "OnlineSubsystemUtils.h"
-// If your project can't find this header, make sure you have installed the headers from here:
-// https://src.redpoint.games/redpointgames/online-interfaces/
-#include "OnlineLobbyInterface.h"
-#include "Interfaces/OnlinePartyInterface.h"
-
-// ...
-
-IOnlineSubsystem* Subsystem = Online::GetSubsystem(this->GetWorld());
-TSharedPtr<IOnlineLobby, ESPMode::ThreadSafe> Lobby = Online::GetLobbyInterface(Subsystem);
-IOnlinePartyPtr Party = Subsystem->GetPartyInterface();
-```
-
-Then, convert your LobbyId to an `IOnlinePartyJoinInfoConstPtr`:
-
-```cpp
-FString JoinInfo = PartySystem->MakeJoinInfoJson(
-    *InLocalUserId.GetUniqueNetId(), 
-    InLobbyId);
-if (!JoinInfo.IsEmpty()) 
-{
-    IOnlinePartyJoinInfoConstPtr JoinInfoPtr = PartySystem->MakeJoinInfoFromJson(JoinInfo);
-    if (JoinInfoPtr.IsValid()) 
-    {
-        // JoinInfoPtr contains the OnlinePartyJoinInfo to pass into JoinParty().
-    }
-}
-```
-
-Once you have the resulting join info, you can proceed to [Joining a party](ossv1/lobbies/joining.mdx).
-
-</TabItem>
-<TabItem value="blueprints">
-
-Using the results of a previously saved lobby ID, call "Connect Lobby", then get the returning lobby's ID and convert to a Party Join Info.
-
-<Blueprint height="550px" blueprint={bpConnectToParty} />
-
-Once you have the resulting Party Join Info, you can proceed to [Joining a party](ossv1/lobbies/joining.mdx).
-
-</TabItem>
-</Tabs>
+:::note Tip
+In previous versions of the plugin you needed to explicitly "join lobby as party". This is no longer necessary in the current version of the plugin. Whether you join the lobby as a party is determined solely based on whether the lobby was created as a party by the host.
+:::
