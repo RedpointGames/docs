@@ -1,0 +1,17 @@
+import NodeRef from "@site/src/components/NodeRef";
+
+### 2026.05.07
+
+This release improve voice chat and fixes several issues:
+
+- Voice chat now allows you to set the output volume and mute status at the channel level, in addition to setting it per-member per-channel.
+- The input and output mute/volume settings on the voice chat component now apply only to the voice chat group that component is assigned to. This allows you to independently adjust the mute and volume levels when you multiple voice chat components on a player controller (e.g. when you have both team and global voice chat).
+- Fixed an issue where voice chat on listen servers was limited to 4 players when using the voice chat component.
+- Fixed a crash when friends lists were synchronised during engine shutdown.
+- Fixed an issue where voice chat audio was garbled when the `AudioCallbackBufferFrameSize` setting had been changed in your game's INI files. This is the case for games based on Lyra, which ships with different defaults.
+- Fixed an issue where standalone clients could not connect to servers when testing in the editor with "multi-process" mode turned on.
+- Fixed an issue for some developers where the destructor of `URedpointVoiceChatSoundWave` would cause a linker conflict due to UHT generation.
+- Fixed an issue where non-friend party members were not included in the friends list. This also impacted the "Include Local Player in Party Section" setting.
+- Fixed an issue where clients could not connect to game servers when Anti-Cheat was enabled.
+- Fixed a crash in the `ConnectManagedChannel` and `DisconnectManagedChannel` functions when the local user had since been signed out of Epic Online Services.
+- You can now create derived blueprint classes of `URedpointVoiceChatComponent`, to allow developers to override defaults and use the voice chat component with Lyra's game feature system.
