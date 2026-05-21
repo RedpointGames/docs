@@ -3,10 +3,10 @@ title: Updating presence
 description: How to update presence information for players.
 ---
 
-import useBaseUrl from '@docusaurus/useBaseUrl';
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
-import Blueprint from '@site/src/Blueprint';
+import useBaseUrl from "@docusaurus/useBaseUrl";
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+import Blueprint from "@site/src/Blueprint";
 
 You can update the presence of the local user so that their friends and other players can see it. This allows you to advertise the current status of the player - whether they're in the main menu, in a party, currently in a match, and so on.
 
@@ -112,7 +112,7 @@ We plan on automating this process in the future.
 :::
 
 1. Underneath `Content/Localization/Game/`, each folder (such as `en`) will have a file called `Game.archive` which contains all the text keys and translations.
-2. Refer to the bottom of the [Steamworks Rich Presence](https://partner.steamgames.com/doc/features/enhancedrichpresence) documentation and create the localisation file. Each files underneath `Tokens` should have a key in the format `#<TextKey>_<TextNamespace>` and the value is the translated text value.
+2. Refer to the bottom of the [Steamworks Rich Presence](https://partner.steamgames.com/doc/features/enhancedrichpresence) documentation and create the localisation file. Each files underneath `Tokens` should have a key in the format `#<TextNamespace>_<TextKey>` and the value is the translated text value.
 3. Upload the Rich Presence file to your applications Steamworks configuration under Community -> Rich Presence.
 
 ## Setting status properties for localised presence
@@ -133,7 +133,7 @@ To set dynamic values inside localised presence statuses, you need to add those 
 
 ```cpp
 Status.Properties.Add(
-    TEXT("Prop"), 
+    TEXT("Prop"),
     5.0f)
 ```
 
@@ -142,12 +142,12 @@ Status.Properties.Add(
 
 ```cpp
 NSLOCTEXT(
-    "Game", 
-    "TextValue", 
+    "Game",
+    "TextValue",
     "My text")
 // ...
 Status.Properties.Add(
-    TEXT("Prop"), 
+    TEXT("Prop"),
     TEXT("Game_TextValue"))
 ```
 
@@ -163,7 +163,7 @@ Referring to it inside `NSLOCTEXT`/`FText` values
 
 ```cpp
 NSLOCTEXT(
-    "Game", 
+    "Game",
     "PresenceStatus",
     "My presence status with {Prop}")
 ```
@@ -173,8 +173,8 @@ NSLOCTEXT(
 
 ```cpp
 NSLOCTEXT(
-    "Game", 
-    "PresenceStatus", 
+    "Game",
+    "PresenceStatus",
     "My presence status with {Prop}")
 ```
 
