@@ -1,0 +1,13 @@
+import NodeRef from "@site/src/components/NodeRef";
+
+### 2026.05.28
+
+This release adds support for EOS SDK 1.19.0.7 and Unreal Engine 5.8 Preview 1:
+
+- Added support for EOS SDK 1.19.0.7.
+  - If you are using the Free Edition, you will need to update to this version of the EOS SDK.
+- Added support for Unreal Engine 5.8 Preview 1.
+  - Downloads for the 5.8 Preview are available via [the License Manager](https://licensing.redpoint.games/download) and GitLab; they will not be available on Fab until 5.8 stable.
+  - If you are currently using Unreal Engine 5.5, please note that Standard Support will no longer cover this engine version when Unreal Engine 5.8 has a stable release later this year. If you would like to continue using 5.5 beyond the release of 5.8, you will need to be covered under [a Premium Support plan](https://licensing.redpoint.games/support/plans).
+- Added the <NodeRef name="Get Dedicated Server Public Key" pure /> blueprint node, which can give you the public key on a dedicated server so you can send it to an external system that clients receive their connection information from. This is only necessary if you are not using EOS sessions or matchmaking functionality.
+- Further stability improvements to voice chat.
