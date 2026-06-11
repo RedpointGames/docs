@@ -15,13 +15,17 @@ When you first use EOS Online Framework, the API version for your project will a
 
 The date for an API version does not necessarily align with any specific plugin release, except that an API version will first appear in the plugin release with the same or next later date. Below is a list of API versions and the changes in each version.
 
+### 2026-02-04
+
+As of this API version, `externalAccount.epic.displayName` returns the unsanitized display name, and `externalAccount.epic.displayNameSanitized` should be used instead if being displayed to the user.
+
 ### 2023-10-27
 
-In this API version, IsPlayerMuted in voice chat only reports the local mute status of remote players instead of the remote mute status.
+As of this API version, IsPlayerMuted in voice chat only reports the local mute status of remote players instead of the remote mute status.
 
 ### 2022-10-28
 
-In this API version, the behaviour of `IOnlineAchievements::WriteAchievements` was changed to unlock achievements directly instead of just passing the call through to `IOnlineStats::UpdateStats`.
+As of this API version, the behaviour of `IOnlineAchievements::WriteAchievements` was changed to unlock achievements directly instead of just passing the call through to `IOnlineStats::UpdateStats`.
 
 ### 2022-05-20
 
@@ -29,7 +33,7 @@ Previously this API version introduced ID Token as the network authentication mo
 
 ### 2022-02-11
 
-In this API version, only non-full sessions are returned by default from session results. If you want to include full sessions, add a search filter for `"minslotsavailable" >= 0` (the default is now `"minslotsavailable" >= 1`).
+As of this API version, only non-full sessions are returned by default from session results. If you want to include full sessions, add a search filter for `"minslotsavailable" >= 0` (the default is now `"minslotsavailable" >= 1`).
 
 :::info
 API versions prior to 2022-02-11 have been removed as of 2022.03.29, as most of them related to functionality and legacy behaviour that has now been removed.

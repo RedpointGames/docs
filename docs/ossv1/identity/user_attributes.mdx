@@ -357,7 +357,7 @@ These attributes are accessible through `GetUserAttribute`.
                 All EOS accounts
             </td>
             <td valign="top">
-                The display name of the account on the specified external platform.
+                The display name of the account on the specified external platform. This display name should be considered "unsanitized", and may require filtering for bad words if the external platform does not already prevent people from setting their display name to inappropriate content.
             </td>
         </tr>
         <tr>
@@ -402,6 +402,116 @@ These attributes are accessible through `GetUserAttribute`.
             </td>
             <td valign="top">
                 The preferred language of the user. This may not be available for all accounts.
+            </td>
+        </tr>
+        <tr>
+            <td valign="top">
+                externalAccount.epic.displayNameSanitized
+            </td>
+            <td valign="top">
+                All EOS accounts that have <code>epic</code> in the <code>externalAccountTypes</code> attribute
+            </td>
+            <td valign="top">
+                The Epic Games display name sanitized for the current platform.
+            </td>
+        </tr>
+        <tr>
+            <td valign="top">
+                externalAccount.epic.displayNameUnsanitized
+            </td>
+            <td valign="top">
+                All EOS accounts that have <code>epic</code> in the <code>externalAccountTypes</code> attribute
+            </td>
+            <td valign="top">
+                The Epic Games display name without sanitization.
+            </td>
+        </tr>
+        <tr>
+            <td valign="top">
+                externalAccount.epic.best.displayName
+            </td>
+            <td valign="top">
+                All EOS accounts that have <code>epic</code> in the <code>externalAccountTypes</code> attribute
+            </td>
+            <td valign="top">
+                The best display name for this user, based on the current platform they are playing on, without sanitization.
+            </td>
+        </tr>
+        <tr>
+            <td valign="top">
+                externalAccount.epic.best.displayNameSanitized
+            </td>
+            <td valign="top">
+                All EOS accounts that have <code>epic</code> in the <code>externalAccountTypes</code> attribute
+            </td>
+            <td valign="top">
+                The best display name for this user, based on the current platform they are playing on, sanitized.
+            </td>
+        </tr>
+        <tr>
+            <td valign="top">
+                externalAccount.epic.best.nickname
+            </td>
+            <td valign="top">
+                All EOS accounts that have <code>epic</code> in the <code>externalAccountTypes</code> attribute
+            </td>
+            <td valign="top">
+                The best nickname for this user, based on the current platform they are playing on.
+            </td>
+        </tr>
+        <tr>
+            <td valign="top">
+                externalAccount.epic.best.platform
+            </td>
+            <td valign="top">
+                All EOS accounts that have <code>epic</code> in the <code>externalAccountTypes</code> attribute
+            </td>
+            <td valign="top">
+                The platform that the best display name and nickname are from; one of: `Epic`, `PSN`, `Nintendo`, `XBL`, `Steam` or `Unknown`.
+            </td>
+        </tr>
+        <tr>
+            <td valign="top">
+                externalAccount.epic.linkedAccountTypes
+            </td>
+            <td valign="top">
+                All EOS accounts that have <code>epic</code> in the <code>externalAccountTypes</code> attribute
+            </td>
+            <td valign="top">
+                A comma-separated list of platforms that the user's Epic Games account is linked with.
+            </td>
+        </tr>
+        <tr>
+            <td valign="top">
+                externalAccount.epic.linkedAccount.<code>platform</code>.id
+            </td>
+            <td valign="top">
+                All EOS accounts that have <code>epic</code> in the <code>externalAccountTypes</code> attribute
+            </td>
+            <td valign="top">
+                The ID of the platform account that the user's Epic Games account is linked with.
+            </td>
+        </tr>
+        <tr>
+            <td valign="top">
+                externalAccount.epic.linkedAccount.<code>platform</code>.displayName
+            </td>
+            <td valign="top">
+                All EOS accounts that have <code>epic</code> in the <code>externalAccountTypes</code> attribute
+            </td>
+            <td valign="top">
+                The display name of the platform account that the user's Epic Games account is linked with.
+            </td>
+        </tr>
+        <tr>
+            <td valign="top">
+                externalAccount.epic.linkedAccount.<code>platform</code>.displayNameSanitized
+            </td>
+            <td valign="top">
+                All EOS accounts that have <code>epic</code> in the <code>externalAccountTypes</code> attribute
+            </td>
+            <td valign="top">
+                The display name of the platform account that the user's Epic Games account is linked with, sanitized.
             </td>
         </tr>
         <tr>
