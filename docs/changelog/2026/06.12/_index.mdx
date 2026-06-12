@@ -1,0 +1,13 @@
+import NodeRef from "@site/src/components/NodeRef";
+
+### 2026.06.12
+
+This release adds support for EOS SDK 1.19.1.2:
+
+- Added support for EOS SDK 1.19.1.2.
+  - If you are using the Free Edition, you will need to update to this version of the EOS SDK.
+- Added the `SkipWaitForRemoteAuthComplete` INI setting which can be used to bypass the wait for `RemoteAuthComplete` when using Easy Anti-Cheat. This drastically reduces the time taken to connect to Anti-Cheat connected servers, at the cost that connecting players may initially be cheating. Game servers can use the new <NodeRef name="Get Remote Player Anti-Cheat Status" pure /> blueprint node to check whether a player has finished Anti-Cheat verification, and restrict certain game actions until they have done so.
+- The plugin now detects the system default input audio device (e.g. microphone) and uses that as the default input device for players in voice chat, instead of defaulting to the first available input device.
+- Fixed an issue where EAC would timeout when a trusted client was hosting the game.
+- Fixed a crash that could occur during packaging due to a missing check for `RF_ArchetypeObject` on voice chat components.
+- Removed the `REDPOINT_EOS_UE_CHANGELIST` and `REDPOINT_EOS_UE_COMPATIBLE_CHANGELIST` macros which caused the plugin to require a rebuild every time the engine was updated from Perforce.
