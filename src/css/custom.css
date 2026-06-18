@@ -146,3 +146,9 @@ select.input {
 .navbar__item {
   white-space: nowrap;
 }
+
+.force-wrap code[class*="language-"],
+.force-wrap pre[class*="language-"] {
+  white-space: pre-wrap !important;
+  word-break: break-word !important;
+}
