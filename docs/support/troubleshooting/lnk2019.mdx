@@ -1,0 +1,10 @@
+---
+title: "'LNK2019: unresolved external symbol' error"
+description: Learn how to fix LNK2019 when compiling the plugin.
+---
+
+If you are encountering the following error while building the plugin, you need to relocate your game project and Unreal Engine so that they're on the same drive:
+
+```
+LNK2019: unresolved external symbol "public: cdecl TMap<class UE::Online::TOnlineId<struct UE::Online::OnlineIdHandleTags::FAccount>,class FString,class FDefaultSetAllocator,struct TDefaultMapHashableKeyFuncs<class UE::Online::TOnlineId<struct UE::Online::OnlineIdHandleTags::FAccount>,class FString,0> >::TMap<class UE::Online::TOnlineId<struct UE::Online::OnlineIdHandleTags::FAccount>,class FString,class FDefaultSetAllocator,struct TDefaultMapHashableKeyFuncs<class UE::Online::TOnlineId<struct UE::Online::OnlineIdHandleTags::FAccount>,class FString,0> >(void)" (??0?$TMap@V?$TOnlineId@UFAccount@OnlineIdHandleTags@Online@UE@@@Online@UE@@VFString@@VFDefaultSetAllocator@@U?$TDefaultMapHashableKeyFuncs@V?$TOnlineId@UFAccount@OnlineIdHandleTags@Online@UE@@@Online@UE@@VFString@@$0A@@@@@QEAA@XZ) referenced in function "public: virtual class File4071280369_Redpoint::EOS::Async::TTask<struct File4158978016_Redpoint::EOS::VoiceChat::FVoiceChatCreatedAuthenticationTokens,0> cdecl File1395847802_Redpoint::EOS::VoiceChat::FVoiceChatSystemGameImpl::CreateUnmanagedChannelAuthenticationTokens(class FString,class TArray<class UE::Online::TOnlineId<struct UE::Online::OnlineIdHandleTags::FAccount>,class TSizedDefaultAllocator<32> >)" (?CreateUnmanagedChannelAuthenticationTokens@FVoiceChatSystemGameImpl@VoiceChat@EOS@File1395847802_Redpoint@@UEAA?AV?$TTask@UFVoiceChatCreatedAuthenticationTokens@VoiceChat@EOS@File4158978016_Redpoint@@$0A@@Async@3File4071280369_Redpoint@@VFString@@V?$TArray@V?$TOnlineId@UFAccount@OnlineIdHandleTags@Online@UE@@@Online@UE@@V?$TSizedDefaultAllocator@$0CA@@@@@@Z)
+```

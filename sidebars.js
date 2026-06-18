@@ -64,6 +64,7 @@ module.exports = {
         "support/troubleshooting/room_transactions_throttled",
         "support/troubleshooting/netdrivers_oculusxr",
         "support/troubleshooting/linux_editor",
+        "support/troubleshooting/lnk2019",
       ],
     },
     "support/blueprints_only",
