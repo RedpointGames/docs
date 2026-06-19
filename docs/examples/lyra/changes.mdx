@@ -1,0 +1,20 @@
+---
+title: Compatibility changes in Lyra for Redpoint EOS
+description: Learn about the configuration and code changes you need to use Redpoint EOS with Lyra.
+---
+
+If you are adopting Redpoint EOS into an existing Lyra project, or you're using a newer version of Lyra than what we have available in our example repository, you may need to apply the following code and configuration changes to make things work correctly:
+
+# Turn off beacon usage
+
+Lyra makes some assumptions about beacons that are specific to the Epic EOS plugin implementation. You need to turn them off in order for connections to work with Redpoint EOS.
+
+In your `DefaultEngine.ini` file:
+
+```
+[/Script/CommonUser.CommonSessionSubsystem]
+bUseBeacons=false
+
+[/Script/OnlineSubsystemUtils.PartyBeaconHost]
+bIsValidationStrRequired=false
+```

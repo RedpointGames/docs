@@ -10,7 +10,12 @@ module.exports = {
         "examples/minute/player-preferences",
       ],
     },
-    "examples/lyra",
+    {
+      type: "category",
+      label: "Lyra",
+      link: { type: "doc", id: "examples/lyra/index" },
+      items: ["examples/lyra/changes"],
+    },
   ],
   framework: [
     "framework/index",
