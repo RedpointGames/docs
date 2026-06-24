@@ -53,7 +53,6 @@ module.exports = {
     "support/clone_from_gitlab",
     "support/migrate",
     "support/engine_support_policy",
-    "support/legacy_engine_versions",
     {
       type: "category",
       label: "Troubleshooting",
