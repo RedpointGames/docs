@@ -37,3 +37,20 @@ When you are developing, you'll still see `scope_consent_required` and the web b
 The Epic Games Store only implicitly grants access to scopes when a user purchases or claims a game on the Epic Games Store. It does not implicitly grant permission when redeeming a key or logging in from outside the Epic Games Store.
 
 It is normal and expected to see the web browser prompt for permissions during development and release, based on how users purchased your game.
+
+## Testing cross-play on the Epic Games Store
+
+When you configure your product for the Epic Games Store in the developer portal, you will have the additional "Dev" and "Stage" sandboxes. By default, when you launch your Dev/Stage game on EGS, it will run in the applicable sandbox. This allows you to test things like Epic Games Store achievements before they're pushed to the Live environment on the Epic Games Store.
+
+However, all other platforms always use the Live environment, even when you're testing development builds. If you launch your game on Steam, and the "Dev" version of your game on EGS, you won't be able to test cross-play because they're running in different sandboxes in the developer portal.
+
+To temporarily test cross-play functionality, you should turn on the following setting in `DefaultEngine.ini`:
+
+```ini
+[EpicOnlineServices]
+IgnoreCommandLineSandboxAndDeployment=True
+```
+
+When this option is turned on, your game will always run in the Live sandbox, even when you launch the "Dev" or "Stage" build in the Epic Games Store. This allows you to test cross-play, but means you will be unable to test Epic Games Store achievements.
+
+Once you have finished testing cross-play, you should turn this option off again in the final build of your game for the Epic Games Store.
