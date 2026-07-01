@@ -42,3 +42,7 @@ This can return a None object temporarily if the player was kicked from their pr
 You can change the size of the party, if you are the party leader, by using the <NodeRef name="Update Party" /> blueprint node.
 
 <Blueprint height="800px" blueprint={bpUpdatePartySize} />
+
+## Toggle voice chat for automatic parties at runtime
+
+If you have enabled voice chat in automatic parties, you can later turn voice chat on and off for the primary party by using the <NodeRef name="Set Party Voice Chat Enabled" /> blueprint node. You can check if voice chat is enabled for the primary party by using the <NodeRef name="Is Voice Chat Enabled in Primary Party?" pure /> blueprint node.

@@ -57,6 +57,10 @@ AsCallback(
     [](int32 Result)
     {
         // Use 'Result' on potentially a different frame.
+    },
+    []
+    {
+        // The task was cancelled, and no result is available.
     });
 ```
 
@@ -127,7 +131,7 @@ TTask<int32> FMySharedObject::AnotherAsyncFunction(FString Hello)
 }
 ```
 
-In the cases above, if `AMyActor` is garbage collected, or `FMySharedObject` is released, then the asynchronous functions will not continue past the `co_await`. Effectively, if the object the asynchronous function is associated with is released, the asynchronous functions stop running the next time they are able and will never return. Any code that is `co_await`ing a task returned by a released object will never continue either.
+In the cases above, if `AMyActor` is garbage collected, or `FMySharedObject` is released, then the asynchronous functions will not continue past the `co_await`, and the returned task will be [cancelled](#understanding-cancellation).
 
 :::warning
 All functions that use `co_await` must pass parameters by value. You can not pass by `const&`, as only the reference will be captured for the asynchronous stack frame, and not the value. You will receive a compiler error if you try to use `co_await` in a function with a `const&` parameter.
@@ -223,3 +227,144 @@ If the caller of an asynchronous function is running on a thread other than the 
 
 This is because `FCurrentThreadTaskPolicy` does not know how to resume work on threads other than the game thread or worker pool (see the `FCurrentThreadTaskPolicy::RunOnDesiredThread` implementation). If you require support for other types of threads, please let support know and we will update `FCurrentThreadTaskPolicy::RunOnDesiredThread` to support your use case.
 :::
+
+## Understanding cancellation
+
+There are two methods by which an asynchronous function can be cancelled:
+
+- Imposed cancellation, when an asynchronous function is running in the context of a `UObject` or `TSharedFromThis`, and the object that the `this` pointer refers to is garbage collected or released from memory.
+- Requested cancellation, when you call `RequestCancellation()` on a `TTask<>`.
+
+### Cancellation propagation
+
+When a task is cancelled, cancellation propagates upwards until the nearest `AsCallback` or `AsPotentiallyCancelled` is called. Consider the following code:
+
+```cpp
+TTask<void, ETaskBinding::Static> C()
+{
+    co_await Delay(0.1f);
+    co_return;
+}
+
+TTask<void, ETaskBinding::Static> B()
+{
+    co_return co_await C();
+}
+
+TTask<void, ETaskBinding::Static> A()
+{
+    co_return co_await B();
+}
+
+void SomeFunction()
+{
+    TTask<void> Task = A();
+    Task.RequestCancellation();
+
+    Task.IsCancelled(); // this will return true
+}
+```
+
+When this code runs, `C` will detect the requested cancellation after the first `co_await` point. Cancellation will then propagate back through `B` and `A`, and the `Task` will be marked as cancelled.
+
+When an asynchronous function is cancelled, it and any functions that are currently awaiting it (directly or indirectly) no longer continue running.
+
+### Checking if a task has finished with either a result or cancellation
+
+To determine if a task has finished (either with a result or cancellation), use the following check:
+
+```cpp
+if (Task.HasResult() || Task.IsCancelled())
+{
+    // Task is no longer running.
+}
+```
+
+### Gracefully handling cancellation inside asynchronous funcitons
+
+You can use `AsPotentiallyCancelled` if you need to gracefully handle cancellation from an awaited asynchronous function:
+
+```cpp
+TTask<FString, ETaskBinding::Static> FunctionThatMightBeCancelled()
+{
+    // Some co_await points that might result in cancellation.
+
+    co_return TEXT("Hello World");
+}
+
+TTask<FString, ETaskBinding::Static> FunctionThatHandlesCancellation()
+{
+    TOptional<FString> MaybeString = co_await AsPotentiallyCancelled(
+        FunctionThatMightBeCancelled());
+    if (MaybeString.IsSet())
+    {
+        // FunctionThatMightBeCancelled ran to completion.
+        co_return MaybeString.GetValue();
+    }
+    else
+    {
+        // FunctionThatMightBeCancelled was cancelled.
+        co_return TEXT("Some Default Value");
+    }
+}
+```
+
+When using `AsPotentiallyCancelled` with `TTask<void>`, compare the result with `EVoidPotentiallyCancelled` instead:
+
+```cpp
+TTask<void, ETaskBinding::Static> FunctionThatMightBeCancelled()
+{
+    // Some co_await points that might result in cancellation.
+
+    co_return;
+}
+
+TTask<void, ETaskBinding::Static> FunctionThatHandlesCancellation()
+{
+    EVoidPotentiallyCancelled Status = co_await AsPotentiallyCancelled(
+        FunctionThatMightBeCancelled());
+    if (Status == EVoidPotentiallyCancelled::Returned)
+    {
+        // FunctionThatMightBeCancelled ran to completion.
+        co_return;
+    }
+    else if (Status == EVoidPotentiallyCancelled::Cancelled)
+    {
+        // FunctionThatMightBeCancelled was cancelled.
+        co_return;
+    }
+}
+```
+
+:::danger
+Always prefer `AsPotentiallyCancelled` over `AsCallback` if you are writing an asynchronous function.
+
+`AsCallback` should only be used when you need to call an asynchronous function from synchronous code. When you use `AsCallback`, a call to `RequestCancellation()` can't propagate cancellation down into the code that `AsCallback` is waiting for, because `AsCallback` does not expect to run in an asynchronous context.
+
+In contrast, when you `co_await AsPotentiallyCancelled(...)`, requested cancellation can be propagated into the task that `AsPotentiallyCancelled` is waiting on, because `AsPotentiallyCancelled` is used with the `co_await` operator.
+:::
+
+### Detecting cancellation requests for deferred tasks
+
+If you have created a deferred task with `TTask<...>::Deferred()`, you can handle requests to cancel by assigning a callback to `OnCancellationRequested`. For example, the implementation of `Delay` uses this to cancel the delay early:
+
+```cpp
+TTask<void> Delay(float Seconds)
+{
+    auto Deferred = TTask<void>::Deferred();
+    auto Handle = FTSTicker::GetCoreTicker().AddTicker(
+        FTickerDelegate::CreateLambda([Deferred](float) -> bool {
+            if (!Deferred.IsCancelled())
+            {
+                Deferred.SetValue();
+            }
+            return false;
+        }),
+        Seconds);
+    Deferred.OnCancellationRequested([Deferred, Handle]() {
+        FTSTicker::GetCoreTicker().RemoveTicker(Handle);
+        Deferred.SetCancelled();
+    });
+    return Deferred;
+}
+```

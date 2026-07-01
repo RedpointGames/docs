@@ -1,0 +1,17 @@
+import NodeRef from "@site/src/components/NodeRef";
+
+### 2026.07.01
+
+This release adds experimental support for Unreal Engine 6.0 and fixes several issues:
+
+- Added experimental support for the Unreal Engine 6.0 development branch.
+  - As this support is experimental, bug reports and feature requests that affect Unreal Engine 6.0 are not accepted at this time under Standard Support.
+- Added support for [cancelling asynchronous functions](../../../systems/async.md#understanding-cancellation).
+- Added the `-NoEOSNetDriver` option which can be used to test networking without the EOS net driver. This option is intended for debugging, and should not be used in production.
+- Added the <NodeRef name="Set Party Voice Chat Enabled" /> and <NodeRef name="Is Voice Chat Enabled in Primary Party?" pure /> blueprint nodes to the "Redpoint Local Player Subsystem".
+  - These nodes can be used to toggle party voice chat at runtime, and are intended to be used to turn off party voice chat when joining a multiplayer server that uses proximity voice chat, and to turn party voice chat back on when returning to the main menu.
+- Fixed an issue where automatic encryption would prevent testing multiplayer games under Gauntlet.
+- Fixed a very rare scenario where launching a game in response to a party invite could result in the party being joined and then replaced with a new party.
+- Fixed a potential crash when network connections were garbage collected.
+- Fixed a warning about a missing dependency on the `VoiceChat` plugin in Unreal Engine 5.8.
+- Fixed an issue where voice chat anchor point components would not deregister themselves from the voice chat subsystem immediately upon destruction, but would instead linger around until they were garbage collected. They are now correctly deregistered from the subsystem when the owning actor is destroyed.
