@@ -1,0 +1,16 @@
+import NodeRef from "@site/src/components/NodeRef";
+
+### 2026.07.10
+
+This release fixes several issues:
+
+- Added the "Silenced when no Anchor Point" setting to voice chat components, which configures whether or not voice chat audio from a player is silenced when they are no longer possessing a pawn, or whether voice chat audio is anchored to the player state instead.
+- Added `FExecuteOnCancellation` which can be used to register asynchronous cleanup code to run when an asynchronous function is cancelled via imposed or requested cancellation.
+- The plugin now automatically applies the [required configuration changes](../../../examples/lyra/changes.mdx) for Lyra projects.
+- Fixed linker errors when compiling for Linux caused by explicit template instantiation semantics on Clang.
+- Fixed an issue where voice chat anchor points would not be recomputed correctly when player characters die and respawn.
+- Fixed an issue when fetching DLC on Steam when inventory is enabled but no inventory items are defined.
+- Fixed a compilation error when building dedicated servers.
+- Fixed a possible crash during cook when the plugin and engine versions are mismatched on the patch version.
+- Fixed a hitch that could occur when plugging in a headset on console platforms due to audio device polling.
+- Improved stability of proximity voice chat.
