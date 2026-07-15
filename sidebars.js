@@ -70,6 +70,7 @@ module.exports = {
         "support/troubleshooting/netdrivers_oculusxr",
         "support/troubleshooting/linux_editor",
         "support/troubleshooting/lnk2019",
+        "support/troubleshooting/oodle",
       ],
     },
     "support/blueprints_only",

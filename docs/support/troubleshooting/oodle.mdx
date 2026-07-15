@@ -1,0 +1,32 @@
+---
+title: Multiplayer games fail to connect when Oodle Network Compression is enabled
+description: Learn how to fix issues with Oodle Network Compression.
+---
+
+The engine currently has a bug where the packet handler for Oodle Network Compression does not zero out the remaining buffer after shrinking the network packet in place.
+
+The default stateless packet handler masks this issue by re-allocating network buffers. However, Redpoint EOS disables the default stateless packet handler because it is not compatible with the EOS P2P implementation.
+
+Therefore, until Epic Games fixes the issue in the engine, if you want to use Oodle Network Compression with the Redpoint EOS plugin, you need to apply the following change to the `OodleNetworkHandlerComponent` implementation in the engine source code:
+
+```cpp
+void OodleNetworkHandlerComponent::Outgoing(FBitWriter& Packet, FOutPacketTraits& Traits)
+{
+    // ...
+
+    Packet.SetNumBits((ExtraBytes + CompressedBytes) * 8);
+
+    // FIX BEGINS
+    if (NewPacketByteCount < UncompressedBytes)
+    {
+        FMemory::Memzero(Packet.GetData() + NewPacketByteCount, UncompressedBytes - NewPacketByteCount);
+    }
+    // FIX ENDS
+
+    #if STATS
+    GOodleNetStats.OutgoingStats(CompressedBytes, UncompressedBytes);
+    #endif
+
+    // ...
+}
+```
