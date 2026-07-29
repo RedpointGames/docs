@@ -1,0 +1,15 @@
+import NodeRef from "@site/src/components/NodeRef";
+
+### 2026.07.29
+
+This release fixes several issues:
+
+- Improved reliability of itch.io authentication by switching to new API endpoints that itch.io has made available.
+- Fixed an issue where voice chat components could be accessed in a thread-unsafe way when adding components internally.
+- Fixed an issue where querying friend leaderboards did not include the local player in the leaderboard results.
+- Fixed a compilation error when building dedicated servers.
+- Fixed a compilation warning regarding usage of the deprecated `PLATFORM_64BITS` macro on Windows.
+- Fixed a compilation warning regarding an unreachable return in `FAppleRuntimePlatformVoiceChatService`.
+- Fixed a nullable usage warning in `RedpointEOSBuild.Build.cs`
+- If a global leaderboard query fails, the name of the queried leaderboard is now logged in the error message.
+- Internal improvements to the room system to support joining groups of players to lobbies and sessions in a transactionally consistent way. These changes support ongoing work to [improve the sessions implementation](https://redpoint.games/blog/2024/09/eos-upcoming-changes-to-sessions/).
