@@ -1,0 +1,14 @@
+import NodeRef from "@site/src/components/NodeRef";
+
+### 2026.08.13
+
+This release fixes several issues:
+
+- Improved support for console platforms, including scenarios where online play is restricted due to platform policies.
+- Added the <NodeRef name="Is Voice Chat Enabled" pure />, <NodeRef name="Is Voice Chat Disabled by Platform Override" pure /> and <NodeRef name="Set Voice Chat Enabled" /> blueprint nodes to control whether voice chat is enabled globally for a local player.
+  - This can be used to simplify push-to-talk implementations.
+  - Turning off voice chat does not remove the player from the underlying RTC room. Instead, it causes microphone data to cease being sent, and it silences audio received from other players. This ensures that toggling voice chat for push-to-talk scenarios is responsive.
+- Fixed a potential crash in the editor if play-in-editor was stopped while the cross-platform presence lobby was in the process of being created.
+- Fixed an issue where increasing volume above 100% could cause audio data to clip.
+- Fixed a memory leak when processing audio data for voice chat.
+- Fixed a deprecation warning when compiling for Unreal Engine 5.8.
