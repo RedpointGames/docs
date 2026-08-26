@@ -1,0 +1,28 @@
+---
+title: Performance degrades over time for players with multiple audio output devices
+description: Learn how to fix performance issues for players with multiple audio output devices.
+---
+
+The engine currently has a bug where it does not correctly release device handles in the XAudio2 implementation when audio output devices are polled. The plugin regularly polls audio output devices so that it can keep the list of devices up-to-date for proximity voice chat.
+
+Until Epic Games fixes the issue in the engine, you must apply the following fix to ensure that registry handles do not continue to increase over time. In the `FMixerPlatformXAudio2::GetOutputDeviceInfo` implementation inside `Engine\Source\Runtime\Windows\AudioMixerXAudio2\Private\AudioMixerPlatformXAudio2.cpp`, change the cleanup logic from:
+
+```cpp
+    Cleanup:
+        SAFE_RELEASE(Device);
+        SAFE_RELEASE(DeviceCollection);
+        SAFE_RELEASE(DeviceEnumerator);
+```
+
+to:
+
+```cpp
+    Cleanup:
+        if (Device != DefaultDevice)
+        {
+            SAFE_RELEASE(DefaultDevice);
+        }
+        SAFE_RELEASE(Device);
+        SAFE_RELEASE(DeviceCollection);
+        SAFE_RELEASE(DeviceEnumerator);
+```

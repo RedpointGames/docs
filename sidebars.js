@@ -52,6 +52,7 @@ module.exports = {
     "support/index",
     "support/clone_from_gitlab",
     "support/migrate",
+    "checklist/index",
     "support/engine_support_policy",
     {
       type: "category",
@@ -63,14 +64,11 @@ module.exports = {
         "support/troubleshooting/windows",
         "support/troubleshooting/macos",
         "support/troubleshooting/dynamicconfiglayer",
-        "support/troubleshooting/steamcrash",
-        "support/troubleshooting/steaminvite",
         "support/troubleshooting/anticheat",
         "support/troubleshooting/room_transactions_throttled",
         "support/troubleshooting/netdrivers_oculusxr",
         "support/troubleshooting/linux_editor",
         "support/troubleshooting/lnk2019",
-        "support/troubleshooting/oodle",
       ],
     },
     "support/blueprints_only",
@@ -346,5 +344,19 @@ module.exports = {
       ],
     },
     "setup/next_steps",
+  ],
+  checklist: [
+    "checklist/index",
+    {
+      type: "category",
+      label: "Engine patches",
+      collapsed: false,
+      items: [
+        "checklist/engine/audiooutput",
+        "checklist/engine/steamcrash",
+        "checklist/engine/steaminvite",
+        "checklist/engine/oodle",
+      ],
+    },
   ],
 };

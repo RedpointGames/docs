@@ -106,6 +106,12 @@ module.exports = {
             },
             {
               type: "doc",
+              docId: "checklist/index",
+              label: "📋 Release checklist",
+              hint: "What to know before you ship your game.",
+            },
+            {
+              type: "doc",
               docId: "support/index",
               label: "🛟 Support",
               hint: "How to get help when things aren't working.",

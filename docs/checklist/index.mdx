@@ -1,0 +1,29 @@
+---
+title: Release checklist
+description: Engine patches you need to apply before shipping your game.
+---
+
+This document outlines the steps you should take before you release your game.
+
+## Apply engine patches
+
+While we aim to workaround what we can at the plugin level, there are some bugs in Unreal Engine that can only be fixed by modifying the engine source code. You should apply the following fixes to the engine before you ship your game.
+
+### Engine fixes you must always apply
+
+You must always apply the following engine fixes:
+
+- [Performance degrades over time for players with multiple audio output devices](./engine/audiooutput.mdx)
+
+### If you are releasing on Steam
+
+There are known issues in Epic's implementation of Steam, which we currently rely on. You should apply the following fixes if you are releasing your game on Steam:
+
+- [Startup crash in Shipping builds running on Steam](./engine/steamcrash.mdx)
+- [EOS session or party not found when accepting Steam invite](./engine/steaminvite.mdx)
+
+### If you have Oodle network compression enabled
+
+The Oodle network compression implementation in the engine does not correctly zero out trailing bytes after compressing packet data. You should apply the following fix if you are using Oodle network compression:
+
+- [Multiplayer games fail to connect when Oodle Network Compression is enabled](./engine/oodle.mdx)
