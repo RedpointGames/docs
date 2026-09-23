@@ -1,6 +1,6 @@
 import NodeRef from "@site/src/components/NodeRef";
 
-### 2026.08.23
+### 2026.09.23
 
 This release adds support for EOS SDK 1.19.2.1:
 
@@ -9,4 +9,4 @@ This release adds support for EOS SDK 1.19.2.1:
 - Fixed an issue where filtering sessions by bucket would not work correctly if a different casing of `bucket` had already been cached as an `FName` by the engine.
 - Updated the `IIdentityHook` API to use `TTask<>` instead of callbacks.
 - Updated the identity system to track changes to platform users, and to use `FPlatformUserId` instead of `int32`.
-- Optimize dispatch buffer usage for voice chat audio
+- Optimized memory usage for voice chat audio.
