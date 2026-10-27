@@ -1,0 +1,12 @@
+import NodeRef from "@site/src/components/NodeRef";
+
+### 2026.10.27
+
+This release fixes several issues and adds support for authenticating split-screen players:
+
+- Split-screen players can now be authenticated by servers by adding `AllowUnauthenticatedSplitScreenPlayers=False` to your engine INI file. This setting is currently opt-in as it will prevent split-screen players being used on platforms like Steam, which only support having a single player signed in at a time.
+- Fixed a crash when inviting friends to an invalid session.
+- Fixed a crash when a voice chat component is destroyed while running a hard mute operation.
+- Fixed a crash in development when a player signs out and in rapidly across presence system updates.
+- Improved performance of async task library when coroutines suspend.
+- Removed support for Unreal Engine 5.5.

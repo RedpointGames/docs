@@ -35,11 +35,35 @@ FPlatformHandle PlatformHandle; // e.g. obtained from the online subsystem.
 auto Identity = PlatformHandle->GetSystem<IIdentitySystem>();
 ```
 
+## The FIdentityUserSlot type
+
+This type represents a local "slot" that can be signed into. Slots are typically associated with controllers on console platforms, and are associated with one or more input devices.
+
+Previously, APIs would accept `FPlatformUserId` or `int32` values to indicate the local user. To reduce ambiguity, all identity APIs now use `FIdentityUserSlot` to indicate the local user that is being acted upon.
+
+There are multiple ways to get an `FIdentityUserSlot`:
+
+- Instantiate one explicitly by passing an `FPlatformUserId` to the constructor of `FIdentityUserSlot`.
+  - You can get the primary `FPlatformUserId` through `IPlatformInputDeviceMapper`. A complete example is shown below.
+- List all of the available local user slots by calling `Identity->GetUserSlots()`.
+
+### Getting the user slot for the primary user
+
+To get an `FIdentityUserSlot` for the primary user of the game:
+
+```cpp
+#include "GenericPlatform/GenericPlatformInputDeviceMapper.h"
+#include "RedpointEOSIdentity/IdentityUserSlot.h"
+
+FIdentityUserSlot PrimaryUserSlot = FIdentityUserSlot(
+    IPlatformInputDeviceMapper::Get().GetPrimaryPlatformUser());
+```
+
 ## The FIdentityUser type
 
 When users are signed into Epic Online Services, the identity system APIs will return shared references to `FIdentityUser` instances, which provide the following information:
 
-- `GetUserSlot`: The local "slot" that this user is signed into, commonly also known as the "controller index". The "user slot" is only used for games which support multiple local players.
+- `GetUserSlot`: The local "slot" that this user is signed into, commonly also known as the "controller index". The "user slot" is only used for games which support multiple local players. This is now represented with the `FIdentityUserSlot` type.
 - `GetUserId`: The ID of the user that this `FIdentityUser` instance represents. The `FIdentityUserId` type is an alias of `UE::Online::FAccountId`, so you can use the [documented user ID functions](./user_id.md) to convert the user ID returned from this function to and from various types (including serializing and deserializing to string values).
 - `GetRefreshCallback`: The delegate which will refresh authentication with the EOS backend when the current login token expires. The identity system internally uses this to keep local players signed in, and you should not need to call it yourself.
 - `GetExternalCredentials`: If this user was authenticated using a local platform such as Steam, the `IOnlineExternalCredentials` instance returned by this function contains metadata about that external authentication, including the underlying token and attributes used to authenticate.
@@ -57,26 +81,43 @@ To sign a local player into Epic Online Services, use `IIdentitySystem::Login` l
 
 ```cpp
 Identity->Login(
-    FLoginRequest(0 /* user slot / controller index */)
+    FLoginRequest(/* FIdentityUserSlot representing the local user to sign in */)
     IIdentitySystem::FOnLoginComplete::CreateSPLambda(this, [this](FError ErrorCode, FIdentityUserPtr NewUser) {
         if (ErrorCode.WasSuccessful())
         {
             // NewUser is valid.
         }
     }));
+
+// or...
+
+auto Result = co_await Identity->Login(
+    FLoginRequest(/* FIdentityUserSlot representing the local user to sign in */));
+if (Result.ErrorCode.WasSuccessful())
+{
+    // Result.NewUser is valid.
+}
 ```
 
 If you've written a custom authentication graph, and you need to pass in `Type`, `Id` or `Token` for `FAuthenticationGraphState::ProvidedCredentials`, use the variant of the `FLoginRequest` contructor that passes these values:
 
 ```cpp
 Identity->Login(
-    FLoginRequest(0, TEXT("Type"), TEXT("Id"), TEXT("Token"))
+    FLoginRequest(/* ... */, TEXT("Type"), TEXT("Id"), TEXT("Token"))
     IIdentitySystem::FOnLoginComplete::CreateSPLambda(this, [this](FError ErrorCode, FIdentityUserPtr NewUser) {
         if (ErrorCode.WasSuccessful())
         {
             // NewUser is valid.
         }
     }));
+
+// or...
+
+auto Result = co_await Identity->Login(FLoginRequest(/* ... */, TEXT("Type"), TEXT("Id"), TEXT("Token")));
+if (Result.ErrorCode.WasSuccessful())
+{
+    // Result.NewUser is valid.
+}
 ```
 
 ## Signing a local user out
@@ -85,13 +126,22 @@ To sign a local player out of Epic Online Services, use `IIdentitySystem::Logout
 
 ```cpp
 Identity->Logout(
-    FLogoutRequest(0 /* user slot / controller index */)
+    FLogoutRequest(/* FIdentityUserSlot representing the local user to sign out */)
     IIdentitySystem::FOnLogoutComplete::CreateSPLambda(this, [this](FError ErrorCode) {
         if (ErrorCode.WasSuccessful())
         {
             // Local user was signed out.
         }
     }));
+
+// or...
+
+FError ErrorCode = co_await Identity->Logout(
+    FLogoutRequest(/* FIdentityUserSlot representing the local user to sign out */));
+if (ErrorCode.WasSuccessful())
+{
+    // Local user was signed out.
+}
 ```
 
 ## Getting notified when local users sign in and out
@@ -120,6 +170,8 @@ FDelegateHandle Handle = Identity->OnUserSlotChanged().AddSPLambda(this, [this](
     //                   local platform account to a cross-platform (Epic Games) account. When the change reason is
     //                   ExplicitLink, the old and new slot state will both be SignedIn and the old and new user ID
     //                   will be identical.
+    //   - PlatformUserConnected: An input device was connected and this user slot is now available to login.
+    //   - PlatformUserDisconnected: An input device was disconnected and this user slot is no longer available.
 });
 
 // Later, when you no longer need to receive event notifications:
@@ -131,7 +183,7 @@ Identity->OnUserSlotChanged().Remove(Handle);
 To get the currently signed in user for a user slot (controller index), use `IIdentitySystem::GetUser(FIdentityUserSlot)`:
 
 ```cpp
-FIdentityUserPtr LocalUser = Identity->GetUser(0 /* user slot / controller index */);
+FIdentityUserPtr LocalUser = Identity->GetUser(/* FIdentityUserSlot */);
 // @note: LocalUser may be nullptr if there is no user signed into that user slot / controller index.
 ```
 
@@ -150,6 +202,14 @@ To get all users that are currently signed in, use `IIdentitySystem::GetUsers`:
 
 ```cpp
 TArray<FIdentityUserRef> LocalUsers = Identity->GetUsers();
+```
+
+## Getting all available user slots
+
+To get a list of all available user slots (mapped to input devices that someone could interact with), use `IIdentitySystem::GetUserSlots`:
+
+```cpp
+TSet<FIdentityUserSlot> LocalUsers = Identity->GetUserSlots();
 ```
 
 ## Hooking into the identity system
